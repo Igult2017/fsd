@@ -2,28 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { 
   Camera, 
   TrendingUp, 
-  BarChart2, 
-  Brain, 
-  Target, 
-  ShieldCheck,
+  BarChart3, 
+  BrainCircuit, 
+  Compass,
   ChevronRight,
   ChevronLeft,
   Save,
   Zap,
   Activity,
   History,
-  Layout,
+  LayoutGrid,
   MousePointer2,
   Gauge,
   Clock,
   AlertTriangle,
   RefreshCcw,
   CheckCircle2,
-  DollarSign,
-  Calendar,
-  Timer,
+  Target,
   Trash2,
-  RotateCcw
+  RotateCcw,
+  ZapOff,
+  LineChart,
+  Boxes,
+  Microscope,
+  Workflow
 } from 'lucide-react';
 
 const INITIAL_FORM_STATE = {
@@ -141,10 +143,10 @@ const App = () => {
   const nextStep = () => setStep(s => Math.min(3, s + 1));
   const prevStep = () => setStep(s => Math.max(1, s - 1));
 
-  const SectionHeader = ({ icon: Icon, title }) => (
+  const SectionHeader = ({ icon: Icon, title, color = "blue" }) => (
     <div className="flex items-center gap-3 mb-6">
-      <div className="p-2 bg-blue-500/10 rounded-lg">
-        <Icon className="w-5 h-5 text-blue-400" />
+      <div className={`p-2 bg-${color}-500/10 rounded-lg`}>
+        <Icon className={`w-5 h-5 text-${color}-400`} />
       </div>
       <h3 className="text-[11px] font-bold text-slate-200 uppercase tracking-widest">
         {title}
@@ -209,29 +211,35 @@ const App = () => {
         <div className="md:w-72 bg-slate-950/40 p-8 border-r border-slate-800 flex flex-col justify-between shrink-0">
           <div>
             <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                <History className="text-white w-6 h-6" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 relative group overflow-hidden">
+                <Workflow className="text-white w-6 h-6 z-10" />
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <h1 className="text-xl font-extrabold tracking-tighter text-white">TRD.LOG</h1>
             </div>
 
-            <nav className="space-y-2">
+            <nav className="space-y-3">
               {[
-                { id: 1, label: 'Core Data', icon: BarChart2 },
-                { id: 2, label: 'Environment', icon: TrendingUp },
-                { id: 3, label: 'Advanced Metrics', icon: Target },
+                { id: 1, label: 'Core Data', icon: LineChart, color: 'blue' },
+                { id: 2, label: 'Environment', icon: Compass, color: 'indigo' },
+                { id: 3, label: 'Advanced Metrics', icon: Microscope, color: 'violet' },
               ].map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setStep(item.id)}
-                  className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold transition-all ${
+                  className={`w-full group relative flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold transition-all overflow-hidden ${
                     step === item.id 
                     ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' 
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
                   }`}
                 >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
+                  <div className={`relative z-10 p-1 rounded-lg transition-colors ${step === item.id ? 'bg-white/10' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <span className="relative z-10">{item.label}</span>
+                  {step === item.id && (
+                    <div className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  )}
                 </button>
               ))}
             </nav>
@@ -251,8 +259,8 @@ const App = () => {
                 onClick={() => setShowResetConfirm(true)}
                 className="w-full flex items-center justify-center gap-2 p-4 bg-slate-950/80 rounded-2xl border border-slate-800 hover:border-rose-500/50 hover:bg-rose-500/5 transition-all group cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4 text-slate-500 group-hover:text-rose-400" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-rose-400">Reset Form</span>
+                <RotateCcw className="w-4 h-4 text-slate-500 group-hover:text-rose-400 group-hover:rotate-[-45deg] transition-transform" />
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-rose-400">Purge Data</span>
               </button>
             )}
           </div>
@@ -265,10 +273,10 @@ const App = () => {
             <header className="mb-10 flex justify-between items-end">
               <div>
                 <h2 className="text-3xl font-extrabold text-white tracking-tight">
-                  {step === 1 ? '1. Core Trade Data' : step === 2 ? '2. Environment & Context' : '3. Advanced Review'}
+                  {step === 1 ? '1. Execution Core' : step === 2 ? '2. Market Context' : '3. Post-Trade Review'}
                 </h2>
                 <p className="text-slate-500 text-sm mt-1">
-                  {step === 1 ? 'Position fundamentals and chart evidence' : step === 2 ? 'Qualitative scoring and market timing' : 'Risk actuals, psychology, and optimization'}
+                  {step === 1 ? 'Fundamental positioning and visual evidence' : step === 2 ? 'Quantifying the external environment' : 'Discipline, psychology, and performance data'}
                 </p>
               </div>
               <div className="text-slate-800 text-7xl font-black italic select-none opacity-50 hidden sm:block">0{step}</div>
@@ -298,15 +306,15 @@ const App = () => {
                           <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all border border-slate-800">
                             <Camera className="w-6 h-6 text-slate-500 group-hover:text-blue-500" />
                           </div>
-                          <span className="text-sm font-bold text-slate-300">Trade Screenshot</span>
-                          <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">Attach Chart Evidence</span>
+                          <span className="text-sm font-bold text-slate-300">Evidence Required</span>
+                          <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">Attach Final Position Chart</span>
                         </label>
                       )}
                     </div>
                   </div>
 
                   <InputField label="Shot Timestamp" field="screenshotTimestamp" type="time" />
-                  <InputField label="Instrument / Pair" field="instrument" placeholder="e.g. EURUSD, XAUUSD" />
+                  <InputField label="Instrument / Pair" field="instrument" placeholder="e.g. BTCUSD, XAUUSD" />
                   <SelectField label="Direction" field="direction" options={['Long', 'Short']} />
                   
                   <InputField label="Entry Date/Time" field="entryTime" type="datetime-local" />
@@ -341,7 +349,7 @@ const App = () => {
               <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                   <div className="space-y-8">
-                    <SectionHeader icon={TrendingUp} title="Market Context" />
+                    <SectionHeader icon={Boxes} title="Environment Map" color="indigo" />
                     <div className="grid grid-cols-2 gap-4">
                       <SelectField label="Market Regime" field="marketRegime" options={['Trending', 'Ranging']} />
                       <SelectField label="Trend Direction" field="trendDirection" options={['Bullish', 'Bearish', 'Sideways']} />
@@ -350,7 +358,7 @@ const App = () => {
                       <SelectField label="News Environment" field="newsEnvironment" options={['Clear', 'Medium', 'High']} />
                     </div>
                     
-                    <SectionHeader icon={Clock} title="Timing & Phase" />
+                    <SectionHeader icon={Clock} title="Chronos Timing" color="indigo" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <InputField label="Entry Time (UTC)" field="entryTimeUTC" type="time" />
                       <SelectField label="Session Name" field="sessionName" options={['Sydney', 'Tokyo', 'London', 'New York', 'Overlap']} />
@@ -358,7 +366,7 @@ const App = () => {
                       <SelectField label="Timing Context" field="timingContext" options={['Impulse', 'Pullback']} />
                     </div>
 
-                    <SectionHeader icon={Activity} title="Technical Setup" />
+                    <SectionHeader icon={Activity} title="Signal Matrix" color="indigo" />
                     <div className="grid grid-cols-1 gap-4">
                       <InputField label="Candle Pattern at Entry" field="candlePattern" placeholder="e.g. Engulfing, Pin Bar, Doji" />
                       <InputField label="Indicator State" field="indicatorState" placeholder="e.g. MACD bullish crossover, RSI >70" />
@@ -366,7 +374,7 @@ const App = () => {
                   </div>
 
                   <div className="space-y-8">
-                    <SectionHeader icon={Gauge} title="Quality Scores (1-5)" />
+                    <SectionHeader icon={Gauge} title="Setup Fidelity" color="indigo" />
                     <div className="space-y-5 p-6 bg-slate-950/40 rounded-3xl border border-slate-800">
                       <ScoreSlider label="Market Alignment" field="marketAlignment" />
                       <ScoreSlider label="Setup Clarity" field="setupClarity" />
@@ -377,8 +385,8 @@ const App = () => {
                   </div>
                 </div>
 
-                <div className="p-8 bg-blue-600/5 rounded-[2.5rem] border border-blue-500/10">
-                  <SectionHeader icon={Zap} title="Technical Signals & Levels" />
+                <div className="p-8 bg-indigo-600/5 rounded-[2.5rem] border border-indigo-500/10">
+                  <SectionHeader icon={Zap} title="Confluence Nodes" color="indigo" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputField label="Primary Signals" field="primarySignals" placeholder="List your main triggers..." />
                     <InputField label="Secondary Signals" field="secondarySignals" placeholder="Additional confirmations..." />
@@ -395,7 +403,7 @@ const App = () => {
             {step === 3 && (
               <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
-                  <SectionHeader icon={BarChart2} title="Execution vs Planned" />
+                  <SectionHeader icon={BarChart3} title="Execution vs Blueprint" color="violet" />
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                     <div className="md:col-span-2 space-y-4">
                       <InputField label="Planned Entry" field="plannedEntry" />
@@ -414,7 +422,7 @@ const App = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="md:col-span-2 space-y-8">
-                    <SectionHeader icon={MousePointer2} title="Risk Management" />
+                    <SectionHeader icon={MousePointer2} title="Protocol Management" color="violet" />
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <InputField label="Planned RR" field="plannedRR" placeholder="1:2" />
                       <InputField label="Achieved RR" field="achievedRR" placeholder="1:1.5" />
@@ -427,8 +435,8 @@ const App = () => {
                       <SelectField label="Management Type" field="managementType" options={['Rule-based', 'Discretionary']} />
                       <div className="flex items-center justify-between p-4 bg-slate-950/40 rounded-2xl border border-slate-800">
                         <div className="flex items-center gap-3">
-                          <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                          <span className="text-xs font-bold text-white uppercase tracking-tighter">Break-Even Protocol</span>
+                          <ZapOff className="w-5 h-5 text-emerald-500" />
+                          <span className="text-xs font-bold text-white uppercase tracking-tighter">BE (Zero Risk) Mode</span>
                         </div>
                         <button 
                           onClick={() => updateField('breakEvenApplied', !formData.breakEvenApplied)}
@@ -441,19 +449,19 @@ const App = () => {
                   </div>
 
                   <div className="p-8 bg-slate-950/40 rounded-[2.5rem] border border-slate-800 space-y-8">
-                    <SectionHeader icon={Brain} title="Psychology & Discipline" />
+                    <SectionHeader icon={BrainCircuit} title="Cognitive State" color="violet" />
                     <ScoreSlider label="Confidence Level" field="confidenceLevel" />
                     <SelectField label="Emotional State" field="emotionalState" options={['Calm', 'Anxious', 'Aggressive', 'FOMO', 'Neutral']} />
                     <SelectField label="Focus/Stress Level" field="focusStressLevel" options={['Low', 'Moderate', 'High']} />
                     <InputField label="% Rules Followed" field="rulesFollowed" type="number" />
                     
-                    <div className={`p-6 rounded-2xl border-2 transition-all cursor-pointer group ${formData.worthRepeating ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}
+                    <div className={`p-6 rounded-2xl border-2 transition-all cursor-pointer group ${formData.worthRepeating ? 'bg-emerald-500/5 border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)]' : 'bg-rose-500/5 border-rose-500/20 shadow-[0_0_20px_rgba(244,63,94,0.05)]'}`}
                       onClick={() => updateField('worthRepeating', !formData.worthRepeating)}>
-                      <p className="text-[9px] font-black uppercase text-center tracking-widest text-slate-500 mb-2">Optimization Toggle</p>
+                      <p className="text-[9px] font-black uppercase text-center tracking-widest text-slate-500 mb-2">Strategy Evaluation</p>
                       <div className="flex items-center justify-center gap-2">
                         {formData.worthRepeating ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-rose-500" />}
                         <p className={`text-center font-bold text-xs uppercase ${formData.worthRepeating ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {formData.worthRepeating ? 'Worth Repeating' : 'Avoid Setup'}
+                          {formData.worthRepeating ? 'Validated Setup' : 'Invalid Logic'}
                         </p>
                       </div>
                     </div>
@@ -461,18 +469,18 @@ const App = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <SectionHeader icon={RefreshCcw} title="Review & Optimization" />
+                  <SectionHeader icon={Workflow} title="Optimization Feedback" color="violet" />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">What Worked?</label>
+                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Alpha Strengths</label>
                       <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-blue-500/30" rows="3" value={formData.whatWorked} onChange={(e) => updateField('whatWorked', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">What Failed?</label>
+                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">System Friction</label>
                       <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-rose-500/30" rows="3" value={formData.whatFailed} onChange={(e) => updateField('whatFailed', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Rules to Adjust</label>
+                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Rule Adjustments</label>
                       <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-emerald-500/30" rows="3" value={formData.adjustments} onChange={(e) => updateField('adjustments', e.target.value)} />
                     </div>
                   </div>
@@ -495,7 +503,7 @@ const App = () => {
                 onClick={nextStep}
                 className="group flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all hover:-translate-y-0.5"
               >
-                Next Section <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Next Phase <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             ) : (
               <button
@@ -505,7 +513,7 @@ const App = () => {
                 }}
                 className="flex items-center gap-3 px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-600/20 transition-all hover:-translate-y-0.5"
               >
-                <Save className="w-4 h-4" /> Commit Trade Log
+                <Save className="w-4 h-4" /> Finalize Journal
               </button>
             )}
           </footer>
