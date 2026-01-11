@@ -21,90 +21,93 @@ import {
   CheckCircle2,
   DollarSign,
   Calendar,
-  Timer
+  Timer,
+  Trash2,
+  RotateCcw
 } from 'lucide-react';
+
+const INITIAL_FORM_STATE = {
+  // Step 1: Core Trade Data
+  screenshot: null,
+  screenshotTimestamp: '',
+  instrument: '',
+  direction: 'Long',
+  lotSize: '',
+  entryPrice: '',
+  stopLoss: '',
+  stopLossDistancePips: '',
+  takeProfit: '',
+  takeProfitDistancePips: '',
+  entryTime: '',
+  exitTime: '',
+  tradeDuration: '',
+  dayOfWeek: 'Monday',
+  outcome: 'Win',
+  profitLoss: '',
+  accountBalance: '',
+  orderType: 'Market',
+  riskPercent: '',
+
+  // Step 2: Market Environment & Setup
+  marketRegime: 'Trending',
+  trendDirection: 'Bullish',
+  volatilityState: 'Normal',
+  liquidity: 'High',
+  newsEnvironment: 'Clear',
+  entryTimeUTC: '',
+  sessionPhase: 'Open',
+  sessionName: 'London',
+  timingContext: 'Impulse',
+  candlePattern: '',
+  indicatorState: '',
+  marketAlignment: 3,
+  setupClarity: 3,
+  entryPrecision: 3,
+  confluence: 3,
+  timingQuality: 3,
+  primarySignals: '',
+  secondarySignals: '',
+  keyLevelRespect: 'Yes',
+  keyLevelType: 'Support',
+  momentumValidity: 'Strong',
+  targetLogicClarity: 'High',
+
+  // Step 3: Advanced Metrics & Execution
+  plannedEntry: '',
+  plannedSL: '',
+  plannedTP: '',
+  actualEntry: '',
+  actualSL: '',
+  actualTP: '',
+  pipsGainedLost: '',
+  mae: '',
+  mfe: '',
+  monetaryRisk: '',
+  potentialReward: '',
+  plannedRR: '',
+  achievedRR: '',
+  riskHeat: 'Low',
+  entryMethod: 'Market',
+  exitStrategy: '',
+  breakEvenApplied: false,
+  managementType: 'Rule-based',
+  
+  // Psychology & Discipline
+  confidenceLevel: 3,
+  emotionalState: 'Calm',
+  focusStressLevel: 'Low',
+  rulesFollowed: 100,
+  worthRepeating: true,
+  whatWorked: '',
+  whatFailed: '',
+  adjustments: '',
+  notes: ''
+};
 
 const App = () => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Step 1: Core Trade Data
-    screenshot: null,
-    screenshotTimestamp: '',
-    instrument: '',
-    direction: 'Long',
-    lotSize: '',
-    entryPrice: '',
-    stopLoss: '',
-    stopLossDistancePips: '',
-    takeProfit: '',
-    takeProfitDistancePips: '',
-    entryTime: '',
-    exitTime: '',
-    tradeDuration: '',
-    dayOfWeek: 'Monday',
-    outcome: 'Win',
-    profitLoss: '',
-    accountBalance: '',
-    orderType: 'Market',
-    riskPercent: '',
-
-    // Step 2: Market Environment & Setup
-    marketRegime: 'Trending',
-    trendDirection: 'Bullish',
-    volatilityState: 'Normal',
-    liquidity: 'High',
-    newsEnvironment: 'Clear',
-    entryTimeUTC: '',
-    sessionPhase: 'Open',
-    sessionName: 'London',
-    timingContext: 'Impulse',
-    candlePattern: '',
-    indicatorState: '',
-    // Quality Scores (1-5)
-    marketAlignment: 3,
-    setupClarity: 3,
-    entryPrecision: 3,
-    confluence: 3,
-    timingQuality: 3,
-    // Technical Signals
-    primarySignals: '',
-    secondarySignals: '',
-    keyLevelRespect: 'Yes',
-    keyLevelType: 'Support',
-    momentumValidity: 'Strong',
-    targetLogicClarity: 'High',
-
-    // Step 3: Advanced Metrics & Execution
-    plannedEntry: '',
-    plannedSL: '',
-    plannedTP: '',
-    actualEntry: '',
-    actualSL: '',
-    actualTP: '',
-    pipsGainedLost: '',
-    mae: '',
-    mfe: '',
-    monetaryRisk: '',
-    potentialReward: '',
-    plannedRR: '',
-    achievedRR: '',
-    riskHeat: 'Low',
-    entryMethod: 'Market',
-    exitStrategy: '',
-    breakEvenApplied: false,
-    managementType: 'Rule-based',
-    
-    // Psychology & Discipline
-    confidenceLevel: 3,
-    emotionalState: 'Calm',
-    focusStressLevel: 'Low',
-    rulesFollowed: 100,
-    worthRepeating: true,
-    whatWorked: '',
-    whatFailed: '',
-    adjustments: '',
-    notes: ''
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -116,6 +119,23 @@ const App = () => {
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateField('screenshot', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData(INITIAL_FORM_STATE);
+    setStep(1);
+    setShowResetConfirm(false);
   };
 
   const nextStep = () => setStep(s => Math.min(3, s + 1));
@@ -186,7 +206,7 @@ const App = () => {
       <div className="max-w-6xl mx-auto bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[85vh]">
         
         {/* Left Sidebar Info */}
-        <div className="md:w-72 bg-slate-950/40 p-8 border-r border-slate-800 flex flex-col justify-between">
+        <div className="md:w-72 bg-slate-950/40 p-8 border-r border-slate-800 flex flex-col justify-between shrink-0">
           <div>
             <div className="flex items-center gap-3 mb-12">
               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
@@ -217,22 +237,30 @@ const App = () => {
             </nav>
           </div>
 
-          <div className="space-y-4 pt-8">
-            <button 
-              className="w-full p-4 bg-slate-950/80 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer text-left"
-            >
-              <p className="text-[10px] font-bold text-slate-600 uppercase mb-2 tracking-widest group-hover:text-blue-400 transition-colors">Navigation</p>
-              <div className="flex items-center gap-2">
-                <ChevronLeft className="w-3 h-3 text-blue-500" />
-                <span className="text-xs font-medium text-blue-500/80 group-hover:text-blue-400 transition-colors">Reset Form</span>
+          <div className="space-y-3 pt-8">
+            {showResetConfirm ? (
+              <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl animate-in zoom-in-95 duration-200">
+                <p className="text-[10px] text-rose-400 uppercase text-center mb-3">Confirm Reset?</p>
+                <div className="flex gap-2">
+                  <button onClick={resetForm} className="flex-1 py-2 bg-rose-600 text-white text-[10px] rounded-lg hover:bg-rose-500 transition-colors">Yes</button>
+                  <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-2 bg-slate-800 text-slate-300 text-[10px] rounded-lg">No</button>
+                </div>
               </div>
-            </button>
+            ) : (
+              <button 
+                onClick={() => setShowResetConfirm(true)}
+                className="w-full flex items-center justify-center gap-2 p-4 bg-slate-950/80 rounded-2xl border border-slate-800 hover:border-rose-500/50 hover:bg-rose-500/5 transition-all group cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4 text-slate-500 group-hover:text-rose-400" />
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-rose-400">Reset Form</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col">
-          <div className="p-8 md:p-12 overflow-y-auto max-h-[75vh]">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="p-8 md:p-12 overflow-y-auto">
             
             <header className="mb-10 flex justify-between items-end">
               <div>
@@ -243,7 +271,7 @@ const App = () => {
                   {step === 1 ? 'Position fundamentals and chart evidence' : step === 2 ? 'Qualitative scoring and market timing' : 'Risk actuals, psychology, and optimization'}
                 </p>
               </div>
-              <div className="text-slate-800 text-7xl font-black italic select-none opacity-50">0{step}</div>
+              <div className="text-slate-800 text-7xl font-black italic select-none opacity-50 hidden sm:block">0{step}</div>
             </header>
 
             {/* STEP 1: CORE DATA */}
@@ -251,15 +279,29 @@ const App = () => {
               <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-3">
-                    <div className="relative group overflow-hidden rounded-3xl border-2 border-dashed border-slate-800 bg-slate-950/40 hover:border-blue-500/50 transition-all cursor-pointer">
-                      <input type="file" className="hidden" id="chart-upload" />
-                      <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-10 cursor-pointer">
-                        <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all border border-slate-800">
-                          <Camera className="w-6 h-6 text-slate-500 group-hover:text-blue-500" />
+                    <div className={`relative group overflow-hidden rounded-3xl border-2 transition-all cursor-pointer ${formData.screenshot ? 'border-blue-500/50 bg-slate-900' : 'border-dashed border-slate-800 bg-slate-950/40 hover:border-blue-500/50'}`}>
+                      <input type="file" className="hidden" id="chart-upload" onChange={handleFileUpload} accept="image/*" />
+                      {formData.screenshot ? (
+                        <div className="relative group">
+                          <img src={formData.screenshot} alt="Trade Evidence" className="w-full h-auto max-h-[400px] object-contain rounded-2xl" />
+                          <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                            <label htmlFor="chart-upload" className="p-3 bg-blue-600 rounded-xl cursor-pointer hover:bg-blue-500 transition-colors">
+                              <RefreshCcw className="w-5 h-5 text-white" />
+                            </label>
+                            <button onClick={() => updateField('screenshot', null)} className="p-3 bg-rose-600 rounded-xl hover:bg-rose-500 transition-colors">
+                              <Trash2 className="w-5 h-5 text-white" />
+                            </button>
+                          </div>
                         </div>
-                        <span className="text-sm font-bold text-slate-300">Trade Screenshot</span>
-                        <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">Attach Chart Evidence</span>
-                      </label>
+                      ) : (
+                        <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-10 cursor-pointer">
+                          <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all border border-slate-800">
+                            <Camera className="w-6 h-6 text-slate-500 group-hover:text-blue-500" />
+                          </div>
+                          <span className="text-sm font-bold text-slate-300">Trade Screenshot</span>
+                          <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">Attach Chart Evidence</span>
+                        </label>
+                      )}
                     </div>
                   </div>
 
@@ -290,10 +332,6 @@ const App = () => {
                   <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE (Break Even)']} />
                   <InputField label="Pips Gained/Lost" field="pipsGainedLost" type="number" placeholder="0" />
                   <InputField label="P/L ($)" field="profitLoss" type="number" placeholder="0.00" />
-                  
-                  <InputField label="Max Favorable Excursion" field="mfe" type="number" placeholder="Run-up in pips" />
-                  <InputField label="Max Adverse Excursion" field="mae" type="number" placeholder="Drawdown in pips" />
-                  <InputField label="Account Balance at Entry ($)" field="accountBalance" type="number" placeholder="0.00" />
                 </div>
               </div>
             )}
@@ -353,11 +391,9 @@ const App = () => {
               </div>
             )}
 
-            {/* STEP 3: ADVANCED METRICS & REVIEW */}
+            {/* STEP 3: ADVANCED REVIEW */}
             {step === 3 && (
               <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
-                
-                {/* Metrics vs Actuals */}
                 <div className="space-y-6">
                   <SectionHeader icon={BarChart2} title="Execution vs Planned" />
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
@@ -417,7 +453,7 @@ const App = () => {
                       <div className="flex items-center justify-center gap-2">
                         {formData.worthRepeating ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-rose-500" />}
                         <p className={`text-center font-bold text-xs uppercase ${formData.worthRepeating ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {formData.worthRepeating ? 'Setup Worth Repeating' : 'Avoid This Setup'}
+                          {formData.worthRepeating ? 'Worth Repeating' : 'Avoid Setup'}
                         </p>
                       </div>
                     </div>
@@ -440,18 +476,13 @@ const App = () => {
                       <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-emerald-500/30" rows="3" value={formData.adjustments} onChange={(e) => updateField('adjustments', e.target.value)} />
                     </div>
                   </div>
-                  
-                  <div className="space-y-2 mt-6">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Additional Notes</label>
-                    <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-blue-500/30" rows="4" placeholder="Any other observations, patterns, or thoughts about this trade..." value={formData.notes} onChange={(e) => updateField('notes', e.target.value)} />
-                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Footer Controls */}
-          <footer className="p-8 border-t border-slate-800 bg-slate-950/60 flex justify-between items-center mt-auto">
+          <footer className="p-8 border-t border-slate-800 bg-slate-950/60 flex justify-between items-center mt-auto shrink-0">
             <button
               onClick={prevStep}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
@@ -469,11 +500,8 @@ const App = () => {
             ) : (
               <button
                 onClick={() => {
-                  const messageBox = document.createElement('div');
-                  messageBox.className = "fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl z-50 animate-bounce";
-                  messageBox.innerText = "SYNCHRONIZING WITH DATABASE... COMMIT SUCCESS.";
-                  document.body.appendChild(messageBox);
-                  setTimeout(() => messageBox.remove(), 3000);
+                  console.log('Final Data:', formData);
+                  alert('TRADE LOG COMMITTED.');
                 }}
                 className="flex items-center gap-3 px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-600/20 transition-all hover:-translate-y-0.5"
               >
