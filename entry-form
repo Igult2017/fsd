@@ -25,11 +25,11 @@ import {
   LineChart,
   Boxes,
   Microscope,
-  Workflow
+  Workflow,
+  X
 } from 'lucide-react';
 
 const INITIAL_FORM_STATE = {
-  // Step 1: Core Trade Data
   screenshot: null,
   screenshotTimestamp: '',
   instrument: '',
@@ -49,8 +49,9 @@ const INITIAL_FORM_STATE = {
   accountBalance: '',
   orderType: 'Market',
   riskPercent: '',
-
-  // Step 2: Market Environment & Setup
+  entryTF: '5M',
+  analysisTF: '1HR',
+  contextTF: '1D',
   marketRegime: 'Trending',
   trendDirection: 'Bullish',
   volatilityState: 'Normal',
@@ -73,8 +74,6 @@ const INITIAL_FORM_STATE = {
   keyLevelType: 'Support',
   momentumValidity: 'Strong',
   targetLogicClarity: 'High',
-
-  // Step 3: Advanced Metrics & Execution
   plannedEntry: '',
   plannedSL: '',
   plannedTP: '',
@@ -93,8 +92,6 @@ const INITIAL_FORM_STATE = {
   exitStrategy: '',
   breakEvenApplied: false,
   managementType: 'Rule-based',
-  
-  // Psychology & Discipline
   confidenceLevel: 3,
   emotionalState: 'Calm',
   focusStressLevel: 'Low',
@@ -110,13 +107,16 @@ const App = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
-    return () => document.head.removeChild(link);
+    return () => {
+        if (document.head.contains(link)) document.head.removeChild(link);
+    };
   }, []);
 
   const updateField = (field, value) => {
@@ -145,8 +145,8 @@ const App = () => {
 
   const SectionHeader = ({ icon: Icon, title, color = "blue" }) => (
     <div className="flex items-center gap-3 mb-6">
-      <div className={`p-2 bg-${color}-500/10 rounded-lg`}>
-        <Icon className={`w-5 h-5 text-${color}-400`} />
+      <div className={`p-2 rounded-lg ${color === 'blue' ? 'bg-blue-500/10' : color === 'indigo' ? 'bg-indigo-500/10' : 'bg-purple-500/10'}`}>
+        <Icon className={`w-5 h-5 ${color === 'blue' ? 'text-blue-400' : color === 'indigo' ? 'text-indigo-400' : 'text-purple-400'}`} />
       </div>
       <h3 className="text-[11px] font-bold text-slate-200 uppercase tracking-widest">
         {title}
@@ -207,10 +207,10 @@ const App = () => {
     <div className="min-h-screen bg-[#0f172a] p-4 md:p-10 font-['Montserrat'] font-bold text-slate-300">
       <div className="max-w-6xl mx-auto bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[85vh]">
         
-        {/* Left Sidebar Info */}
-        <div className="md:w-72 bg-slate-950/40 p-8 border-r border-slate-800 flex flex-col justify-between shrink-0">
+        {/* Sidebar */}
+        <div className="md:w-72 bg-slate-950/40 p-6 md:p-8 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col justify-between shrink-0">
           <div>
-            <div className="flex items-center gap-3 mb-12">
+            <div className="flex items-center gap-3 mb-8 md:mb-12">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 relative group overflow-hidden">
                 <Workflow className="text-white w-6 h-6 z-10" />
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -218,36 +218,36 @@ const App = () => {
               <h1 className="text-xl font-extrabold tracking-tighter text-white">TRD.LOG</h1>
             </div>
 
-            <nav className="space-y-3">
+            <nav className="flex md:flex-col gap-2 md:space-y-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-hide">
               {[
-                { id: 1, label: 'Core Data', icon: LineChart, color: 'blue' },
-                { id: 2, label: 'Environment', icon: Compass, color: 'indigo' },
-                { id: 3, label: 'Advanced Metrics', icon: Microscope, color: 'violet' },
+                { id: 1, label: 'Core', icon: LineChart, color: 'blue' },
+                { id: 2, label: 'Market', icon: Compass, color: 'indigo' },
+                { id: 3, label: 'Advanced', icon: Microscope, color: 'violet' },
               ].map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setStep(item.id)}
-                  className={`w-full group relative flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-semibold transition-all overflow-hidden ${
+                  className={`flex-shrink-0 md:w-full group relative flex items-center gap-3 px-4 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-semibold transition-all overflow-hidden ${
                     step === item.id 
                     ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' 
                     : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
                   }`}
                 >
                   <div className={`relative z-10 p-1 rounded-lg transition-colors ${step === item.id ? 'bg-white/10' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className="w-4 h-4 md:w-5 md:h-5" />
                   </div>
                   <span className="relative z-10">{item.label}</span>
                   {step === item.id && (
-                    <div className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                    <div className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] hidden md:block" />
                   )}
                 </button>
               ))}
             </nav>
           </div>
 
-          <div className="space-y-3 pt-8">
+          <div className="hidden md:block space-y-3 pt-8">
             {showResetConfirm ? (
-              <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl animate-in zoom-in-95 duration-200">
+              <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl">
                 <p className="text-[10px] text-rose-400 uppercase text-center mb-3">Confirm Reset?</p>
                 <div className="flex gap-2">
                   <button onClick={resetForm} className="flex-1 py-2 bg-rose-600 text-white text-[10px] rounded-lg hover:bg-rose-500 transition-colors">Yes</button>
@@ -266,27 +266,26 @@ const App = () => {
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-8 md:p-12 overflow-y-auto">
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden h-[calc(100vh-200px)] md:h-auto">
+          <div className="p-6 md:p-12 overflow-y-auto custom-scrollbar">
             
-            <header className="mb-10 flex justify-between items-end">
+            <header className="mb-8 md:mb-10 flex justify-between items-end">
               <div>
-                <h2 className="text-3xl font-extrabold text-white tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
                   {step === 1 ? '1. Execution Core' : step === 2 ? '2. Market Context' : '3. Post-Trade Review'}
                 </h2>
-                <p className="text-slate-500 text-sm mt-1">
+                <p className="text-slate-500 text-xs md:text-sm mt-1">
                   {step === 1 ? 'Fundamental positioning and visual evidence' : step === 2 ? 'Quantifying the external environment' : 'Discipline, psychology, and performance data'}
                 </p>
               </div>
               <div className="text-slate-800 text-7xl font-black italic select-none opacity-50 hidden sm:block">0{step}</div>
             </header>
 
-            {/* STEP 1: CORE DATA */}
             {step === 1 && (
-              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-3">
+              <div className="space-y-8 md:space-y-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="col-span-1 sm:col-span-2 lg:col-span-3">
                     <div className={`relative group overflow-hidden rounded-3xl border-2 transition-all cursor-pointer ${formData.screenshot ? 'border-blue-500/50 bg-slate-900' : 'border-dashed border-slate-800 bg-slate-950/40 hover:border-blue-500/50'}`}>
                       <input type="file" className="hidden" id="chart-upload" onChange={handleFileUpload} accept="image/*" />
                       {formData.screenshot ? (
@@ -302,7 +301,7 @@ const App = () => {
                           </div>
                         </div>
                       ) : (
-                        <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-10 cursor-pointer">
+                        <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-8 md:p-12 cursor-pointer">
                           <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all border border-slate-800">
                             <Camera className="w-6 h-6 text-slate-500 group-hover:text-blue-500" />
                           </div>
@@ -321,33 +320,32 @@ const App = () => {
                   <InputField label="Exit Date/Time" field="exitTime" type="datetime-local" />
                   <SelectField label="Day of Week" field="dayOfWeek" options={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']} />
                   
-                  <InputField label="Trade Duration" field="tradeDuration" placeholder="e.g. 2h 30m, 45m" />
+                  <InputField label="Trade Duration" field="tradeDuration" placeholder="e.g. 2h 30m" />
                   <InputField label="Lot Size / Units" field="lotSize" placeholder="0.01" />
                   <SelectField label="Order Type" field="orderType" options={['Market', 'Limit', 'Stop', 'Stop-Limit']} />
                   
-                  <InputField label="Entry Price" field="entryPrice" type="number" placeholder="0.00000" />
-                  <InputField label="Stop-Loss Price" field="stopLoss" type="number" placeholder="0.00000" />
-                  <InputField label="SL Distance (Pips)" field="stopLossDistancePips" type="number" placeholder="0" />
+                  <InputField label="Entry Price" field="entryPrice" type="number" placeholder="0.00" />
+                  <InputField label="Stop-Loss" field="stopLoss" type="number" />
+                  <InputField label="SL (Pips)" field="stopLossDistancePips" type="number" />
                   
-                  <InputField label="Take-Profit Price" field="takeProfit" type="number" placeholder="0.00000" />
-                  <InputField label="TP Distance (Pips)" field="takeProfitDistancePips" type="number" placeholder="0" />
-                  <InputField label="Risk % Per Trade" field="riskPercent" type="number" placeholder="1.0" />
+                  <InputField label="Take-Profit" field="takeProfit" type="number" />
+                  <InputField label="TP (Pips)" field="takeProfitDistancePips" type="number" />
+                  <InputField label="Risk %" field="riskPercent" type="number" />
                   
-                  <InputField label="Monetary Risk ($)" field="monetaryRisk" type="number" placeholder="0.00" />
-                  <InputField label="Potential Reward ($)" field="potentialReward" type="number" placeholder="0.00" />
-                  <InputField label="Risk-Reward Ratio" field="plannedRR" placeholder="1:2" />
+                  <InputField label="Pips G/L" field="pipsGainedLost" type="number" />
+                  <InputField label="P/L ($)" field="profitLoss" type="number" />
+                  <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE']} />
                   
-                  <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE (Break Even)']} />
-                  <InputField label="Pips Gained/Lost" field="pipsGainedLost" type="number" placeholder="0" />
-                  <InputField label="P/L ($)" field="profitLoss" type="number" placeholder="0.00" />
+                  <SelectField label="Entry TF" field="entryTF" options={['1M', '3M', '5M']} />
+                  <SelectField label="Analysis TF" field="analysisTF" options={['15M', '30MIN', '1HR', '2HR', '4HR']} />
+                  <SelectField label="Context TF" field="contextTF" options={['1W', '1D', '4HR']} />
                 </div>
               </div>
             )}
 
-            {/* STEP 2: ENVIRONMENT & SETUP */}
             {step === 2 && (
-              <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                   <div className="space-y-8">
                     <SectionHeader icon={Boxes} title="Environment Map" color="indigo" />
                     <div className="grid grid-cols-2 gap-4">
@@ -355,133 +353,66 @@ const App = () => {
                       <SelectField label="Trend Direction" field="trendDirection" options={['Bullish', 'Bearish', 'Sideways']} />
                       <SelectField label="Volatility State" field="volatilityState" options={['Low', 'Normal', 'High']} />
                       <SelectField label="Liquidity" field="liquidity" options={['Low', 'Normal', 'High']} />
-                      <SelectField label="News Environment" field="newsEnvironment" options={['Clear', 'Medium', 'High']} />
                     </div>
                     
                     <SectionHeader icon={Clock} title="Chronos Timing" color="indigo" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <InputField label="Entry Time (UTC)" field="entryTimeUTC" type="time" />
-                      <SelectField label="Session Name" field="sessionName" options={['Sydney', 'Tokyo', 'London', 'New York', 'Overlap']} />
-                      <SelectField label="Session Phase" field="sessionPhase" options={['Open', 'Mid', 'Close']} />
-                      <SelectField label="Timing Context" field="timingContext" options={['Impulse', 'Pullback']} />
-                    </div>
-
-                    <SectionHeader icon={Activity} title="Signal Matrix" color="indigo" />
-                    <div className="grid grid-cols-1 gap-4">
-                      <InputField label="Candle Pattern at Entry" field="candlePattern" placeholder="e.g. Engulfing, Pin Bar, Doji" />
-                      <InputField label="Indicator State" field="indicatorState" placeholder="e.g. MACD bullish crossover, RSI >70" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <InputField label="Entry UTC" field="entryTimeUTC" type="time" />
+                      <SelectField label="Session" field="sessionName" options={['London', 'New York', 'Tokyo', 'Sydney']} />
                     </div>
                   </div>
 
                   <div className="space-y-8">
                     <SectionHeader icon={Gauge} title="Setup Fidelity" color="indigo" />
-                    <div className="space-y-5 p-6 bg-slate-950/40 rounded-3xl border border-slate-800">
+                    <div className="p-6 bg-slate-950/40 rounded-3xl border border-slate-800 space-y-6">
                       <ScoreSlider label="Market Alignment" field="marketAlignment" />
                       <ScoreSlider label="Setup Clarity" field="setupClarity" />
-                      <ScoreSlider label="Entry Precision" field="entryPrecision" />
                       <ScoreSlider label="Confluence" field="confluence" />
-                      <ScoreSlider label="Timing Quality" field="timingQuality" />
                     </div>
-                  </div>
-                </div>
-
-                <div className="p-8 bg-indigo-600/5 rounded-[2.5rem] border border-indigo-500/10">
-                  <SectionHeader icon={Zap} title="Confluence Nodes" color="indigo" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputField label="Primary Signals" field="primarySignals" placeholder="List your main triggers..." />
-                    <InputField label="Secondary Signals" field="secondarySignals" placeholder="Additional confirmations..." />
-                    <SelectField label="Key Level Respect" field="keyLevelRespect" options={['Yes', 'No', 'Partial']} />
-                    <SelectField label="Key Level Type" field="keyLevelType" options={['Support', 'Resistance', 'Supply Zone', 'Demand Zone', 'Pivot', 'Fibonacci']} />
-                    <SelectField label="Momentum Validity" field="momentumValidity" options={['Strong', 'Waning', 'Flat']} />
-                    <SelectField label="Target Logic Clarity" field="targetLogicClarity" options={['High', 'Medium', 'Low']} />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* STEP 3: ADVANCED REVIEW */}
             {step === 3 && (
-              <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="space-y-6">
-                  <SectionHeader icon={BarChart3} title="Execution vs Blueprint" color="violet" />
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                    <div className="md:col-span-2 space-y-4">
-                      <InputField label="Planned Entry" field="plannedEntry" />
-                      <InputField label="Actual Entry" field="actualEntry" />
-                    </div>
-                    <div className="md:col-span-2 space-y-4">
-                      <InputField label="Planned SL" field="plannedSL" />
-                      <InputField label="Actual SL" field="actualSL" />
-                    </div>
-                    <div className="md:col-span-2 space-y-4">
-                      <InputField label="Planned TP" field="plannedTP" />
-                      <InputField label="Actual TP" field="actualTP" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="md:col-span-2 space-y-8">
-                    <SectionHeader icon={MousePointer2} title="Protocol Management" color="violet" />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="space-y-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-8">
+                    <SectionHeader icon={BarChart3} title="Execution Metrics" color="violet" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <InputField label="Planned RR" field="plannedRR" placeholder="1:2" />
                       <InputField label="Achieved RR" field="achievedRR" placeholder="1:1.5" />
-                      <SelectField label="Risk Heat Level" field="riskHeat" options={['Low', 'Medium', 'High']} />
+                      <SelectField label="Risk Heat" field="riskHeat" options={['Low', 'Medium', 'High']} />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <SelectField label="Entry Method" field="entryMethod" options={['Market', 'Limit']} />
-                      <InputField label="Exit Strategy" field="exitStrategy" placeholder="e.g., Trailing stop, Target hit..." />
-                      <SelectField label="Management Type" field="managementType" options={['Rule-based', 'Discretionary']} />
-                      <div className="flex items-center justify-between p-4 bg-slate-950/40 rounded-2xl border border-slate-800">
-                        <div className="flex items-center gap-3">
-                          <ZapOff className="w-5 h-5 text-emerald-500" />
-                          <span className="text-xs font-bold text-white uppercase tracking-tighter">BE (Zero Risk) Mode</span>
-                        </div>
-                        <button 
-                          onClick={() => updateField('breakEvenApplied', !formData.breakEvenApplied)}
-                          className={`w-12 h-6 rounded-full transition-all relative ${formData.breakEvenApplied ? 'bg-emerald-600' : 'bg-slate-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.breakEvenApplied ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-8 bg-slate-950/40 rounded-[2.5rem] border border-slate-800 space-y-8">
                     <SectionHeader icon={BrainCircuit} title="Cognitive State" color="violet" />
-                    <ScoreSlider label="Confidence Level" field="confidenceLevel" />
-                    <SelectField label="Emotional State" field="emotionalState" options={['Calm', 'Anxious', 'Aggressive', 'FOMO', 'Neutral']} />
-                    <SelectField label="Focus/Stress Level" field="focusStressLevel" options={['Low', 'Moderate', 'High']} />
-                    <InputField label="% Rules Followed" field="rulesFollowed" type="number" />
-                    
-                    <div className={`p-6 rounded-2xl border-2 transition-all cursor-pointer group ${formData.worthRepeating ? 'bg-emerald-500/5 border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)]' : 'bg-rose-500/5 border-rose-500/20 shadow-[0_0_20px_rgba(244,63,94,0.05)]'}`}
-                      onClick={() => updateField('worthRepeating', !formData.worthRepeating)}>
-                      <p className="text-[9px] font-black uppercase text-center tracking-widest text-slate-500 mb-2">Strategy Evaluation</p>
-                      <div className="flex items-center justify-center gap-2">
-                        {formData.worthRepeating ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-rose-500" />}
-                        <p className={`text-center font-bold text-xs uppercase ${formData.worthRepeating ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {formData.worthRepeating ? 'Validated Setup' : 'Invalid Logic'}
-                        </p>
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <SelectField label="Emotional State" field="emotionalState" options={['Calm', 'Anxious', 'FOMO', 'Neutral']} />
+                      <InputField label="% Rules Followed" field="rulesFollowed" type="number" />
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-6">
-                  <SectionHeader icon={Workflow} title="Optimization Feedback" color="violet" />
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Alpha Strengths</label>
-                      <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-blue-500/30" rows="3" value={formData.whatWorked} onChange={(e) => updateField('whatWorked', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">System Friction</label>
-                      <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-rose-500/30" rows="3" value={formData.whatFailed} onChange={(e) => updateField('whatFailed', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Rule Adjustments</label>
-                      <textarea className="w-full p-4 rounded-2xl bg-slate-950/50 border border-slate-800 text-slate-300 text-xs font-semibold outline-none focus:border-emerald-500/30" rows="3" value={formData.adjustments} onChange={(e) => updateField('adjustments', e.target.value)} />
+                  <div className="p-6 bg-slate-950/40 rounded-3xl border border-slate-800 space-y-6 h-fit">
+                    <SectionHeader icon={Workflow} title="Review" color="violet" />
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">What Worked</label>
+                            <textarea 
+                                className="w-full p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-white outline-none focus:border-blue-500" 
+                                rows="3"
+                                value={formData.whatWorked}
+                                onChange={(e) => updateField('whatWorked', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-bold text-slate-500 uppercase">Adjustments</label>
+                            <textarea 
+                                className="w-full p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-white outline-none focus:border-blue-500" 
+                                rows="3"
+                                value={formData.adjustments}
+                                onChange={(e) => updateField('adjustments', e.target.value)}
+                            />
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -489,11 +420,10 @@ const App = () => {
             )}
           </div>
 
-          {/* Footer Controls */}
-          <footer className="p-8 border-t border-slate-800 bg-slate-950/60 flex justify-between items-center mt-auto shrink-0">
+          <footer className="p-6 md:p-8 border-t border-slate-800 bg-slate-950/60 flex justify-between items-center mt-auto shrink-0">
             <button
               onClick={prevStep}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
+              className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
             >
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
@@ -501,7 +431,7 @@ const App = () => {
             {step < 3 ? (
               <button
                 onClick={nextStep}
-                className="group flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all hover:-translate-y-0.5"
+                className="group flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all hover:-translate-y-0.5"
               >
                 Next Phase <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -509,9 +439,9 @@ const App = () => {
               <button
                 onClick={() => {
                   console.log('Final Data:', formData);
-                  alert('TRADE LOG COMMITTED.');
+                  setShowSuccessModal(true);
                 }}
-                className="flex items-center gap-3 px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-600/20 transition-all hover:-translate-y-0.5"
+                className="flex items-center gap-3 px-8 md:px-10 py-3 md:py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-600/20 transition-all hover:-translate-y-0.5"
               >
                 <Save className="w-4 h-4" /> Finalize Journal
               </button>
@@ -519,6 +449,48 @@ const App = () => {
           </footer>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Trade Logged</h3>
+                <p className="text-slate-400 text-sm mb-8">Data has been committed to the console and your session.</p>
+                <button 
+                    onClick={() => {
+                        setShowSuccessModal(false);
+                        resetForm();
+                    }}
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all"
+                >
+                    Dismiss
+                </button>
+            </div>
+        </div>
+      )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #1e293b;
+          border-radius: 10px;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };
