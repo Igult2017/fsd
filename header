@@ -1,0 +1,238 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Bolt, Layers, Menu, Send } from 'lucide-react';
+
+/**
+ * Main App component containing the FSDZones header and the fixed "Deep Core" Search Bar.
+ * Typography: Montserrat Extra-Bold/Black for a blocky, premium look.
+ */
+export default function App() {
+  const [currentTime, setCurrentTime] = useState('');
+  const [status, setStatus] = useState({ visible: false, message: '' });
+  const [isSearching, setIsSearching] = useState(false);
+  const statusTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    // Function to update the clock with UTC time
+    const updateClock = () => {
+      const now = new Date();
+      const timeString = now.getUTCHours().toString().padStart(2, '0') + ':' + 
+                         now.getUTCMinutes().toString().padStart(2, '0') + ':' + 
+                         now.getUTCSeconds().toString().padStart(2, '0');
+      setCurrentTime(timeString);
+    };
+    
+    updateClock();
+    const interval = setInterval(updateClock, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSearch = () => {
+    if (isSearching) return;
+    
+    // Clear any existing timeouts to prevent state collisions
+    if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
+
+    setIsSearching(true);
+    setStatus({ 
+      visible: true, 
+      message: "Accessing FSD database..." 
+    });
+
+    // Simulate search process
+    setTimeout(() => {
+      setStatus({ 
+        visible: true, 
+        message: "Search protocol initialized." 
+      });
+      setIsSearching(false);
+
+      // Hide message after a delay
+      statusTimeoutRef.current = setTimeout(() => {
+        setStatus(prev => ({ ...prev, visible: false }));
+      }, 3000);
+    }, 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* External CSS for Montserrat and Font Awesome icons */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+        
+        body {
+          font-family: 'Montserrat', sans-serif;
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { 
+          display: none; 
+        }
+        .no-scrollbar { 
+          -ms-overflow-style: none; 
+          scrollbar-width: none; 
+        }
+      `}</style>
+
+      {/* Utility Bar */}
+      <div className="bg-black border-b border-white/5 text-slate-400 py-2.5 text-xs tracking-wide shrink-0">
+        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-slate-300">
+              UTC: <span className="text-white font-bold">{currentTime || '00:00:00'}</span>
+            </span>
+            <span className="text-white/20">|</span>
+            <div className="flex items-center gap-2">
+              <span>Session: <span className="text-white font-bold">London</span></span>
+              <span className="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-500/20 uppercase">
+                4h 59m In
+              </span>
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center gap-4">
+            <a href="#" className="text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors font-bold">
+              <i className="fab fa-telegram"></i> Join Telegram
+            </a>
+            <a href="#" className="hover:text-white transition-colors font-bold">Subscribe</a>
+            <span className="text-white/20">|</span>
+            <a href="#" className="hover:text-white transition-colors font-bold">Sign In</a>
+            <a href="#" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-all font-black text-[11px] uppercase tracking-wider">
+              Sign Up
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navigation */}
+      <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-lg border-b border-white/8 shrink-0">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between py-4 xl:h-20">
+            
+            {/* Logo */}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
+                <Bolt className="text-white w-6 h-6 fill-current" />
+              </div>
+              <span className="text-white font-black text-xl md:text-2xl tracking-tighter uppercase whitespace-nowrap">
+                FSDZONES<span className="text-blue-500">.com</span>
+              </span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden xl:flex flex-wrap items-center justify-end gap-y-2 gap-x-1 ml-4">
+              {[
+                'Home', 
+                'Free Journal',
+                'TSC',
+                'Economic Calendar', 
+                'Blog',
+                'Major Pairs', 
+                'US Stocks', 
+                'Commodities', 
+                'Cryptocurrency',
+                'Verified Strategies'
+              ].map((item) => (
+                <a 
+                  key={item}
+                  href="#" 
+                  className="px-3 py-2 text-slate-300 hover:text-blue-400 font-extrabold text-[13px] uppercase tracking-wide transition-colors whitespace-nowrap"
+                >
+                  {item}
+                </a>
+              ))}
+            </nav>
+
+            {/* Mobile Actions - Simplified */}
+            <div className="xl:hidden flex items-center">
+              <button className="text-slate-300 hover:text-white transition-colors p-2">
+                <Menu className="w-7 h-7" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Horizontal Scroll Nav */}
+        <div className="xl:hidden overflow-x-auto no-scrollbar border-t border-slate-800 bg-slate-900/50">
+          <div className="flex px-4 items-center gap-6 text-[11px] font-black text-slate-400 uppercase tracking-widest py-4 min-w-max">
+            {[
+              'Home',
+              'Free Journal',
+              'TSC',
+              'Calendar',
+              'Blog',
+              'Pairs',
+              'Stocks',
+              'Commodities',
+              'Crypto',
+              'Verified Strategies'
+            ].map((item) => (
+              <a 
+                key={item} 
+                href="#" 
+                className={`${item === 'Home' ? 'text-blue-400 hover:text-blue-300' : 'hover:text-white'} transition-colors whitespace-nowrap`}
+              >
+                {item}
+              </a>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      {/* Deep Core Search Bar - Spanning End to End (Compact Height) */}
+      <div className="w-full relative shrink-0">
+        <button
+          onClick={handleSearch}
+          disabled={isSearching}
+          className={`
+            group relative w-full flex items-center justify-center gap-3 sm:gap-4
+            py-5 sm:py-6 px-4 sm:px-10 rounded-none text-slate-300 text-lg sm:text-2xl font-black tracking-tighter
+            bg-slate-900 overflow-hidden
+            /* The "Hole" effect: inner shadow */
+            shadow-[inset_0_4px_16px_rgba(0,0,0,0.8)]
+            border-b border-white/5
+            transition-all duration-300
+            hover:text-white hover:bg-black
+            active:bg-slate-950 active:shadow-[inset_0_8px_24px_rgba(0,0,0,1)]
+            disabled:opacity-100 disabled:cursor-wait
+          `}
+        >
+          {/* Animated Glow Effect during search */}
+          {isSearching && (
+            <div className="absolute inset-0 bg-blue-500/5 animate-pulse" />
+          )}
+          
+          <Search 
+            className={`w-5 h-5 sm:w-8 sm:h-8 transition-transform duration-700 
+              ${isSearching ? 'rotate-180 scale-75 text-blue-500' : 'group-hover:scale-110 opacity-30 group-hover:opacity-100'}`
+            } 
+          />
+          <span className="whitespace-nowrap uppercase italic relative z-10">
+            {isSearching ? 'Enter search word' : 'Search FSDZones'}
+          </span>
+        </button>
+
+        {/* Search Status Message - Compact Height */}
+        <div className="h-8 flex items-center justify-center overflow-hidden">
+          <div
+            className={`font-mono text-[9px] sm:text-xs tracking-[0.3em] text-blue-500/60 transition-all duration-500 transform ${
+              status.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+            }`}
+          >
+            {status.message.toUpperCase()}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto w-full p-4 flex-grow">
+        <div className="bg-slate-900/20 border border-dashed border-slate-800/60 rounded-2xl min-h-[300px] flex flex-col items-center justify-center text-slate-700">
+           <Layers className="w-12 h-12 mb-4 opacity-10" />
+           <p className="font-black tracking-[0.2em] uppercase text-xs opacity-40 text-center px-4">System Idle: Waiting for input</p>
+        </div>
+      </main>
+    </div>
+  );
+}
