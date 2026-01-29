@@ -1,0 +1,349 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Calendar, 
+  BookOpen, 
+  TrendingUp, 
+  Zap, 
+  LineChart, 
+  ShieldCheck, 
+  Newspaper,
+  UserPlus,
+  LogIn, 
+  ArrowUpRight,
+  ArrowDownRight,
+  Clock,
+  Menu,
+  ChevronRight,
+  Activity,
+  BarChart3,
+  Coins,
+  History,
+  Loader2,
+  Mail,
+  TrendingDown,
+  Target
+} from 'lucide-react';
+
+/**
+ * FSDZONES.COM - Modern Trading Terminal
+ * Enhanced with vibrant colors and better contrast
+ */
+
+const App = () => {
+  // Embedded base64 images for maximum portability
+  const blogImages = {
+    liquidity: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232563eb;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%2306b6d4;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='500' fill='url(%23a)'/%3E%3Cpath d='M100 350 L200 280 L300 320 L400 220 L500 260 L600 180 L700 200' stroke='white' stroke-width='4' fill='none' opacity='0.8'/%3E%3Ccircle cx='100' cy='350' r='6' fill='white'/%3E%3Ccircle cx='200' cy='280' r='6' fill='white'/%3E%3Ccircle cx='300' cy='320' r='6' fill='white'/%3E%3Ccircle cx='400' cy='220' r='6' fill='white'/%3E%3Ccircle cx='500' cy='260' r='6' fill='white'/%3E%3Ccircle cx='600' cy='180' r='6' fill='white'/%3E%3Ccircle cx='700' cy='200' r='6' fill='white'/%3E%3Ctext x='400' y='250' font-family='Arial' font-size='48' font-weight='bold' fill='white' text-anchor='middle' opacity='0.3'%3ELIQUIDITY%3C/text%3E%3C/svg%3E",
+    fomo: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23dc2626;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23f97316;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='500' fill='url(%23b)'/%3E%3Cpath d='M100 400 L150 380 L200 350 L250 320 L300 250 L350 180 L400 150 L450 120 L500 100 L550 90 L600 85 L650 82 L700 80' stroke='white' stroke-width='5' fill='none' opacity='0.8'/%3E%3Cpath d='M650 82 L640 72 L650 72 L650 82 L660 72 L650 72' fill='white' opacity='0.8'/%3E%3Ctext x='400' y='280' font-family='Arial' font-size='56' font-weight='bold' fill='white' text-anchor='middle' opacity='0.25'%3EFOMO%3C/text%3E%3C/svg%3E",
+    structure: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2310b981;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%233b82f6;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='500' fill='url(%23c)'/%3E%3Crect x='100' y='300' width='50' height='100' fill='white' opacity='0.6'/%3E%3Crect x='170' y='250' width='50' height='150' fill='white' opacity='0.7'/%3E%3Crect x='240' y='280' width='50' height='120' fill='white' opacity='0.6'/%3E%3Crect x='310' y='200' width='50' height='200' fill='white' opacity='0.8'/%3E%3Crect x='380' y='220' width='50' height='180' fill='white' opacity='0.7'/%3E%3Crect x='450' y='180' width='50' height='220' fill='white' opacity='0.8'/%3E%3Crect x='520' y='150' width='50' height='250' fill='white' opacity='0.9'/%3E%3Crect x='590' y='170' width='50' height='230' fill='white' opacity='0.8'/%3E%3Ctext x='400' y='120' font-family='Arial' font-size='42' font-weight='bold' fill='white' text-anchor='middle' opacity='0.3'%3ESTRUCTURE%3C/text%3E%3C/svg%3E"
+  };
+
+  const MarketRow = ({ pair, price, change, up }) => (
+    <div className="flex justify-between items-center py-2.5 border-b border-slate-200/60 hover:bg-blue-50 transition-all px-3 group cursor-pointer rounded-lg">
+      <span className="font-bold text-xs mono text-slate-800 group-hover:text-blue-700 transition-colors uppercase tracking-tight">{pair}</span>
+      <div className="flex gap-3 items-center">
+        <span className="font-bold text-sm text-slate-900 tabular-nums">{price}</span>
+        <span className={`text-[10px] font-bold px-2 py-1 rounded-md mono min-w-[55px] text-center ${up ? 'text-emerald-700 bg-emerald-100' : 'text-rose-700 bg-rose-100'}`}>
+          {change}
+        </span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white font-['Inter',sans-serif] selection:bg-blue-400 pb-12">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap');
+        
+        body { 
+          font-family: 'Inter', sans-serif; 
+          -webkit-font-smoothing: antialiased;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .display-font { font-family: 'Space Grotesk', sans-serif; }
+        
+        .ultra-wide-container {
+          max-width: 1600px;
+          margin: 0 auto;
+        }
+        
+        .terminal-card {
+          background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(148, 163, 184, 0.2);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+          border-radius: 20px;
+          transition: all 0.4s ease;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+
+        .terminal-card:hover {
+          box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.3);
+          transform: translateY(-4px);
+          border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .section-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.15em;
+          color: #94a3b8;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .block-heading {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.2;
+        }
+
+        .premium-button {
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+          border: 1px solid rgba(147, 197, 253, 0.3);
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          font-weight: 700;
+        }
+
+        .premium-button:hover {
+          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+          transform: translateY(-2px);
+        }
+
+        .secondary-button {
+          background: rgba(51, 65, 85, 0.6);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(148, 163, 184, 0.3);
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          color: #e2e8f0;
+          font-weight: 600;
+        }
+
+        .secondary-button:hover {
+          background: rgba(71, 85, 105, 0.8);
+          border-color: rgba(148, 163, 184, 0.5);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+          transform: translateY(-1px);
+        }
+
+        .blog-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s ease;
+        }
+
+        .blog-img-container:hover .blog-img {
+          transform: scale(1.08);
+        }
+
+        .journal-card {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.4);
+          box-shadow: 0 0 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .strategy-card {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+          border: 2px solid rgba(16, 185, 129, 0.4);
+          box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
+        }
+      `}</style>
+
+      <div className="ultra-wide-container px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
+        
+        {/* BLOG SECTION */}
+        <section className="terminal-card p-6 sm:p-8 mb-6">
+          <h2 className="section-header">
+            <Newspaper size={16} strokeWidth={2.5} className="text-blue-400" /> Blog
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {['liquidity', 'fomo', 'structure'].map((key, i) => (
+              <div key={key} className="group cursor-pointer">
+                <div className="aspect-[16/10] bg-slate-700 mb-4 border-2 border-slate-600 shadow-2xl overflow-hidden relative rounded-2xl flex items-center justify-center blog-img-container">
+                  <img src={blogImages[key]} alt={key} className="blog-img" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/0 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                </div>
+                <h3 className="block-heading text-xl text-white group-hover:text-blue-300 transition-colors mb-3">
+                  {i === 0 && "Institutional Liquidity Gaps: Finding High Odds Entries"}
+                  {i === 1 && "Dealing with Trading FOMO during high impact news"}
+                  {i === 2 && "Market Structure Masterclass: Shifts vs Breaks"}
+                </h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mono">
+                  {i === 0 && "Education // 09 JAN"}
+                  {i === 1 && "Psychology // 07 JAN"}
+                  {i === 2 && "Technical // 05 JAN"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* UNIFORM GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+          
+          {/* CARD 1: FREE JOURNAL */}
+          <section className="terminal-card journal-card p-6 sm:p-7">
+            <h2 className="section-header">
+              <History size={16} strokeWidth={2.5} className="text-blue-400" /> Free Journal
+            </h2>
+            <div className="flex-1 space-y-5">
+              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 p-5 rounded-2xl border border-blue-400/30 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap size={20} className="text-blue-400" />
+                  <h3 className="display-font text-lg font-bold text-white">Build Your Edge</h3>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-200 font-medium mb-4">
+                  Get real-time breakdowns of our daily trades. Learn institutional strategies and develop a winning mindset.
+                </p>
+                <div className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-600/50 rounded-xl">
+                  <Mail size={16} className="text-blue-400" />
+                  <input 
+                    type="text" 
+                    placeholder="your@email.com" 
+                    className="bg-transparent text-sm font-medium text-white placeholder-slate-400 outline-none flex-1" 
+                  />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="p-4 bg-slate-800/50 border border-slate-600/50 rounded-xl shadow-lg hover:border-blue-500/50 transition-all cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-blue-400 uppercase mono text-[9px] font-bold tracking-wider">Latest Entry</p>
+                    <TrendingDown size={14} className="text-emerald-400" />
+                  </div>
+                  <p className="display-font text-base font-bold text-white mb-1">XAUUSD Short</p>
+                  <p className="text-emerald-400 font-bold text-lg">+2.0R</p>
+                </div>
+              </div>
+            </div>
+            <button className="w-full mt-6 premium-button text-white py-4 text-xs uppercase tracking-[0.2em]">
+              Join Free Now
+            </button>
+          </section>
+
+          {/* CARD 2: CALENDAR */}
+          <section className="terminal-card p-6 sm:p-7">
+            <h2 className="section-header">
+              <Calendar size={16} strokeWidth={2.5} className="text-blue-400" /> Calendar
+            </h2>
+            <div className="flex-1 space-y-4">
+              <div className="group cursor-pointer p-4 rounded-xl hover:bg-rose-500/20 transition-all border-2 border-transparent hover:border-rose-500/50 bg-slate-800/30">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold text-rose-400 mono tracking-wider uppercase">14:30 EST</p>
+                  <span className="px-2 py-1 bg-rose-500/20 text-rose-300 text-[9px] font-bold rounded-md uppercase">High Impact</span>
+                </div>
+                <p className="display-font text-lg font-bold text-white group-hover:text-rose-300 transition-colors">USD CPI (m/m)</p>
+              </div>
+              <div className="group cursor-pointer p-4 rounded-xl hover:bg-amber-500/20 transition-all border-2 border-transparent hover:border-amber-500/50 bg-slate-800/30">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold text-amber-400 mono tracking-wider uppercase">16:00 EST</p>
+                  <span className="px-2 py-1 bg-amber-500/20 text-amber-300 text-[9px] font-bold rounded-md uppercase">Medium</span>
+                </div>
+                <p className="display-font text-lg font-bold text-slate-200 group-hover:text-amber-300 transition-colors">GBP GDP Growth</p>
+              </div>
+            </div>
+            <button className="w-full mt-6 py-4 secondary-button text-xs uppercase tracking-[0.2em]">
+              Full Schedule
+            </button>
+          </section>
+
+          {/* CARD 3: MAJOR PAIRS */}
+          <section className="terminal-card p-6 sm:p-7">
+            <h2 className="section-header">
+              <Activity size={16} strokeWidth={2.5} className="text-blue-400" /> Major Pairs
+            </h2>
+            <div className="flex-1 space-y-2 bg-slate-800/30 rounded-xl p-3">
+              <MarketRow pair="EURUSD" price="1.0842" change="+0.04%" up={true} />
+              <MarketRow pair="GBPUSD" price="1.2631" change="-0.02%" up={false} />
+              <MarketRow pair="USDJPY" price="149.22" change="+0.12%" up={true} />
+              <MarketRow pair="AUDUSD" price="0.6512" change="-0.08%" up={false} />
+            </div>
+            <button className="w-full mt-6 py-4 secondary-button text-xs uppercase tracking-[0.2em]">
+              View All FX
+            </button>
+          </section>
+
+          {/* CARD 4: US STOCKS */}
+          <section className="terminal-card p-6 sm:p-7">
+            <h2 className="section-header">
+              <LineChart size={16} strokeWidth={2.5} className="text-blue-400" /> US Stocks
+            </h2>
+            <div className="flex-1 space-y-2 bg-slate-800/30 rounded-xl p-3">
+              <MarketRow pair="NAS100" price="17,842" change="+1.24%" up={true} />
+              <MarketRow pair="SPX500" price="5,021" change="+0.85%" up={true} />
+              <MarketRow pair="US30" price="38,628" change="+0.44%" up={true} />
+              <MarketRow pair="TSLA" price="192.45" change="-2.10%" up={false} />
+            </div>
+            <button className="w-full mt-6 py-4 secondary-button text-xs uppercase tracking-[0.2em]">
+              Indices Panel
+            </button>
+          </section>
+
+          {/* CARD 5: CRYPTO */}
+          <section className="terminal-card p-6 sm:p-7">
+            <h2 className="section-header">
+              <Coins size={16} strokeWidth={2.5} className="text-blue-400" /> Crypto
+            </h2>
+            <div className="flex-1 space-y-2 bg-slate-800/30 rounded-xl p-3">
+              <MarketRow pair="BTCUSDT" price="68,412" change="+4.20%" up={true} />
+              <MarketRow pair="ETHUSDT" price="3,452" change="+2.15%" up={true} />
+              <MarketRow pair="SOLUSDT" price="142.10" change="-1.05%" up={false} />
+              <MarketRow pair="BNBUSDT" price="592.30" change="+0.10%" up={true} />
+            </div>
+            <button className="w-full mt-6 py-4 secondary-button text-xs uppercase tracking-[0.2em]">
+              Trade Assets
+            </button>
+          </section>
+
+          {/* CARD 6: STRATEGIES */}
+          <section className="terminal-card strategy-card p-6 sm:p-7">
+            <h2 className="section-header">
+              <ShieldCheck size={16} strokeWidth={2.5} className="text-emerald-400" /> Strategies
+            </h2>
+            <div className="flex-1 space-y-4">
+              <div className="p-5 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-2 border-emerald-400/40 shadow-xl rounded-2xl cursor-pointer hover:border-emerald-400/70 transition-all group">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[9px] font-bold text-emerald-400 uppercase mono tracking-wider">Zone Sniper v4</p>
+                  <Target size={16} className="text-emerald-400 group-hover:rotate-90 transition-transform duration-500" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <p className="display-font text-3xl font-bold text-white">68.2%</p>
+                  <p className="text-sm font-semibold text-emerald-300">Win Rate</p>
+                </div>
+              </div>
+              <div className="p-5 bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-2 border-blue-400/40 shadow-xl rounded-2xl cursor-pointer hover:border-blue-400/70 transition-all group">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[9px] font-bold text-blue-400 uppercase mono tracking-wider">Trend Follower</p>
+                  <TrendingUp size={16} className="text-blue-400 group-hover:translate-x-1 transition-transform duration-300" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <p className="display-font text-3xl font-bold text-white">1:2.4</p>
+                  <p className="text-sm font-semibold text-blue-300">Risk/Reward</p>
+                </div>
+              </div>
+            </div>
+            <button className="w-full mt-6 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white py-4 font-bold text-xs uppercase tracking-[0.2em] rounded-xl transition-all shadow-lg shadow-emerald-900/50">
+              View Full Stats
+            </button>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
