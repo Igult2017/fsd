@@ -12,7 +12,11 @@ import {
   Clock, 
   Zap,
   Network,
-  CalendarDays
+  CalendarDays,
+  ShieldCheck,
+  ChevronRight,
+  Database,
+  BarChart3
 } from 'lucide-react';
 
 const App = () => {
@@ -20,10 +24,10 @@ const App = () => {
 
   // Simulation Data
   const topStats = [
-    { label: "Max Drawdown", value: "-8.42%", color: "text-red-400", border: "border-l-red-500" },
-    { label: "Avg. Drawdown", value: "-1.25%", color: "text-orange-400", border: "border-l-orange-500" },
-    { label: "Recovery Factor", value: "3.8", color: "text-green-400", border: "border-l-green-500" },
-    { label: "Trend Alignment", value: "76%", color: "text-blue-400", border: "border-l-blue-500" }
+    { label: "Max Drawdown", value: "-8.42%", color: "text-rose-500", border: "border-rose-500/20", bg: "bg-rose-500/5" },
+    { label: "Avg. Drawdown", value: "-1.25%", color: "text-amber-500", border: "border-amber-500/20", bg: "bg-amber-500/5" },
+    { label: "Recovery Factor", value: "3.8", color: "text-emerald-500", border: "border-emerald-500/20", bg: "bg-emerald-500/5" },
+    { label: "Trend Alignment", value: "76%", color: "text-indigo-500", border: "border-indigo-500/20", bg: "bg-indigo-500/5" }
   ];
 
   const pairs = ['EURUSD', 'GBPUSD', 'XAUUSD', 'BTCUSD', 'NAS100', 'USDJPY', 'AUDUSD', 'ETHUSD'];
@@ -62,74 +66,90 @@ const App = () => {
   ];
 
   const getHeatmapColor = (val) => {
-    const opacity = Math.min(Math.abs(val) / 5, 1);
-    return `rgba(239, 68, 68, ${opacity})`;
+    const opacity = Math.min(Math.abs(val) / 6, 0.85);
+    return `rgba(244, 63, 94, ${opacity})`;
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white p-4 md:p-8 selection:bg-red-500/30 font-sans">
+    <div className="min-h-screen bg-[#0a0c10] text-slate-200 p-4 md:p-8 selection:bg-indigo-500/30 font-sans antialiased">
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
         
-        .font-display { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Geist', sans-serif; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
-        .custom-scroll::-webkit-scrollbar { height: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scroll::-webkit-scrollbar { height: 3px; width: 3px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .institutional-card {
+          background: linear-gradient(145deg, #13171f 0%, #0d1117 100%);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .data-grid-line {
+          background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+          background-size: 20px 20px;
+        }
       `}} />
 
       <div className="max-w-7xl mx-auto">
         
         {/* Top Level Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10 pt-4">
           {topStats.map((stat, idx) => (
-            <div key={idx} className={`bg-[#1e293b] border border-slate-700 rounded-xl p-5 border-l-4 ${stat.border}`}>
-              <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-              <p className={`text-3xl font-bold font-mono tracking-tighter ${stat.color}`}>{stat.value}</p>
+            <div key={idx} className={`institutional-card rounded-sm p-6 relative overflow-hidden group border-l-2 ${stat.border}`}>
+              <div className={`absolute top-0 right-0 w-16 h-16 ${stat.bg} -mr-8 -mt-8 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}></div>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">{stat.label}</p>
+              <p className={`text-4xl font-extrabold font-mono tracking-tighter ${stat.color}`}>{stat.value}</p>
             </div>
           ))}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           
           {/* Risk Heatmap */}
-          <div className="bg-[#1e293b] border border-slate-700 p-6 overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2 text-blue-400">
-                <Layout className="w-4 h-4" />
-                <h3 className="text-sm italic font-extrabold uppercase tracking-tight text-white">Risk Heatmap: Pair vs Strategy</h3>
+          <div className="institutional-card rounded-sm p-8 flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/50 to-transparent"></div>
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-500/10 rounded-full">
+                   <Layout className="w-4 h-4 text-indigo-400" />
+                </div>
+                <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white">Risk Heatmap: Pair vs Strategy</h3>
               </div>
               <div className="flex items-center gap-4 hidden md:flex">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Scroll horizontally for more</span>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-900 px-3 py-1.5 border border-slate-800">Density Mode</span>
+                <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Scroll horizontally for more</span>
+                <span className="text-[9px] text-slate-200 font-black uppercase tracking-[0.2em] bg-white/5 px-4 py-2 border border-white/10 rounded-full">Density Mode</span>
               </div>
             </div>
-            <div className="overflow-x-auto custom-scroll pb-2">
-              <table className="w-full border-collapse">
+            <div className="overflow-x-auto custom-scroll pb-4">
+              <table className="w-full">
                 <thead>
                   <tr>
-                    <th className="p-2 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest sticky left-0 bg-[#1e293b] z-10 border-b border-slate-800">Pair</th>
+                    <th className="p-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest sticky left-0 bg-[#0d1117] z-20 border-b border-white/10">Pair</th>
                     {strategies.map(s => (
-                      <th key={s} className="p-2 text-center text-[10px] font-black text-slate-500 min-w-[100px] border-b border-slate-800">
-                        <span className="italic tracking-widest">{s}</span>
+                      <th key={s} className="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/10 min-w-[120px]">
+                        {s}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="data-grid-line">
                   {pairs.map(pair => (
-                    <tr key={pair} className="border-t border-slate-800 hover:bg-slate-800/20 group">
-                      <td className="p-3 text-xs font-bold border-r border-slate-800 uppercase text-slate-300 group-hover:text-white transition-colors sticky left-0 bg-[#1e293b] group-hover:bg-[#27354d] z-10 font-mono tracking-tighter">{pair}</td>
+                    <tr key={pair} className="group transition-all">
+                      <td className="p-4 text-xs font-black border-r border-white/5 uppercase text-slate-400 group-hover:text-white sticky left-0 bg-[#0d1117] group-hover:bg-[#161b22] z-10 font-mono tracking-tighter transition-colors">{pair}</td>
                       {[...Array(strategies.length)].map((_, i) => {
                         const val = -(Math.random() * 4.5).toFixed(1);
                         const trades = Math.floor(Math.random() * 40) + 5;
                         const losses = Math.floor(Math.random() * (trades / 2)) + 2;
                         return (
-                          <td key={i} className="p-2 text-center transition-all hover:scale-[1.02] cursor-crosshair border border-slate-800/50" style={{ backgroundColor: getHeatmapColor(val) }}>
-                            <div className="flex flex-col">
-                              <span className="text-[11px] font-bold font-mono tracking-tight">{val}%</span>
-                              <span className="text-[9px] text-white/50 font-mono font-medium">({trades}T/{losses}L)</span>
+                          <td key={i} className="p-2 border border-white/5 transition-all duration-300 hover:z-30 cursor-crosshair group/cell" style={{ backgroundColor: getHeatmapColor(val) }}>
+                            <div className="flex flex-col items-center justify-center py-2 group-hover/cell:scale-110 transition-transform">
+                              <span className="text-[12px] font-extrabold font-mono text-white tracking-tighter">{val}%</span>
+                              <span className="text-[9px] text-white/40 font-mono font-medium">({trades}T/{losses}L)</span>
                             </div>
                           </td>
                         );
@@ -142,26 +162,29 @@ const App = () => {
           </div>
 
           {/* News Impact */}
-          <div className="bg-[#1e293b] border border-slate-700 p-6">
-            <h3 className="text-sm italic font-extrabold mb-6 text-orange-400 flex items-center gap-2 uppercase tracking-tight">
-              <Wind className="w-4 h-4" /> News Impact Analysis
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="institutional-card rounded-sm p-8 border-l-2 border-amber-500/40">
+            <div className="flex items-center gap-3 mb-8">
+               <div className="p-2 bg-amber-500/10 rounded-full">
+                  <Wind className="w-4 h-4 text-amber-500" />
+               </div>
+               <h3 className="text-xs font-black text-white uppercase tracking-[0.15em]">News Impact Analysis</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {[
-                { label: "Pre-News Volatility", value: "-1.8%", trades: 24, losses: 8, w: "45%", color: "bg-orange-500", txt: "text-orange-400" },
-                { label: "Direct News Release", value: "-4.2%", trades: 15, losses: 12, w: "90%", color: "bg-red-500", txt: "text-red-400" },
-                { label: "Post-News (30m-2h)", value: "-0.3%", trades: 42, losses: 10, w: "10%", color: "bg-green-500", txt: "text-green-400" }
+                { label: "Pre-News Volatility", value: "-1.8%", trades: 24, losses: 8, w: "45%", color: "bg-amber-500", txt: "text-amber-500" },
+                { label: "Direct News Release", value: "-4.2%", trades: 15, losses: 12, w: "90%", color: "bg-rose-500", txt: "text-rose-500" },
+                { label: "Post-News (30m-2h)", value: "-0.3%", trades: 42, losses: 10, w: "10%", color: "bg-emerald-500", txt: "text-emerald-500" }
               ].map((item, i) => (
-                <div key={i} className="bg-slate-900/30 p-5 border border-slate-800">
-                  <div className="flex justify-between items-start mb-4">
+                <div key={i} className="group">
+                  <div className="flex justify-between items-end mb-4">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest italic">{item.label}</span>
-                      <span className="text-[9px] text-slate-500 uppercase font-mono mt-1 italic">n={item.trades} • {item.losses}L</span>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.label}</span>
+                      <span className="text-[10px] text-slate-400 font-mono mt-2 font-bold opacity-60">n={item.trades} • {item.losses}L</span>
                     </div>
-                    <span className={`${item.txt} font-bold font-mono text-xl tracking-tighter`}>{item.value}</span>
+                    <span className={`${item.txt} font-extrabold font-mono text-2xl tracking-tighter`}>{item.value}</span>
                   </div>
-                  <div className="w-full bg-slate-800 h-1.5 overflow-hidden">
-                    <div className={`${item.color} h-full transition-all duration-1000`} style={{ width: item.w }}></div>
+                  <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                    <div className={`${item.color} h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]`} style={{ width: item.w }}></div>
                   </div>
                 </div>
               ))}
@@ -169,49 +192,52 @@ const App = () => {
           </div>
 
           {/* Trade Frequency Diagnostic */}
-          <div className="bg-[#1e293b] border border-slate-700 p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-              <div className="flex items-center gap-3">
-                <div className="w-1 h-4 bg-red-500"></div>
-                <h3 className="text-sm italic font-extrabold uppercase tracking-tight">Frequency Diagnostic</h3>
+          <div className="institutional-card rounded-sm p-8 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div className="flex items-center gap-4">
+                <div className="w-1 h-6 bg-indigo-600"></div>
+                <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white">Frequency Diagnostic</h3>
               </div>
-              <div className="flex bg-slate-900/60 p-1 border border-slate-700">
+              <div className="flex bg-black/40 p-1.5 rounded-sm border border-white/5">
                 <button 
                   onClick={() => setActiveFrequencyView('attr')}
-                  className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest transition ${activeFrequencyView === 'attr' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                  className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-sm ${activeFrequencyView === 'attr' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                   Attributes
                 </button>
                 <button 
                   onClick={() => setActiveFrequencyView('instr')}
-                  className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest transition ${activeFrequencyView === 'instr' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                  className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-sm ${activeFrequencyView === 'instr' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                   Instruments
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {frequencyData[activeFrequencyView].map((item, idx) => {
                 const lossRate = ((item.losses / item.total) * 100).toFixed(0);
                 const isHighRisk = parseInt(lossRate) > 55;
                 return (
-                  <div key={idx} className="p-4 bg-slate-800/40 border border-slate-700 hover:border-slate-500 transition-all group">
-                    <div className="flex justify-between items-start mb-4">
+                  <div key={idx} className="p-6 bg-white/2 border border-white/5 rounded-sm hover:border-indigo-500/30 transition-all group relative">
+                    <div className="flex justify-between items-start mb-6">
                       <div className="flex-1 min-w-0 pr-2">
-                        <p className="text-[9px] font-extrabold text-slate-500 uppercase tracking-[0.15em] mb-1 italic">{item.cat}</p>
-                        <h4 className="text-[11px] font-bold text-slate-200 group-hover:text-white truncate tracking-tight italic">{item.name}</h4>
-                        <p className="text-[10px] text-slate-500 mt-1 font-mono font-medium">
-                          {item.total} TRADES <span className="mx-1 opacity-30">|</span> {item.losses} L
-                        </p>
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 italic">{item.cat}</p>
+                        <h4 className="text-[13px] font-extrabold text-white truncate tracking-tight uppercase">{item.name}</h4>
+                        <div className="flex items-center gap-2 mt-2">
+                           <Database className="w-3 h-3 text-slate-600" />
+                           <p className="text-[10px] text-slate-500 font-mono font-bold tracking-tight">
+                            {item.total} TR <span className="mx-1 text-slate-800">/</span> {item.losses} LS
+                          </p>
+                        </div>
                       </div>
-                      <div className={`flex flex-col items-end`}>
-                        <span className={`text-[13px] font-black font-mono ${isHighRisk ? 'text-red-400' : 'text-green-400'}`}>{lossRate}%</span>
+                      <div className="flex flex-col items-end">
+                        <span className={`text-sm font-black font-mono ${isHighRisk ? 'text-rose-500' : 'text-emerald-500'}`}>{lossRate}%</span>
                       </div>
                     </div>
-                    <div className="w-full bg-slate-900 h-1 overflow-hidden">
+                    <div className="w-full bg-black/40 h-1 overflow-hidden">
                       <div 
-                        className={`h-full transition-all duration-700 ${isHighRisk ? 'bg-red-500' : 'bg-slate-400'}`} 
+                        className={`h-full transition-all duration-1000 ${isHighRisk ? 'bg-rose-500' : 'bg-slate-500'}`} 
                         style={{ width: `${lossRate}%` }}
                       ></div>
                     </div>
@@ -221,50 +247,52 @@ const App = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Structural Validity Diagnostics */}
-            <div className="bg-[#1e293b] border border-slate-700 p-6 lg:col-span-3">
-               <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-                 <div className="flex items-center gap-2">
-                    <Network className="w-4 h-4 text-blue-400" />
-                    <h3 className="text-sm italic font-extrabold uppercase tracking-tight">Structural Diagnostics</h3>
+            <div className="institutional-card rounded-sm p-8 lg:col-span-3">
+               <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/10 rounded-full">
+                       <Network className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white">Structural Diagnostics</h3>
                  </div>
-                 <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-indigo-900/40 text-indigo-300 text-[9px] font-black uppercase tracking-widest border border-indigo-800/50">Context</span>
-                    <span className="px-3 py-1 bg-emerald-900/40 text-emerald-300 text-[9px] font-black uppercase tracking-widest border border-emerald-800/50">Entry</span>
+                 <div className="flex gap-3">
+                    <span className="px-4 py-1.5 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest border border-indigo-500/20 rounded-sm">Context</span>
+                    <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 rounded-sm">Entry</span>
                  </div>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                   {[
                     { title: "CTF Validity", items: [
-                      { label: "HTF Orderblock Failed", val: "-3.2%", trades: 12, losses: 9, w: "75%", color: "bg-red-500" },
-                      { label: "HTF Swing Alignment", val: "-1.5%", trades: 20, losses: 8, w: "40%", color: "bg-orange-500" }
+                      { label: "HTF Orderblock Failed", val: "-3.2%", trades: 12, losses: 9, w: "75%", color: "bg-rose-500" },
+                      { label: "HTF Swing Alignment", val: "-1.5%", trades: 20, losses: 8, w: "40%", color: "bg-amber-500" }
                     ], icon: <Zap className="w-3 h-3 text-indigo-400" />},
                     { title: "ATF Validity", items: [
-                      { label: "Fake-out CHOCH ID", val: "-4.1%", trades: 10, losses: 9, w: "90%", color: "bg-red-500" },
-                      { label: "Unmitigated FVG Trap", val: "-0.8%", trades: 15, losses: 3, w: "20%", color: "bg-orange-500" }
+                      { label: "Fake-out CHOCH ID", val: "-4.1%", trades: 10, losses: 9, w: "90%", color: "bg-rose-500" },
+                      { label: "Unmitigated FVG Trap", val: "-0.8%", trades: 15, losses: 3, w: "20%", color: "bg-amber-500" }
                     ], icon: <Zap className="w-3 h-3 text-emerald-400" />},
                     { title: "ETF Execution", items: [
-                      { label: "Premature BOS Execution", val: "-2.4%", trades: 18, losses: 11, w: "60%", color: "bg-red-500" },
-                      { label: "Inducement Failure", val: "-1.9%", trades: 14, losses: 7, w: "50%", color: "bg-red-500" }
-                    ], icon: <Zap className="w-3 h-3 text-red-400" />}
+                      { label: "Premature BOS Execution", val: "-2.4%", trades: 18, losses: 11, w: "60%", color: "bg-rose-500" },
+                      { label: "Inducement Failure", val: "-1.9%", trades: 14, losses: 7, w: "50%", color: "bg-rose-500" }
+                    ], icon: <Zap className="w-3 h-3 text-rose-400" />}
                   ].map((section, idx) => (
-                    <div key={idx} className="space-y-4">
-                      <p className="text-[10px] font-black text-slate-500 flex items-center gap-2 italic tracking-widest">
+                    <div key={idx} className="space-y-6">
+                      <p className="text-[10px] font-black text-slate-500 flex items-center gap-3 tracking-[0.2em] uppercase">
                         {section.icon} {section.title}
                       </p>
                       {section.items.map((item, i) => (
-                        <div key={i} className="p-4 bg-slate-900/40 border border-slate-800 rounded-none hover:border-slate-600 transition-colors">
+                        <div key={i} className="group cursor-default">
                           <div className="flex justify-between items-center mb-3">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-slate-300 tracking-tight italic">{item.label}</span>
-                              <span className="text-[9px] text-slate-600 font-mono font-bold mt-0.5">{item.trades}T / {item.losses}L</span>
+                              <span className="text-[11px] font-bold text-slate-300 tracking-tight uppercase group-hover:text-white transition-colors">{item.label}</span>
+                              <span className="text-[9px] text-slate-600 font-mono font-bold mt-1 uppercase tracking-tight">{item.trades}T / {item.losses}L</span>
                             </div>
-                            <span className="text-red-400 text-sm font-bold font-mono tracking-tighter">{item.val}</span>
+                            <span className="text-rose-500 text-sm font-extrabold font-mono tracking-tighter">{item.val}</span>
                           </div>
-                          <div className="w-full bg-slate-950 h-1">
-                            <div className={`${item.color} h-full`} style={{ width: item.w }}></div>
+                          <div className="w-full bg-white/5 h-1">
+                            <div className={`${item.color} h-full shadow-[0_0_8px_rgba(244,63,94,0.3)] transition-all duration-700`} style={{ width: item.w }}></div>
                           </div>
                         </div>
                       ))}
@@ -274,97 +302,103 @@ const App = () => {
             </div>
 
             {/* Session Drawdown */}
-            <div className="bg-[#1e293b] border border-slate-700 p-6 flex flex-col">
-              <h3 className="text-sm italic font-extrabold mb-6 flex items-center gap-2 uppercase tracking-tight text-blue-400">
-                <Clock className="w-4 h-4" /> Session Diagnostic
+            <div className="institutional-card rounded-sm p-8 flex flex-col border-t-2 border-indigo-500/20">
+              <h3 className="text-xs font-black mb-10 flex items-center gap-3 uppercase tracking-[0.15em] text-white">
+                <Clock className="w-4 h-4 text-indigo-400" /> Session Diagnostic
               </h3>
-              <div className="space-y-4 flex-1">
+              <div className="space-y-6 flex-1">
                 {[
-                  { s: "London Open", v: "-1.2%", t: 45, l: 15, c: "text-red-400" },
-                  { s: "London/NY Overlap", v: "-2.4%", t: 32, l: 18, c: "text-orange-400" },
-                  { s: "NY Mid-Day", v: "-0.5%", t: 28, l: 4, c: "text-green-400" },
-                  { s: "Asian Close", v: "-3.1%", t: 12, l: 10, c: "text-red-400" }
+                  { s: "London Open", v: "-1.2%", t: 45, l: 15, c: "text-rose-500" },
+                  { s: "London/NY Overlap", v: "-2.4%", t: 32, l: 18, c: "text-amber-500" },
+                  { s: "NY Mid-Day", v: "-0.5%", t: 28, l: 4, c: "text-emerald-500" },
+                  { s: "Asian Close", v: "-3.1%", t: 12, l: 10, c: "text-rose-500" }
                 ].map((s, i) => (
-                  <div key={i} className="flex justify-between items-center border-b border-slate-800 pb-3 last:border-0">
+                  <div key={i} className="flex justify-between items-center border-b border-white/5 pb-4 last:border-0 hover:bg-white/2 transition-colors -mx-2 px-2 rounded-sm">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-300 tracking-tight italic">{s.s}</span>
-                      <span className="text-[9px] text-slate-600 font-mono font-bold mt-0.5 uppercase">N={s.t} ({s.l} LOSSES)</span>
+                      <span className="text-[12px] font-bold text-slate-200 uppercase tracking-tight">{s.s}</span>
+                      <span className="text-[9px] text-slate-600 font-mono font-bold mt-1 uppercase">N={s.t} ({s.l} LOSSES)</span>
                     </div>
-                    <span className={`font-mono font-bold text-sm tracking-tighter ${s.c}`}>{s.v}</span>
+                    <span className={`font-mono font-extrabold text-sm tracking-tighter ${s.c}`}>{s.v}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Psychological Attribution */}
-            <div className="bg-[#1e293b] border border-slate-700 p-6 lg:col-span-2">
-              <h3 className="text-sm italic font-extrabold mb-8 flex items-center gap-2 uppercase tracking-tight text-purple-400">
-                <MousePointer2 className="w-4 h-4" /> Psychological Attribution
+            <div className="institutional-card rounded-sm p-8 lg:col-span-2 relative">
+              <h3 className="text-xs font-black mb-10 flex items-center gap-3 uppercase tracking-[0.15em] text-white">
+                <MousePointer2 className="w-4 h-4 text-purple-400" /> Psychological Attribution
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                 {[
-                  { l: "FOMO", v: "-5.1%", t: 22, l_cnt: 20, w: "85%", c: "bg-red-500", tc: "text-red-400" },
-                  { l: "Calm Execution", v: "-0.3%", t: 85, l_cnt: 12, w: "10%", c: "bg-green-500", tc: "text-green-400" },
-                  { l: "Anxiety", v: "-2.4%", t: 34, l_cnt: 19, w: "55%", c: "bg-orange-500", tc: "text-orange-400" }
+                  { l: "FOMO", v: "-5.1%", t: 22, l_cnt: 20, w: "85%", c: "bg-rose-500", tc: "text-rose-500" },
+                  { l: "Calm Execution", v: "-0.3%", t: 85, l_cnt: 12, w: "10%", c: "bg-emerald-500", tc: "text-emerald-500" },
+                  { l: "Anxiety", v: "-2.4%", t: 34, l_cnt: 19, w: "55%", c: "bg-amber-500", tc: "text-amber-500" }
                 ].map((item, i) => (
-                  <div key={i} className="space-y-4">
+                  <div key={i} className="space-y-6">
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-500 italic tracking-widest">{item.l}</span>
-                        <span className="text-[9px] text-slate-600 font-mono font-bold mt-1 uppercase tracking-tighter">{item.t}T / {item.l_cnt}L</span>
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.l}</span>
+                        <span className="text-[9px] text-slate-600 font-mono font-bold mt-2 uppercase tracking-tighter">{item.t}T / {item.l_cnt}L</span>
                       </div>
-                      <span className={`text-2xl font-bold font-mono tracking-tighter ${item.tc}`}>{item.v}</span>
+                      <span className={`text-3xl font-extrabold font-mono tracking-tighter ${item.tc}`}>{item.v}</span>
                     </div>
-                    <div className="w-full bg-slate-900 h-1.5 overflow-hidden">
-                      <div className={`${item.c} h-full transition-all duration-1000`} style={{ width: item.w }}></div>
+                    <div className="w-full bg-black/40 h-1 overflow-hidden rounded-full">
+                      <div className={`${item.c} h-full transition-all duration-1000 ease-in-out`} style={{ width: item.w }}></div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-10 pt-6 border-t border-slate-800 flex justify-between items-center">
+              <div className="mt-12 pt-8 border-t border-white/5 flex justify-between items-center">
                  <div className="flex items-center gap-4">
-                    <Brain className="w-5 h-5 text-slate-500" />
-                    <p className="text-[11px] text-slate-400 font-medium uppercase tracking-tight italic">
+                    <div className="p-2 bg-purple-500/10 rounded-full">
+                       <Brain className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">
                       Emotional Drawdown correlation is <span className="text-white font-black">HIGH (0.82)</span>
                     </p>
                  </div>
-                 <button className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 hover:text-blue-300 transition-colors">Audit Logs &rarr;</button>
+                 <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400 hover:text-indigo-300 transition-all group">
+                    Audit Logs <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                 </button>
               </div>
             </div>
           </div>
 
           {/* Monthly Drawdown Performance Row */}
-          <div className="bg-[#1e293b] border border-slate-700 p-6">
-            <div className="flex items-center justify-between mb-8 border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-2 text-emerald-400">
-                <CalendarDays className="w-4 h-4" />
-                <h3 className="text-sm italic font-extrabold uppercase tracking-tight text-white">Monthly Drawdown Performance</h3>
+          <div className="institutional-card rounded-sm p-8 border-b-2 border-emerald-500/20">
+            <div className="flex items-center justify-between mb-10 border-b border-white/5 pb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 rounded-full">
+                   <CalendarDays className="w-4 h-4 text-emerald-500" />
+                </div>
+                <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white">Monthly Drawdown Performance</h3>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-900/50 px-3 py-1 border border-slate-800">FY 2025</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white/5 px-4 py-1.5 border border-white/10 rounded-sm">FY 2025</span>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-6">
               {monthlyDrawdownData.map((data, idx) => {
                 const ddValue = parseFloat(data.drawdown);
                 const isHeavy = ddValue < -4.0;
                 return (
-                  <div key={idx} className={`p-4 border transition-all duration-300 group hover:bg-slate-800/40 ${isHeavy ? 'bg-red-950/20 border-red-900/50 hover:border-red-700' : 'bg-slate-900/30 border-slate-800 hover:border-slate-600'}`}>
-                    <div className="flex flex-col h-full">
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 italic group-hover:text-slate-300 transition-colors">{data.month}</span>
-                      <div className="flex justify-between items-baseline mb-3">
-                        <span className={`text-2xl font-black font-mono tracking-tighter ${isHeavy ? 'text-red-500' : 'text-slate-200'}`}>{data.drawdown}</span>
-                        <span className="text-[9px] font-mono font-bold text-slate-600 uppercase tracking-tighter">{data.recovery} REC.</span>
+                  <div key={idx} className={`p-6 border rounded-sm transition-all duration-500 group relative overflow-hidden ${isHeavy ? 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/40' : 'bg-white/2 border-white/5 hover:border-indigo-500/30'}`}>
+                    <div className="flex flex-col h-full relative z-10">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 transition-colors group-hover:text-slate-300">{data.month}</span>
+                      <div className="flex flex-col mb-6">
+                        <span className={`text-3xl font-extrabold font-mono tracking-tighter ${isHeavy ? 'text-rose-500' : 'text-white'}`}>{data.drawdown}</span>
+                        <span className="text-[9px] font-mono font-bold text-slate-600 uppercase tracking-tight mt-1">{data.recovery} RECOVERY</span>
                       </div>
-                      <div className="mt-auto space-y-2">
-                        <div className="flex justify-between items-center text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                      <div className="mt-auto pt-4 border-t border-white/5">
+                        <div className="flex justify-between items-center text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">
                           <span>Loss Ratio</span>
                           <span className="font-mono text-slate-400">{data.losses}/{data.trades}</span>
                         </div>
-                        <div className="w-full bg-slate-950 h-1 overflow-hidden">
+                        <div className="w-full bg-black/40 h-1 overflow-hidden rounded-full">
                           <div 
-                            className={`h-full transition-all duration-1000 ${isHeavy ? 'bg-red-600' : 'bg-emerald-600'}`} 
+                            className={`h-full transition-all duration-1000 ${isHeavy ? 'bg-rose-500' : 'bg-emerald-600'}`} 
                             style={{ width: `${(data.losses / data.trades) * 100}%` }}
                           ></div>
                         </div>
@@ -378,14 +412,9 @@ const App = () => {
         </div>
       </div>
       
-      {/* Footer Branding */}
-      <footer className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-slate-500 gap-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Quantum Equity Systems / V2.4.1</p>
-        <div className="flex gap-6 text-[9px] font-black tracking-widest uppercase">
-          <span className="hover:text-white cursor-pointer transition-colors">Support</span>
-          <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
-          <span className="hover:text-white cursor-pointer transition-colors">Terminal</span>
-        </div>
+      {/* Footer */}
+      <footer className="max-w-7xl mx-auto mt-20 pt-10 border-t border-white/5 flex justify-center items-center mb-10">
+        <ShieldCheck className="w-4 h-4 text-slate-800" />
       </footer>
     </div>
   );
