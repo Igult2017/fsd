@@ -117,6 +117,84 @@ const MiniCalendar = () => {
   );
 };
 
+const SmoothEquityCurve = () => {
+  // Mock data points for the curve
+  const data = [10, 25, 20, 45, 40, 65, 55, 80, 75, 95, 85, 100];
+  const width = 1000;
+  const height = 300;
+  
+  // Calculate points for the SVG polyline/path
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - (val / 100) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  // Area path (closes the shape at the bottom)
+  const areaPoints = `0,${height} ` + points + ` ${width},${height}`;
+
+  return (
+    <div className="relative w-full h-80 mt-4">
+      <svg 
+        viewBox={`0 0 ${width} ${height}`} 
+        className="w-full h-full overflow-visible"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        
+        {/* Grid lines */}
+        {[0, 25, 50, 75, 100].map((tick) => (
+          <line 
+            key={tick}
+            x1="0" y1={(tick / 100) * height} 
+            x2={width} y2={(tick / 100) * height} 
+            stroke="#1e293b" 
+            strokeWidth="1"
+          />
+        ))}
+
+        {/* Fill Area */}
+        <polyline
+          fill="url(#curveGradient)"
+          points={areaPoints}
+        />
+
+        {/* Main Line */}
+        <polyline
+          fill="none"
+          stroke="#6366f1"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+          className="drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]"
+        />
+
+        {/* Data points (dots) */}
+        {data.map((val, i) => {
+          const x = (i / (data.length - 1)) * width;
+          const y = height - (val / 100) * height;
+          return (
+            <circle 
+              key={i} 
+              cx={x} cy={y} r="5" 
+              fill="#0f172a" 
+              stroke="#6366f1" 
+              strokeWidth="3"
+              className="hover:r-7 transition-all cursor-pointer"
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -232,18 +310,10 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-                <div className="h-80 flex items-end justify-between gap-3 px-2 relative z-10">
-                  {[40, 55, 45, 60, 75, 70, 85, 95, 80, 100, 110, 95].map((h, i) => (
-                    <div key={`chart-bar-${i}`} className="group relative flex-1">
-                      <div 
-                        className="w-full bg-indigo-500/10 group-hover:bg-indigo-500/30 rounded-t-xl transition-all duration-700 ease-out relative" 
-                        style={{ height: `${h}%` }}
-                      >
-                        <div className="absolute top-0 w-full h-[2px] bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)]" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                
+                {/* Smoothed Equity Graph */}
+                <SmoothEquityCurve />
+
                 <div className="flex justify-between mt-6 text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] px-4 font-mono">
                   <span>09:00</span>
                   <span>11:00</span>
