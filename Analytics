@@ -51,11 +51,59 @@ export default function TradingDashboard() {
             <h1 className="text-3xl font-black text-white mb-1 font-poppins">Trading Journal</h1>
             <p className="text-sm text-slate-400 font-montserrat">Performance Analytics & Strategy Insights</p>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-slate-400 font-montserrat">Total P/L</div>
-            <div className="text-2xl font-black text-emerald-400 font-outfit">$102,100</div>
-          </div>
         </header>
+
+        {/* Key Performance Metrics Row */}
+        <section className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            
+            {/* Total Net Profit */}
+            <div className="bg-[#0a0e1a] border border-slate-800/60 p-5 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-emerald-400" />
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Net Profit</h3>
+              </div>
+              <div className="text-3xl font-black text-emerald-400 font-outfit">$2,100</div>
+            </div>
+
+            {/* Global Win Rate */}
+            <div className="bg-[#0a0e1a] border border-slate-800/60 p-5 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-emerald-400" />
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Global Win Rate</h3>
+              </div>
+              <div className="text-3xl font-black text-emerald-400 font-outfit">67<span className="text-xl text-slate-500">%</span></div>
+            </div>
+
+            {/* Expectancy */}
+            <div className="bg-[#0a0e1a] border border-slate-800/60 p-5 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-emerald-400" />
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Expectancy (R)</h3>
+              </div>
+              <div className="text-3xl font-black text-emerald-400 font-outfit">2.83<span className="text-xl text-slate-500">R</span></div>
+            </div>
+
+            {/* Trade Count */}
+            <div className="bg-[#0a0e1a] border border-slate-800/60 p-5 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-emerald-400" />
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Trade Count</h3>
+              </div>
+              <div className="text-3xl font-black text-emerald-400 font-outfit">3</div>
+            </div>
+
+            {/* Profit Factor */}
+            <div className="bg-[#0a0e1a] border border-slate-800/60 p-5 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-emerald-400" />
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Profit Factor</h3>
+              </div>
+              <div className="text-3xl font-black text-emerald-400 font-outfit">8.00</div>
+            </div>
+
+          </div>
+        </section>
 
         {/* Section 1: Core Metrics (4 Cards) */}
         <section>
