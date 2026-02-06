@@ -134,7 +134,7 @@ const App = () => {
 
   useEffect(() => {
     const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
     return () => {
@@ -207,7 +207,7 @@ const App = () => {
       ) : (
         <input
           type={type}
-          className="w-full px-4 py-3 rounded-xl border-2 border-slate-800/80 bg-slate-900/60 text-slate-200 focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-semibold placeholder:text-slate-700 backdrop-blur-sm"
+          className={`w-full px-4 py-3 rounded-xl border-2 border-slate-800/80 bg-slate-900/60 text-slate-200 focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-semibold placeholder:text-slate-700 backdrop-blur-sm ${type === 'number' || type === 'time' || type === 'datetime-local' ? "font-['JetBrains_Mono']" : ""}`}
           placeholder={placeholder}
           value={formData[field]}
           onChange={(e) => updateField(field, e.target.value)}
@@ -270,12 +270,42 @@ const App = () => {
     </label>
   );
 
+  const NavigationButtons = () => (
+    <div className="flex justify-between items-center pt-8 mt-8 border-t-2 border-slate-800/60">
+      <button
+        onClick={prevStep}
+        className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-[0.12em] transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
+      >
+        <ChevronLeft className="w-4 h-4" /> Back
+      </button>
+      
+      {step < 4 ? (
+        <button
+          onClick={nextStep}
+          className="group flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.12em] shadow-xl shadow-blue-600/25 transition-all hover:-translate-y-0.5"
+        >
+          Next Phase <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            console.log('Final Data:', formData);
+            setShowSuccessModal(true);
+          }}
+          className="flex items-center gap-3 px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.12em] shadow-xl shadow-emerald-600/25 transition-all hover:-translate-y-0.5"
+        >
+          <Save className="w-4 h-4" /> Finalize Journal
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#0f172a] to-[#1a1f35] p-4 md:p-10 font-['Outfit'] text-slate-300">
-      <div className="max-w-7xl mx-auto bg-slate-900/30 backdrop-blur-2xl rounded-[2.5rem] border-2 border-slate-800/50 shadow-[0_0_80px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row min-h-[88vh]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#0f172a] to-[#1a1f35] p-4 md:p-10 font-['Inter'] text-slate-300">
+      <div className="max-w-7xl mx-auto bg-slate-900/30 backdrop-blur-2xl rounded-[2.5rem] border-2 border-slate-800/50 shadow-[0_0_80px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row h-[calc(100vh-5rem)]">
         
-        {/* Sidebar */}
-        <div className="md:w-80 bg-gradient-to-b from-slate-950/60 to-slate-950/40 p-6 md:p-8 border-b md:border-b-0 md:border-r border-slate-800/60 flex flex-col justify-between shrink-0">
+        {/* Sidebar - Static */}
+        <div className="md:w-80 bg-gradient-to-b from-slate-950/60 to-slate-950/40 p-6 md:p-8 border-b md:border-b-0 md:border-r border-slate-800/60 flex flex-col justify-between shrink-0 overflow-y-auto custom-scrollbar">
           <div>
             <div className="flex items-center gap-3 mb-10 md:mb-14">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/30 relative group overflow-hidden">
@@ -283,8 +313,8 @@ const App = () => {
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div>
-                <h1 className="text-2xl font-black tracking-tighter text-white">TRD.CORE</h1>
-                <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Decision Architecture</p>
+                <h1 className="text-xl font-black tracking-tighter text-white">TRD.CORE</h1>
+                <p className="text-[7px] text-slate-500 font-bold uppercase tracking-widest">Decision Architecture</p>
               </div>
             </div>
 
@@ -356,374 +386,356 @@ const App = () => {
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden h-[calc(100vh-200px)] md:h-auto">
-          <div className="p-6 md:p-12 overflow-y-auto custom-scrollbar">
-            
-            <header className="mb-8 md:mb-10 flex justify-between items-end">
-              <div>
-                <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                  {step === 1 ? 'Decision Architecture' : 
-                   step === 2 ? 'Execution Core' : 
-                   step === 3 ? 'Market Context' : 
-                   'Post-Trade Review'}
-                </h2>
-                <p className="text-slate-500 text-xs md:text-sm mt-2 font-semibold">
-                  {step === 1 ? 'Define your thesis, edge, and invalidation before entry' : 
-                   step === 2 ? 'Fundamental positioning and visual evidence' : 
-                   step === 3 ? 'Quantifying the external environment' : 
-                   'Discipline, psychology, and performance data'}
-                </p>
-              </div>
-              <div className="text-slate-900/40 text-7xl font-black italic select-none hidden sm:block">0{step}</div>
-            </header>
-
-            {/* STEP 1: DECISION ARCHITECTURE - NEW STEP */}
-            {step === 1 && (
-              <div className="space-y-8 md:space-y-10">
-                
-                <div className="p-6 bg-gradient-to-br from-amber-500/5 to-orange-500/5 border-2 border-amber-500/20 rounded-2xl">
-                  <div className="flex items-start gap-3 mb-4">
-                    <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-black text-amber-300 uppercase tracking-wider mb-1">Why This Matters</h4>
-                      <p className="text-xs text-amber-200/80 leading-relaxed">
-                        Most traders lose because they enter on impulse without a clear thesis. This section forces pre-trade clarity and prevents emotional decisions.
-                      </p>
-                    </div>
-                  </div>
+        {/* Content Area - Scrollable */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="p-6 md:p-12">
+              
+              <header className="mb-8 md:mb-10 flex justify-between items-end">
+                <div>
+                  <h2 className="text-xl md:text-3xl font-black text-white tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                    {step === 1 ? 'Decision Architecture' : 
+                     step === 2 ? 'Execution Core' : 
+                     step === 3 ? 'Market Context' : 
+                     'Post-Trade Review'}
+                  </h2>
+                  <p className="text-slate-500 text-xs md:text-sm mt-2 font-semibold">
+                    {step === 1 ? 'Define your thesis, edge, and invalidation before entry' : 
+                     step === 2 ? 'Fundamental positioning and visual evidence' : 
+                     step === 3 ? 'Quantifying the external environment' : 
+                     'Discipline, psychology, and performance data'}
+                  </p>
                 </div>
+                <div className="text-slate-900/40 text-6xl font-black italic select-none hidden sm:block">0{step}</div>
+              </header>
 
-                <div className="space-y-8">
-                  <SectionHeader icon={Lightbulb} title="Core Thesis" color="purple" badge="NEW" />
+              {/* STEP 1: DECISION ARCHITECTURE - NEW STEP */}
+              {step === 1 && (
+                <div className="space-y-8 md:space-y-10 pb-8">
                   
-                  <div className="grid gap-6">
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <InputField 
-                        label="Trade Thesis" 
-                        field="thesis" 
-                        rows={4}
-                        placeholder="What is your core argument? What edge are you exploiting? Be specific: 'Price broke key resistance at 1.0850 with strong volume, expecting continuation to 1.0920 liquidity zone...'"
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl">
-                        <Target className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-blue-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> Forces clarity. If you can't articulate your edge in 2-3 sentences, you don't have one.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <InputField 
-                        label="Entry Trigger" 
-                        field="trigger" 
-                        rows={3}
-                        placeholder="What specific event prompted entry NOW? '15M engulfing candle close above 1.0850 with RSI break above 60...'"
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
-                        <Zap className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-emerald-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> Defines your edge. Separates systematic entries from random impulse trades.
+                  <div className="p-6 bg-gradient-to-br from-amber-500/5 to-orange-500/5 border-2 border-amber-500/20 rounded-2xl">
+                    <div className="flex items-start gap-3 mb-4">
+                      <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-black text-amber-300 uppercase tracking-wider mb-1">Why This Matters</h4>
+                        <p className="text-xs text-amber-200/80 leading-relaxed">
+                          Most traders lose because they enter on impulse without a clear thesis. This section forces pre-trade clarity and prevents emotional decisions.
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-6">
-                  <SectionHeader icon={Shield} title="Risk Framework" color="purple" badge="NEW" />
-                  
-                  <div className="grid gap-6">
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <InputField 
-                        label="Invalidation Logic" 
-                        field="invalidationLogic" 
-                        rows={3}
-                        placeholder="When is your thesis WRONG? 'If price closes below 1.0830 on 15M, thesis invalid. Also invalid if no follow-through within 2 hours...'"
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-rose-500/5 border border-rose-500/20 rounded-xl">
-                        <AlertTriangle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-rose-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> Rule-based exits. Pre-define failure before emotion kicks in. This is your exit plan.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <InputField 
-                        label="Expected Behavior" 
-                        field="expectedBehavior" 
-                        rows={3}
-                        placeholder="How should price act if you're right? 'Expect immediate bullish momentum, hold above 1.0850, reach 1.0880 within 30min...'"
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-violet-500/5 border border-violet-500/20 rounded-xl">
-                        <Eye className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-violet-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> Early failure detection. Know within minutes if your trade is working or dying.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <SectionHeader icon={Layers} title="Classification & Quality" color="purple" badge="NEW" />
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <SelectField 
-                        label="Setup Tag" 
-                        field="setupTag" 
-                        options={['Breakout', 'Reversal', 'Continuation', 'Range Bound', 'Trend Following', 'Mean Reversion', 'Momentum', 'Pullback', 'Other']}
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
-                        <LayoutGrid className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-indigo-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> System discipline. Track which setups perform best over time.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <SelectField 
-                        label="Trade Grade (Pre-Entry Quality)" 
-                        field="tradeGrade" 
-                        options={['A - Textbook', 'B - Solid', 'C - Acceptable', 'D - Marginal', 'F - Poor']}
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
-                        <Award className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-amber-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> Selectivity. Only take A/B setups. Track if you're cherry-picking best opportunities.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <SectionHeader icon={Brain} title="Impulse Control Check" color="purple" badge="NEW" />
-                  
-                  <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                    <p className="text-xs text-slate-400 mb-4 font-semibold">Check any that apply - these are RED FLAGS:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <CheckboxField label="Entering due to FOMO (fear of missing out)" field="impulseCheckFOMO" />
-                      <CheckboxField label="Revenge trading after a loss" field="impulseCheckRevenge" />
-                      <CheckboxField label="Trading out of boredom / need for action" field="impulseCheckBored" />
-                      <CheckboxField label="Emotionally compromised (angry, euphoric, anxious)" field="impulseCheckEmotional" />
-                    </div>
-                    <div className="flex items-start gap-2 p-3 bg-orange-500/5 border border-orange-500/20 rounded-xl mt-4">
-                      <Flame className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" />
-                      <p className="text-[10px] text-orange-300/90 leading-relaxed">
-                        <span className="font-black">Purpose:</span> Prevents emotional entries. If ANY box is checked, reconsider the trade. Your psychology matters.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 2: EXECUTION CORE (Original Step 1) */}
-            {step === 2 && (
-              <div className="space-y-8 md:space-y-10">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="col-span-1 sm:col-span-2 lg:col-span-3">
-                    <div className={`relative group overflow-hidden rounded-3xl border-2 transition-all cursor-pointer ${formData.screenshot ? 'border-blue-500/50 bg-slate-900/40' : 'border-dashed border-slate-800/80 bg-slate-950/40 hover:border-blue-500/50'}`}>
-                      <input type="file" className="hidden" id="chart-upload" onChange={handleFileUpload} accept="image/*" />
-                      {formData.screenshot ? (
-                        <div className="relative group">
-                          <img src={formData.screenshot} alt="Trade Evidence" className="w-full h-auto max-h-[400px] object-contain rounded-2xl" />
-                          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-4">
-                            <label htmlFor="chart-upload" className="p-4 bg-blue-600 rounded-2xl cursor-pointer hover:bg-blue-500 transition-all shadow-xl">
-                              <RefreshCcw className="w-6 h-6 text-white" />
-                            </label>
-                            <button onClick={() => updateField('screenshot', null)} className="p-4 bg-rose-600 rounded-2xl hover:bg-rose-500 transition-all shadow-xl">
-                              <Trash2 className="w-6 h-6 text-white" />
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-10 md:p-14 cursor-pointer">
-                          <div className="w-16 h-16 bg-slate-900/60 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all border-2 border-slate-800/60">
-                            <Camera className="w-7 h-7 text-slate-500 group-hover:text-blue-400" />
-                          </div>
-                          <span className="text-sm font-bold text-slate-300">Visual Evidence Required</span>
-                          <span className="text-[9px] text-slate-600 font-black uppercase tracking-[0.12em] mt-1">Attach Final Position Chart</span>
-                        </label>
-                      )}
-                    </div>
-                  </div>
-
-                  <InputField label="Screenshot Time" field="screenshotTimestamp" type="time" />
-                  <InputField label="Instrument / Pair" field="instrument" placeholder="e.g. BTCUSD, XAUUSD" />
-                  <SelectField label="Direction" field="direction" options={['Long', 'Short']} />
-                  
-                  <InputField label="Entry Date/Time" field="entryTime" type="datetime-local" />
-                  <InputField label="Exit Date/Time" field="exitTime" type="datetime-local" />
-                  <SelectField label="Day of Week" field="dayOfWeek" options={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']} />
-                  
-                  <InputField label="Trade Duration" field="tradeDuration" placeholder="e.g. 2h 30m" />
-                  <InputField label="Lot Size / Units" field="lotSize" placeholder="0.01" />
-                  <SelectField label="Order Type" field="orderType" options={['Market', 'Limit', 'Stop', 'Stop-Limit']} />
-                  
-                  <InputField label="Entry Price" field="entryPrice" type="number" placeholder="0.00" />
-                  <InputField label="Stop-Loss" field="stopLoss" type="number" />
-                  <InputField label="SL (Pips)" field="stopLossDistancePips" type="number" />
-                  
-                  <InputField label="Take-Profit" field="takeProfit" type="number" />
-                  <InputField label="TP (Pips)" field="takeProfitDistancePips" type="number" />
-                  <InputField label="Risk %" field="riskPercent" type="number" />
-                  
-                  <InputField label="Pips G/L" field="pipsGainedLost" type="number" />
-                  <InputField label="P/L ($)" field="profitLoss" type="number" />
-                  <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE']} />
-                  
-                  <SelectField label="Entry TF" field="entryTF" options={['1M', '3M', '5M', '15M']} />
-                  <SelectField label="Analysis TF" field="analysisTF" options={['15M', '30MIN', '1HR', '2HR', '4HR']} />
-                  <SelectField label="Context TF" field="contextTF" options={['1W', '1D', '4HR']} />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 3: MARKET CONTEXT (Original Step 2) */}
-            {step === 3 && (
-              <div className="space-y-10">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                   <div className="space-y-8">
-                    <SectionHeader icon={Boxes} title="Environment Map" color="indigo" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <SelectField label="Market Regime" field="marketRegime" options={['Trending', 'Ranging']} />
-                      <SelectField label="Trend Direction" field="trendDirection" options={['Bullish', 'Bearish', 'Sideways']} />
-                      <SelectField label="Volatility State" field="volatilityState" options={['Low', 'Normal', 'High']} />
-                      <SelectField label="Liquidity" field="liquidity" options={['Low', 'Normal', 'High']} />
-                    </div>
-
-                    <div className="col-span-2 p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
-                      <InputField 
-                        label="Bias & Liquidity Targets" 
-                        field="liquidityTargets" 
-                        rows={3}
-                        placeholder="Where are major liquidity pools? Stop hunts? Key psychological levels? What's the market bias?"
-                      />
-                      <div className="flex items-start gap-2 p-3 bg-cyan-500/5 border border-cyan-500/20 rounded-xl">
-                        <Target className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
-                        <p className="text-[10px] text-cyan-300/90 leading-relaxed">
-                          <span className="font-black">Purpose:</span> Identifies where smart money is positioned and key reaction zones.
-                        </p>
-                      </div>
-                    </div>
+                    <SectionHeader icon={Lightbulb} title="Core Thesis" color="purple" badge="NEW" />
                     
-                    <SectionHeader icon={Clock} title="Session Timing" color="indigo" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <InputField label="Entry UTC" field="entryTimeUTC" type="time" />
-                      <SelectField label="Session" field="sessionName" options={['London', 'New York', 'Tokyo', 'Sydney', 'Overlap']} />
+                    <div className="grid gap-6">
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <InputField 
+                          label="Trade Thesis" 
+                          field="thesis" 
+                          rows={4}
+                          placeholder="What is your core argument? What edge are you exploiting? Be specific: 'Price broke key resistance at 1.0850 with strong volume, expecting continuation to 1.0920 liquidity zone...'"
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                          <Target className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-blue-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> Forces clarity. If you can't articulate your edge in 2-3 sentences, you don't have one.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <InputField 
+                          label="Entry Trigger" 
+                          field="trigger" 
+                          rows={3}
+                          placeholder="What specific event prompted entry NOW? '15M engulfing candle close above 1.0850 with RSI break above 60...'"
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                          <Zap className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-emerald-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> Defines your edge. Separates systematic entries from random impulse trades.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-8">
-                    <SectionHeader icon={Gauge} title="Setup Fidelity" color="indigo" />
-                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-3xl space-y-6">
-                      <ScoreSlider label="Market Alignment" field="marketAlignment" />
-                      <ScoreSlider label="Setup Clarity" field="setupClarity" />
-                      <ScoreSlider label="Entry Precision" field="entryPrecision" />
-                      <ScoreSlider label="Confluence" field="confluence" />
-                      <ScoreSlider label="Timing Quality" field="timingQuality" />
+                  <div className="space-y-6">
+                    <SectionHeader icon={Shield} title="Risk Framework" color="purple" badge="NEW" />
+                    
+                    <div className="grid gap-6">
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <InputField 
+                          label="Invalidation Logic" 
+                          field="invalidationLogic" 
+                          rows={3}
+                          placeholder="When is your thesis WRONG? 'If price closes below 1.0830 on 15M, thesis invalid. Also invalid if no follow-through within 2 hours...'"
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-rose-500/5 border border-rose-500/20 rounded-xl">
+                          <AlertTriangle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-rose-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> Rule-based exits. Pre-define failure before emotion kicks in. This is your exit plan.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <InputField 
+                          label="Expected Behavior" 
+                          field="expectedBehavior" 
+                          rows={3}
+                          placeholder="How should price act if you're right? 'Expect immediate bullish momentum, hold above 1.0850, reach 1.0880 within 30min...'"
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-violet-500/5 border border-violet-500/20 rounded-xl">
+                          <Eye className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-violet-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> Early failure detection. Know within minutes if your trade is working or dying.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  <div className="space-y-6">
+                    <SectionHeader icon={Layers} title="Classification & Quality" color="purple" badge="NEW" />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <SelectField 
+                          label="Setup Tag" 
+                          field="setupTag" 
+                          options={['Breakout', 'Reversal', 'Continuation', 'Range Bound', 'Trend Following', 'Mean Reversion', 'Momentum', 'Pullback', 'Other']}
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
+                          <LayoutGrid className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-indigo-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> System discipline. Track which setups perform best over time.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <SelectField 
+                          label="Trade Grade (Pre-Entry Quality)" 
+                          field="tradeGrade" 
+                          options={['A - Textbook', 'B - Solid', 'C - Acceptable', 'D - Marginal', 'F - Poor']}
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                          <Award className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-amber-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> Selectivity. Only take A/B setups. Track if you're cherry-picking best opportunities.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <SectionHeader icon={Brain} title="Impulse Control Check" color="purple" badge="NEW" />
+                    
+                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                      <p className="text-xs text-slate-400 mb-4 font-semibold">Check any that apply - these are RED FLAGS:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <CheckboxField label="Entering due to FOMO (fear of missing out)" field="impulseCheckFOMO" />
+                        <CheckboxField label="Revenge trading after a loss" field="impulseCheckRevenge" />
+                        <CheckboxField label="Trading out of boredom / need for action" field="impulseCheckBored" />
+                        <CheckboxField label="Emotionally compromised (angry, euphoric, anxious)" field="impulseCheckEmotional" />
+                      </div>
+                      <div className="flex items-start gap-2 p-3 bg-orange-500/5 border border-orange-500/20 rounded-xl mt-4">
+                        <Flame className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" />
+                        <p className="text-[10px] text-orange-300/90 leading-relaxed">
+                          <span className="font-black">Purpose:</span> Prevents emotional entries. If ANY box is checked, reconsider the trade. Your psychology matters.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <NavigationButtons />
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* STEP 4: POST-TRADE REVIEW (Original Step 3) */}
-            {step === 4 && (
-              <div className="space-y-10">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 space-y-8">
-                    <SectionHeader icon={BarChart3} title="Execution Metrics" color="violet" />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      <InputField label="Planned RR" field="plannedRR" placeholder="1:2" />
-                      <InputField label="Achieved RR" field="achievedRR" placeholder="1:1.5" />
-                      <SelectField label="Risk Heat" field="riskHeat" options={['Low', 'Medium', 'High']} />
-                      <InputField label="MAE (Max Adverse)" field="mae" placeholder="-15 pips" />
-                      <InputField label="MFE (Max Favorable)" field="mfe" placeholder="+45 pips" />
-                      <InputField label="Account Balance" field="accountBalance" type="number" />
+              {/* STEP 2: EXECUTION CORE (Original Step 1) */}
+              {step === 2 && (
+                <div className="space-y-8 md:space-y-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+                      <div className={`relative group overflow-hidden rounded-3xl border-2 transition-all cursor-pointer ${formData.screenshot ? 'border-blue-500/50 bg-slate-900/40' : 'border-dashed border-slate-800/80 bg-slate-950/40 hover:border-blue-500/50'}`}>
+                        <input type="file" className="hidden" id="chart-upload" onChange={handleFileUpload} accept="image/*" />
+                        {formData.screenshot ? (
+                          <div className="relative group">
+                            <img src={formData.screenshot} alt="Trade Evidence" className="w-full h-auto max-h-[400px] object-contain rounded-2xl" />
+                            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-4">
+                              <label htmlFor="chart-upload" className="p-4 bg-blue-600 rounded-2xl cursor-pointer hover:bg-blue-500 transition-all shadow-xl">
+                                <RefreshCcw className="w-6 h-6 text-white" />
+                              </label>
+                              <button onClick={() => updateField('screenshot', null)} className="p-4 bg-rose-600 rounded-2xl hover:bg-rose-500 transition-all shadow-xl">
+                                <Trash2 className="w-6 h-6 text-white" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-10 md:p-14 cursor-pointer">
+                            <div className="w-16 h-16 bg-slate-900/60 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all border-2 border-slate-800/60">
+                              <Camera className="w-7 h-7 text-slate-500 group-hover:text-blue-400" />
+                            </div>
+                            <span className="text-sm font-bold text-slate-300">Visual Evidence Required</span>
+                            <span className="text-[9px] text-slate-600 font-black uppercase tracking-[0.12em] mt-1">Attach Final Position Chart</span>
+                          </label>
+                        )}
+                      </div>
                     </div>
 
-                    <SectionHeader icon={BrainCircuit} title="Cognitive State" color="violet" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <SelectField label="Emotional State" field="emotionalState" options={['Calm', 'Anxious', 'FOMO', 'Confident', 'Fearful', 'Neutral']} />
-                      <SelectField label="Focus/Stress" field="focusStressLevel" options={['Low', 'Medium', 'High']} />
-                      <InputField label="% Rules Followed" field="rulesFollowed" type="number" />
-                      <InputField label="Confidence Level (1-5)" field="confidenceLevel" type="number" />
-                    </div>
+                    <InputField label="Screenshot Time" field="screenshotTimestamp" type="time" />
+                    <InputField label="Instrument / Pair" field="instrument" placeholder="e.g. BTCUSD, XAUUSD" />
+                    <SelectField label="Direction" field="direction" options={['Long', 'Short']} />
+                    
+                    <InputField label="Entry Date/Time" field="entryTime" type="datetime-local" />
+                    <InputField label="Exit Date/Time" field="exitTime" type="datetime-local" />
+                    <SelectField label="Day of Week" field="dayOfWeek" options={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']} />
+                    
+                    <InputField label="Trade Duration" field="tradeDuration" placeholder="e.g. 2h 30m" />
+                    <InputField label="Lot Size / Units" field="lotSize" placeholder="0.01" />
+                    <SelectField label="Order Type" field="orderType" options={['Market', 'Limit', 'Stop', 'Stop-Limit']} />
+                    
+                    <InputField label="Entry Price" field="entryPrice" type="number" placeholder="0.00" />
+                    <InputField label="Stop-Loss" field="stopLoss" type="number" />
+                    <InputField label="SL (Pips)" field="stopLossDistancePips" type="number" />
+                    
+                    <InputField label="Take-Profit" field="takeProfit" type="number" />
+                    <InputField label="TP (Pips)" field="takeProfitDistancePips" type="number" />
+                    <InputField label="Risk %" field="riskPercent" type="number" />
+                    
+                    <InputField label="Pips G/L" field="pipsGainedLost" type="number" />
+                    <InputField label="P/L ($)" field="profitLoss" type="number" />
+                    <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE']} />
+                    
+                    <SelectField label="Entry TF" field="entryTF" options={['1M', '3M', '5M', '15M']} />
+                    <SelectField label="Analysis TF" field="analysisTF" options={['15M', '30MIN', '1HR', '2HR', '4HR']} />
+                    <SelectField label="Context TF" field="contextTF" options={['1W', '1D', '4HR']} />
                   </div>
 
-                  <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-3xl space-y-6 h-fit">
-                    <SectionHeader icon={Workflow} title="Performance Review" color="violet" />
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.12em]">What Worked</label>
-                            <textarea 
-                                className="w-full p-4 rounded-xl bg-slate-900/60 border-2 border-slate-800/80 text-xs text-white font-semibold outline-none focus:border-emerald-500/60 focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" 
-                                rows="3"
-                                placeholder="What did you execute well?"
-                                value={formData.whatWorked}
-                                onChange={(e) => updateField('whatWorked', e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.12em]">What Failed</label>
-                            <textarea 
-                                className="w-full p-4 rounded-xl bg-slate-900/60 border-2 border-slate-800/80 text-xs text-white font-semibold outline-none focus:border-rose-500/60 focus:ring-4 focus:ring-rose-500/10 transition-all resize-none" 
-                                rows="3"
-                                placeholder="What went wrong?"
-                                value={formData.whatFailed}
-                                onChange={(e) => updateField('whatFailed', e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.12em]">Adjustments</label>
-                            <textarea 
-                                className="w-full p-4 rounded-xl bg-slate-900/60 border-2 border-slate-800/80 text-xs text-white font-semibold outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none" 
-                                rows="3"
-                                placeholder="What will you change next time?"
-                                value={formData.adjustments}
-                                onChange={(e) => updateField('adjustments', e.target.value)}
-                            />
-                        </div>
-                    </div>
-                  </div>
+                  <NavigationButtons />
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* STEP 3: MARKET CONTEXT (Original Step 2) */}
+              {step === 3 && (
+                <div className="space-y-10">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div className="space-y-8">
+                      <SectionHeader icon={Boxes} title="Environment Map" color="indigo" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <SelectField label="Market Regime" field="marketRegime" options={['Trending', 'Ranging']} />
+                        <SelectField label="Trend Direction" field="trendDirection" options={['Bullish', 'Bearish', 'Sideways']} />
+                        <SelectField label="Volatility State" field="volatilityState" options={['Low', 'Normal', 'High']} />
+                        <SelectField label="Liquidity" field="liquidity" options={['Low', 'Normal', 'High']} />
+                      </div>
+
+                      <div className="col-span-2 p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-2xl space-y-4">
+                        <InputField 
+                          label="Bias & Liquidity Targets" 
+                          field="liquidityTargets" 
+                          rows={3}
+                          placeholder="Where are major liquidity pools? Stop hunts? Key psychological levels? What's the market bias?"
+                        />
+                        <div className="flex items-start gap-2 p-3 bg-cyan-500/5 border border-cyan-500/20 rounded-xl">
+                          <Target className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-cyan-300/90 leading-relaxed">
+                            <span className="font-black">Purpose:</span> Identifies where smart money is positioned and key reaction zones.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <SectionHeader icon={Clock} title="Session Timing" color="indigo" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <InputField label="Entry UTC" field="entryTimeUTC" type="time" />
+                        <SelectField label="Session" field="sessionName" options={['London', 'New York', 'Tokyo', 'Sydney', 'Overlap']} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-8">
+                      <SectionHeader icon={Gauge} title="Setup Fidelity" color="indigo" />
+                      <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-3xl space-y-6">
+                        <ScoreSlider label="Market Alignment" field="marketAlignment" />
+                        <ScoreSlider label="Setup Clarity" field="setupClarity" />
+                        <ScoreSlider label="Entry Precision" field="entryPrecision" />
+                        <ScoreSlider label="Confluence" field="confluence" />
+                        <ScoreSlider label="Timing Quality" field="timingQuality" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <NavigationButtons />
+                </div>
+              )}
+
+              {/* STEP 4: POST-TRADE REVIEW (Original Step 3) */}
+              {step === 4 && (
+                <div className="space-y-10">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                      <SectionHeader icon={BarChart3} title="Execution Metrics" color="violet" />
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <InputField label="Planned RR" field="plannedRR" placeholder="1:2" />
+                        <InputField label="Achieved RR" field="achievedRR" placeholder="1:1.5" />
+                        <SelectField label="Risk Heat" field="riskHeat" options={['Low', 'Medium', 'High']} />
+                        <InputField label="MAE (Max Adverse)" field="mae" placeholder="-15 pips" />
+                        <InputField label="MFE (Max Favorable)" field="mfe" placeholder="+45 pips" />
+                        <InputField label="Account Balance" field="accountBalance" type="number" />
+                      </div>
+
+                      <SectionHeader icon={BrainCircuit} title="Cognitive State" color="violet" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <SelectField label="Emotional State" field="emotionalState" options={['Calm', 'Anxious', 'FOMO', 'Confident', 'Fearful', 'Neutral']} />
+                        <SelectField label="Focus/Stress" field="focusStressLevel" options={['Low', 'Medium', 'High']} />
+                        <InputField label="% Rules Followed" field="rulesFollowed" type="number" />
+                        <InputField label="Confidence Level (1-5)" field="confidenceLevel" type="number" />
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-slate-950/40 border-2 border-slate-800/60 rounded-3xl space-y-6 h-fit">
+                      <SectionHeader icon={Workflow} title="Performance Review" color="violet" />
+                      <div className="space-y-4">
+                          <div className="space-y-2">
+                              <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.12em]">What Worked</label>
+                              <textarea 
+                                  className="w-full p-4 rounded-xl bg-slate-900/60 border-2 border-slate-800/80 text-xs text-white font-semibold outline-none focus:border-emerald-500/60 focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" 
+                                  rows="3"
+                                  placeholder="What did you execute well?"
+                                  value={formData.whatWorked}
+                                  onChange={(e) => updateField('whatWorked', e.target.value)}
+                              />
+                          </div>
+                          <div className="space-y-2">
+                              <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.12em]">What Failed</label>
+                              <textarea 
+                                  className="w-full p-4 rounded-xl bg-slate-900/60 border-2 border-slate-800/80 text-xs text-white font-semibold outline-none focus:border-rose-500/60 focus:ring-4 focus:ring-rose-500/10 transition-all resize-none" 
+                                  rows="3"
+                                  placeholder="What went wrong?"
+                                  value={formData.whatFailed}
+                                  onChange={(e) => updateField('whatFailed', e.target.value)}
+                              />
+                          </div>
+                          <div className="space-y-2">
+                              <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.12em]">Adjustments</label>
+                              <textarea 
+                                  className="w-full p-4 rounded-xl bg-slate-900/60 border-2 border-slate-800/80 text-xs text-white font-semibold outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none" 
+                                  rows="3"
+                                  placeholder="What will you change next time?"
+                                  value={formData.adjustments}
+                                  onChange={(e) => updateField('adjustments', e.target.value)}
+                              />
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <NavigationButtons />
+                </div>
+              )}
+            </div>
           </div>
-
-          <footer className="p-6 md:p-8 border-t-2 border-slate-800/60 bg-slate-950/70 backdrop-blur-sm flex justify-between items-center mt-auto shrink-0">
-            <button
-              onClick={prevStep}
-              className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold text-[10px] uppercase tracking-[0.12em] transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
-            >
-              <ChevronLeft className="w-4 h-4" /> Back
-            </button>
-            
-            {step < 4 ? (
-              <button
-                onClick={nextStep}
-                className="group flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.12em] shadow-xl shadow-blue-600/25 transition-all hover:-translate-y-0.5"
-              >
-                Next Phase <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  console.log('Final Data:', formData);
-                  setShowSuccessModal(true);
-                }}
-                className="flex items-center gap-3 px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.12em] shadow-xl shadow-emerald-600/25 transition-all hover:-translate-y-0.5"
-              >
-                <Save className="w-4 h-4" /> Finalize Journal
-              </button>
-            )}
-          </footer>
         </div>
       </div>
 
@@ -735,7 +747,7 @@ const App = () => {
                     <CheckCircle2 className="w-10 h-10 text-emerald-400" />
                     <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping" />
                 </div>
-                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Trade Logged Successfully</h3>
+                <h3 className="text-xl font-black text-white mb-2 tracking-tight">Trade Logged Successfully</h3>
                 <p className="text-slate-400 text-sm mb-8 font-semibold">Your complete decision architecture and trade data have been recorded to the console.</p>
                 <button 
                     onClick={() => {
