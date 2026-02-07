@@ -36,7 +36,14 @@ import {
   Lightbulb,
   TrendingDown,
   Layers,
-  Sparkles
+  Sparkles,
+  DoorOpen,
+  Layers3,
+  Briefcase,
+  Users,
+  Battery,
+  Focus,
+  ShieldCheck
 } from 'lucide-react';
 
 const INITIAL_FORM_STATE = {
@@ -124,7 +131,35 @@ const INITIAL_FORM_STATE = {
   impulseCheckFOMO: false,
   impulseCheckRevenge: false,
   impulseCheckBored: false,
-  impulseCheckEmotional: false
+  impulseCheckEmotional: false,
+  
+  // NEW: Exit Causation
+  primaryExitReason: 'Target Hit',
+  
+  // NEW: Timeframe Context
+  htfBias: 'Bull',
+  htfKeyLevelPresent: 'Yes',
+  trendAlignment: 'Yes',
+  analysisTFContext: '',
+  entryTFContext: '',
+  otherConfluences: '',
+  multitimeframeAlignment: 'Yes',
+  
+  // NEW: Portfolio Awareness
+  openTradesCount: '',
+  totalRiskOpen: '',
+  correlatedExposure: 'No',
+  
+  // NEW: Behavioral State
+  energyLevel: 3,
+  focusLevel: 3,
+  externalDistraction: 'No',
+  confidenceAtEntry: 3,
+  
+  // NEW: Rule Governance
+  setupFullyValid: 'Yes',
+  anyRuleBroken: 'No',
+  ruleBroken: ''
 };
 
 const App = () => {
@@ -175,6 +210,8 @@ const App = () => {
           color === 'indigo' ? 'bg-indigo-500/10 border border-indigo-500/20' : 
           color === 'violet' ? 'bg-violet-500/10 border border-violet-500/20' :
           color === 'amber' ? 'bg-amber-500/10 border border-amber-500/20' :
+          color === 'emerald' ? 'bg-emerald-500/10 border border-emerald-500/20' :
+          color === 'rose' ? 'bg-rose-500/10 border border-rose-500/20' :
           'bg-purple-500/10 border border-purple-500/20'
         }`}>
           <Icon className={`w-4 h-4 ${
@@ -182,6 +219,8 @@ const App = () => {
             color === 'indigo' ? 'text-indigo-400' : 
             color === 'violet' ? 'text-violet-400' :
             color === 'amber' ? 'text-amber-400' :
+            color === 'emerald' ? 'text-emerald-400' :
+            color === 'rose' ? 'text-rose-400' :
             'text-purple-400'
           }`} />
         </div>
@@ -534,6 +573,62 @@ const App = () => {
                     </div>
                   </div>
 
+                  {/* NEW: Pre-Entry State Check */}
+                  <div>
+                    <SectionHeader 
+                      icon={Battery} 
+                      title="Pre-Entry State Check" 
+                      color="emerald"
+                      badge="NEW"
+                      subtitle="Capture your physical and mental state at entry"
+                    />
+                    
+                    <div className="grid md:grid-cols-2 gap-5">
+                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                        <ScoreSlider label="Energy Level" field="energyLevel" />
+                        <ScoreSlider label="Focus Level" field="focusLevel" />
+                        <ScoreSlider label="Confidence at Entry" field="confidenceAtEntry" />
+                        <SelectField 
+                          label="External Distraction" 
+                          field="externalDistraction" 
+                          options={['No', 'Yes']}
+                        />
+                        <InfoCard 
+                          icon={Focus}
+                          title="Purpose"
+                          description="State matters. Low energy/focus correlates with poor execution. Track this."
+                          color="emerald"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                        <InputField 
+                          label="Open Trades Count" 
+                          field="openTradesCount" 
+                          type="number"
+                          placeholder="0"
+                        />
+                        <InputField 
+                          label="Total Risk Open (%)" 
+                          field="totalRiskOpen" 
+                          type="number"
+                          placeholder="2.5"
+                        />
+                        <SelectField 
+                          label="Correlated Exposure" 
+                          field="correlatedExposure" 
+                          options={['No', 'Yes']}
+                        />
+                        <InfoCard 
+                          icon={Briefcase}
+                          title="Purpose"
+                          description="Portfolio awareness prevents over-leverage and correlated blowups."
+                          color="blue"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Classification */}
                   <div>
                     <SectionHeader 
@@ -571,6 +666,47 @@ const App = () => {
                           color="amber"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* NEW: Rule Governance */}
+                  <div>
+                    <SectionHeader 
+                      icon={ShieldCheck} 
+                      title="Rule Governance" 
+                      color="rose"
+                      badge="NEW"
+                      subtitle="Binary flags to make rule-breaking explicit"
+                    />
+                    
+                    <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <SelectField 
+                          label="Setup Fully Valid" 
+                          field="setupFullyValid" 
+                          options={['Yes', 'No']}
+                        />
+                        <SelectField 
+                          label="Any Rule Broken?" 
+                          field="anyRuleBroken" 
+                          options={['No', 'Yes']}
+                        />
+                      </div>
+                      
+                      {formData.anyRuleBroken === 'Yes' && (
+                        <InputField 
+                          label="Rule Broken (ID/Name)" 
+                          field="ruleBroken" 
+                          placeholder="e.g., Risk > 2%, Entered during news, No confluence"
+                        />
+                      )}
+                      
+                      <InfoCard 
+                        icon={AlertTriangle}
+                        title="Purpose"
+                        description="Makes discipline visible. If rules are broken, you can identify patterns in poor execution."
+                        color="rose"
+                      />
                     </div>
                   </div>
 
@@ -651,6 +787,30 @@ const App = () => {
                       <InputField label="Risk %" field="riskPercent" type="number" />
                       <SelectField label="Order Type" field="orderType" options={['Market', 'Limit', 'Stop', 'Stop-Limit']} />
                       <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE']} />
+                    </div>
+                  </div>
+
+                  {/* NEW: Exit Causation */}
+                  <div>
+                    <SectionHeader 
+                      icon={DoorOpen} 
+                      title="Exit Causation" 
+                      color="rose"
+                      badge="NEW"
+                      subtitle="Why did the trade end?"
+                    />
+                    <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
+                      <SelectField 
+                        label="Primary Exit Reason" 
+                        field="primaryExitReason" 
+                        options={['Target Hit', 'Stop Hit', 'Time Exit', 'Structure Change', 'News', 'Emotional Exit']}
+                      />
+                      <InfoCard 
+                        icon={Target}
+                        title="Purpose"
+                        description="Tracks exit discipline. Are you hitting targets or getting stopped out? Taking profits early?"
+                        color="rose"
+                      />
                     </div>
                   </div>
 
@@ -752,6 +912,69 @@ const App = () => {
                           <SelectField label="Liquidity" field="liquidity" options={['Low', 'Normal', 'High']} />
                           <SelectField label="News Environment" field="newsEnvironment" options={['Clear', 'Minor', 'Major']} />
                           <SelectField label="Session Phase" field="sessionPhase" options={['Open', 'Mid', 'Close']} />
+                        </div>
+                      </div>
+
+                      {/* NEW: Timeframe Context */}
+                      <div>
+                        <SectionHeader 
+                          icon={Layers3} 
+                          title="Timeframe Context" 
+                          color="indigo"
+                          badge="NEW"
+                          subtitle="Simple flags and state descriptions"
+                        />
+                        <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <SelectField 
+                              label="HTF Bias" 
+                              field="htfBias" 
+                              options={['Bull', 'Bear', 'Range']}
+                            />
+                            <SelectField 
+                              label="HTF Key Level Present" 
+                              field="htfKeyLevelPresent" 
+                              options={['Yes', 'No']}
+                            />
+                            <SelectField 
+                              label="Trend Alignment" 
+                              field="trendAlignment" 
+                              options={['Yes', 'No']}
+                            />
+                            <SelectField 
+                              label="Multitimeframe Alignment" 
+                              field="multitimeframeAlignment" 
+                              options={['Yes', 'No']}
+                            />
+                          </div>
+                          
+                          <InputField 
+                            label="Analysis TF Context" 
+                            field="analysisTFContext" 
+                            rows={2}
+                            placeholder="What's happening on analysis timeframe? e.g., Strong uptrend, consolidating near highs"
+                          />
+                          
+                          <InputField 
+                            label="Entry TF Context" 
+                            field="entryTFContext" 
+                            rows={2}
+                            placeholder="What's happening on entry timeframe? e.g., Bullish engulfing at support"
+                          />
+                          
+                          <InputField 
+                            label="Other Confluences" 
+                            field="otherConfluences" 
+                            rows={2}
+                            placeholder="e.g., Interest rate differentials, USD strength, key economic data"
+                          />
+                          
+                          <InfoCard 
+                            icon={Layers3}
+                            title="Purpose"
+                            description="Captures the multi-timeframe story. Are all timeframes aligned or conflicting?"
+                            color="blue"
+                          />
                         </div>
                       </div>
 
