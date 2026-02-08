@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, 
   Globe, 
-  BarChart3, 
   Coins, 
   ShieldCheck, 
   Clock, 
@@ -23,7 +22,10 @@ import {
   Facebook,
   Search,
   Sun,
-  Moon
+  Moon,
+  TrendingDown,
+  Minus,
+  Gem
 } from 'lucide-react';
 
 // Custom SVG for Telegram to ensure brand accuracy
@@ -59,60 +61,118 @@ const App = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
+  // Enhanced market data with realistic trading information
   const marketPages = [
     { 
       id: 'Major Pairs', 
       icon: <Globe size={20} />, 
       desc: 'Focusing on EURUSD & GBPUSD institutional order blocks.',
-      data: { trend: 'Bullish', volatility: 'Med', liquidity: 'Extreme' }
+      overview: { trend: 'Bullish', volatility: 'Med', liquidity: 'Extreme' },
+      liveData: [
+        { pair: 'EUR/USD', price: '1.0847', change: '+0.23%', signal: 'buy' },
+        { pair: 'GBP/USD', price: '1.2634', change: '+0.18%', signal: 'buy' },
+        { pair: 'USD/JPY', price: '149.82', change: '-0.12%', signal: 'neutral' }
+      ],
+      zones: [
+        { level: '1.0920', type: 'Supply', strength: 'Strong' },
+        { level: '1.0780', type: 'Demand', strength: 'Medium' }
+      ]
     },
     { 
       id: 'US Stocks', 
       icon: <TrendingUp size={20} />, 
       desc: 'NASDAQ & S&P500 intraday scalping zones.',
-      data: { trend: 'Neutral', volatility: 'High', liquidity: 'High' }
+      overview: { trend: 'Neutral', volatility: 'High', liquidity: 'High' },
+      liveData: [
+        { pair: 'NQ100', price: '20,847', change: '-0.31%', signal: 'sell' },
+        { pair: 'SPX500', price: '5,918', change: '-0.15%', signal: 'neutral' },
+        { pair: 'US30', price: '43,215', change: '+0.09%', signal: 'buy' }
+      ],
+      zones: [
+        { level: '21,100', type: 'Resistance', strength: 'Strong' },
+        { level: '20,650', type: 'Support', strength: 'Medium' }
+      ]
     },
     { 
       id: 'Commodities', 
-      icon: <BarChart3 size={20} />, 
+      icon: <Gem size={20} />, 
       desc: 'Gold (XAU) and Crude Oil supply/demand imbalances.',
-      data: { trend: 'Bullish', volatility: 'V. High', liquidity: 'Med' }
+      overview: { trend: 'Bullish', volatility: 'V. High', liquidity: 'Med' },
+      liveData: [
+        { pair: 'XAU/USD', price: '2,687.50', change: '+1.24%', signal: 'buy' },
+        { pair: 'WTI Oil', price: '71.38', change: '+0.85%', signal: 'buy' },
+        { pair: 'Silver', price: '30.92', change: '+1.15%', signal: 'buy' }
+      ],
+      zones: [
+        { level: '2,720', type: 'Supply', strength: 'Strong' },
+        { level: '2,650', type: 'Demand', strength: 'Strong' }
+      ]
     },
     { 
       id: 'Cryptocurrency', 
       icon: <Coins size={20} />, 
       desc: 'Bitcoin and Ethereum liquidation heatmaps.',
-      data: { trend: 'Bearish', volatility: 'Extreme', liquidity: 'Low' }
+      overview: { trend: 'Bearish', volatility: 'Extreme', liquidity: 'Low' },
+      liveData: [
+        { pair: 'BTC/USD', price: '97,234', change: '-2.15%', signal: 'sell' },
+        { pair: 'ETH/USD', price: '3,487', change: '-3.42%', signal: 'sell' },
+        { pair: 'BNB/USD', price: '698', change: '-1.89%', signal: 'sell' }
+      ],
+      zones: [
+        { level: '102K', type: 'Liquidation', strength: 'Extreme' },
+        { level: '94K', type: 'Support', strength: 'Medium' }
+      ]
     },
     { 
       id: 'Verified Strategies', 
       icon: <ShieldCheck size={20} />, 
       desc: 'Backtested blueprints with defined R:R metrics.',
-      data: { winrate: '64%', avgRR: '1:3.2', tested: '5Y' }
+      overview: { winrate: '64%', avgRR: '1:3.2', tested: '5Y' },
+      strategies: [
+        { name: 'London Breakout', markets: 'Forex', winRate: '68%', rr: '1:3.5' },
+        { name: 'Supply/Demand', markets: 'All', winRate: '62%', rr: '1:3.0' },
+        { name: 'Liquidation Hunt', markets: 'Crypto', winRate: '59%', rr: '1:4.2' }
+      ],
+      performance: [
+        { metric: 'Total Trades', value: '1,247' },
+        { metric: 'Profit Factor', value: '2.34' }
+      ]
     }
   ];
 
   // Dynamic Styles based on theme
   const isDark = theme === 'dark';
-  const bgColor = isDark ? 'bg-[#050505]' : 'bg-[#fcfcfc]';
-  const textColor = isDark ? 'text-[#e0e0e0]' : 'text-[#222222]';
+  const bgColor = isDark ? 'bg-[#0a0e17]' : 'bg-[#f8f9fa]';
+  const textColor = isDark ? 'text-[#e8eaed]' : 'text-[#1a1d23]';
   const borderColor = isDark ? 'border-white/10' : 'border-black/10';
-  const navBg = isDark ? (scrolled ? 'bg-black/95' : 'bg-transparent') : (scrolled ? 'bg-white/95' : 'bg-transparent');
+  const navBg = isDark ? (scrolled ? 'bg-[#0d1117]/95' : 'bg-transparent') : (scrolled ? 'bg-white/95' : 'bg-transparent');
   const subNavBg = isDark ? 'bg-white/[0.02]' : 'bg-black/[0.02]';
   const sectionBorder = isDark ? 'border-white/5' : 'border-black/5';
 
+  const getTrendIcon = (trend) => {
+    if (trend === 'Bullish' || trend === 'buy') return <TrendingUp size={12} className="text-blue-500" />;
+    if (trend === 'Bearish' || trend === 'sell') return <TrendingDown size={12} className="text-red-500" />;
+    return <Minus size={12} className="text-slate-500" />;
+  };
+
+  const getSignalColor = (signal) => {
+    if (signal === 'buy') return 'text-blue-500';
+    if (signal === 'sell') return 'text-red-500';
+    return isDark ? 'text-slate-400' : 'text-slate-500';
+  };
+
   return (
-    <div className={`min-h-screen ${bgColor} ${textColor} font-mono selection:bg-emerald-500/30 overflow-x-hidden transition-colors duration-300`}>
+    <div className={`min-h-screen ${bgColor} ${textColor} font-sans selection:bg-blue-500/30 overflow-x-hidden transition-colors duration-300`} style={{ fontFamily: "'Montserrat', 'Helvetica Neue', Arial, sans-serif" }}>
       {/* Navigation System */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${navBg} ${scrolled ? 'shadow-2xl' : ''}`}>
         {/* Top Utility Bar */}
-        <div className={`border-b ${sectionBorder} ${isDark ? 'bg-black/40' : 'bg-white/40'} backdrop-blur-md`}>
+        <div className={`border-b ${sectionBorder} ${isDark ? 'bg-[#0d1117]/40' : 'bg-white/40'} backdrop-blur-md`}>
           <div className="max-w-7xl mx-auto px-6 py-2 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
             <div className="flex items-center gap-6">
               <a href="#" className={`flex items-center gap-2 transition-colors group ${isDark ? 'hover:text-white' : 'hover:text-black'}`}>
                 <TelegramIcon size={12} color="#229ED9" /> <span className="group-hover:text-[#229ED9]">Join Telegram</span>
               </a>
-              <a href="#" className="flex items-center gap-2 hover:text-emerald-500 transition-colors">
+              <a href="#" className="flex items-center gap-2 hover:text-blue-500 transition-colors">
                 <BellRing size={12} /> Subscribe
               </a>
             </div>
@@ -128,8 +188,8 @@ const App = () => {
               
               <span className={isDark ? 'text-white/20' : 'text-black/20'}>|</span>
               <div className="flex gap-4">
-                <a href="#" className="hover:text-emerald-500 transition-colors">Sign In</a>
-                <a href="#" className="text-emerald-500 hover:text-emerald-400 transition-colors">Sign Up</a>
+                <a href="#" className="hover:text-blue-500 transition-colors">Sign In</a>
+                <a href="#" className="text-blue-500 hover:text-blue-400 transition-colors">Sign Up</a>
               </div>
             </div>
           </div>
@@ -139,15 +199,15 @@ const App = () => {
         <div className={`border-b ${borderColor}`}>
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className={`text-2xl font-black tracking-tighter flex items-center ${isDark ? 'text-white' : 'text-black'}`}>
-              FSDZONES<span className="text-emerald-500">.COM</span>
+              FSDZONES<span className="text-blue-500">.COM</span>
             </div>
 
             <div className="hidden lg:flex items-center space-x-8 text-[10px] font-black uppercase tracking-[0.15em]">
-              <a href="#" className="text-emerald-500">Home</a>
-              <a href="#journal" className="hover:text-emerald-500 transition-colors">Free Journal</a>
-              <a href="#tsc" className="hover:text-emerald-500 transition-colors">TSC</a>
-              <a href="#calendar" className="hover:text-emerald-500 transition-colors">Economic Calendar</a>
-              <a href="#blog" className="hover:text-emerald-500 transition-colors">Blog</a>
+              <a href="#" className="text-blue-500">Home</a>
+              <a href="#journal" className="hover:text-blue-500 transition-colors">Free Journal</a>
+              <a href="#tsc" className="hover:text-blue-500 transition-colors">TSC</a>
+              <a href="#calendar" className="hover:text-blue-500 transition-colors">Economic Calendar</a>
+              <a href="#blog" className="hover:text-blue-500 transition-colors">Blog</a>
             </div>
 
             <button className={`lg:hidden ${isDark ? 'text-white' : 'text-black'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -167,7 +227,7 @@ const App = () => {
                     e.preventDefault();
                     setActiveTab(page.id);
                 }}
-                className={`hover:text-emerald-500 transition-colors flex items-center gap-2 ${activeTab === page.id ? (isDark ? 'text-white border-b border-emerald-500' : 'text-black border-b border-emerald-500') : ''} pb-0.5`}
+                className={`hover:text-blue-500 transition-colors flex items-center gap-2 ${activeTab === page.id ? (isDark ? 'text-white border-b border-blue-500' : 'text-black border-b border-blue-500') : ''} pb-0.5`}
               >
                 {page.id}
               </a>
@@ -187,53 +247,184 @@ const App = () => {
         <div className="max-w-7xl mx-auto">
           <div className="relative group">
             <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-              <Search className={`text-emerald-500 group-focus-within:${isDark ? 'text-white' : 'text-black'} transition-colors`} size={20} />
+              <Search className={`text-blue-500 group-focus-within:${isDark ? 'text-white' : 'text-black'} transition-colors`} size={20} />
             </div>
             <input 
               type="text" 
               placeholder="SEARCH SYMBOLS, STRATEGIES, OR LIQUIDITY ZONES..." 
-              className={`w-full ${isDark ? 'bg-white/[0.03] text-white focus:bg-white/[0.05]' : 'bg-black/[0.03] text-black focus:bg-black/[0.05]'} border ${borderColor} py-6 pl-16 pr-6 text-xs font-black uppercase tracking-[0.2em] focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-500`}
+              className={`w-full ${isDark ? 'bg-white/[0.03] text-white focus:bg-white/[0.05]' : 'bg-black/[0.03] text-black focus:bg-black/[0.05]'} border ${borderColor} py-6 pl-16 pr-6 text-xs font-black uppercase tracking-[0.2em] focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-slate-500`}
             />
-            <div className={`absolute inset-y-0 right-6 flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest hidden md:flex pointer-events-none ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-              <span>Press</span>
-              <span className={`px-2 py-1 border rounded ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>CMD + K</span>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Highlights Section */}
+      {/* Enhanced Market Overview with Live Data */}
       <section className={`py-4 px-6 border-b ${sectionBorder}`}>
         <div className="max-w-7xl mx-auto">
           <div className={`flex items-center gap-4 mb-8 uppercase tracking-[0.3em] text-[10px] font-black ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            <div className="w-8 h-[1px] bg-emerald-500"></div>
+            <div className="w-8 h-[1px] bg-blue-500"></div>
             Market Overview
           </div>
-          <div className={`grid lg:grid-cols-5 gap-px ${isDark ? 'bg-white/10' : 'bg-black/10'} border ${borderColor} overflow-hidden transition-colors`}>
+          <div className={`grid lg:grid-cols-5 gap-6`}>
             {marketPages.map((page) => (
               <div 
                 key={page.id}
                 id={page.id.replace(/\s+/g, '-').toLowerCase()}
                 onMouseEnter={() => setActiveTab(page.id)}
-                className={`p-8 cursor-pointer transition-all duration-300 relative ${bgColor}
-                  ${activeTab === page.id ? 'z-10' : ''}
-                `}
+                className={`relative rounded-lg overflow-hidden cursor-pointer transition-all duration-500 border ${
+                  activeTab === page.id 
+                    ? 'border-blue-500 shadow-lg shadow-blue-500/20' 
+                    : borderColor
+                } ${bgColor} hover:scale-[1.02]`}
               >
-                {activeTab === page.id && <div className="absolute inset-0 border-2 border-emerald-500 pointer-events-none"></div>}
+                {/* Gradient overlay */}
+                <div className={`absolute inset-0 opacity-0 transition-opacity duration-500 ${
+                  activeTab === page.id ? 'opacity-100' : ''
+                } bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none`}></div>
                 
-                <div className={`mb-6 transition-colors ${activeTab === page.id ? 'text-emerald-500' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
-                  {page.icon}
-                </div>
-                <h3 className={`text-xs font-black uppercase tracking-widest mb-3 ${isDark ? 'text-white' : 'text-black'}`}>{page.id}</h3>
-                <p className={`text-[11px] leading-relaxed mb-6 h-12 font-sans ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{page.desc}</p>
-                
-                <div className={`space-y-2 border-t ${borderColor} pt-4`}>
-                  {Object.entries(page.data).map(([key, val]) => (
-                    <div key={key} className="flex justify-between text-[10px] uppercase tracking-tighter">
-                      <span className={`${isDark ? 'text-slate-400' : 'text-slate-500'} font-bold`}>{key}</span>
-                      <span className={`${isDark ? 'text-white' : 'text-black'} font-black`}>{val}</span>
+                <div className="relative p-6">
+                  {/* Icon and Title */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-3 rounded-lg transition-all duration-300 ${
+                      activeTab === page.id 
+                        ? 'bg-blue-500/10 text-blue-500' 
+                        : (isDark ? 'bg-white/5 text-slate-400' : 'bg-black/5 text-slate-500')
+                    }`}>
+                      {page.icon}
                     </div>
-                  ))}
+                  </div>
+                  
+                  <h3 className={`text-sm font-black uppercase tracking-wide mb-2 ${isDark ? 'text-white' : 'text-black'}`}>
+                    {page.id}
+                  </h3>
+                  <p className={`text-[10px] leading-relaxed mb-6 font-sans ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {page.desc}
+                  </p>
+                  
+                  {/* Overview Stats - Redesigned as badges */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {Object.entries(page.overview).map(([key, val]) => (
+                      <div 
+                        key={key} 
+                        className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                          isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'
+                        }`}
+                      >
+                        <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>{key}:</span>{' '}
+                        <span className={isDark ? 'text-white' : 'text-black'}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Live Data Section - Redesigned */}
+                  {page.liveData && (
+                    <div className={`border-t ${borderColor} pt-4 space-y-3 mb-4`}>
+                      <div className={`text-[9px] font-black uppercase tracking-wider flex items-center gap-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                        Live Prices
+                      </div>
+                      {page.liveData.map((item, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+                            isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
+                          }`}
+                        >
+                          <span className={`text-[10px] font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                            {item.pair}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-black'}`}>
+                              {item.price}
+                            </span>
+                            <span className={`text-[10px] font-black px-2 py-1 rounded ${
+                              item.change.startsWith('+') 
+                                ? 'bg-emerald-500/10 text-emerald-500' 
+                                : 'bg-red-500/10 text-red-500'
+                            }`}>
+                              {item.change}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Strategies Section - Redesigned */}
+                  {page.strategies && (
+                    <div className={`border-t ${borderColor} pt-4 space-y-3`}>
+                      <div className={`text-[9px] font-black uppercase tracking-wider flex items-center gap-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <ShieldCheck size={12} className="text-blue-500" />
+                        Top Strategies
+                      </div>
+                      {page.strategies.map((strat, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`p-3 rounded-lg border transition-all ${
+                            isDark 
+                              ? 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05]' 
+                              : 'bg-black/[0.02] border-black/10 hover:bg-black/[0.05]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className={`text-[10px] font-black ${isDark ? 'text-white' : 'text-black'}`}>
+                              {strat.name}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <TrendingUp size={10} className="text-emerald-500" />
+                              <span className="text-emerald-500 font-black text-[10px]">{strat.winRate}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[9px] uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {strat.markets}
+                            </span>
+                            <span className={`text-[9px] font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                              R:R {strat.rr}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Key Zones - Redesigned with visual indicators */}
+                  {page.zones && (
+                    <div className={`border-t ${borderColor} pt-4 space-y-3`}>
+                      <div className={`text-[9px] font-black uppercase tracking-wider flex items-center gap-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <Target size={12} className="text-blue-500" />
+                        Key Zones
+                      </div>
+                      {page.zones.map((zone, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                            zone.type.includes('Supply') || zone.type.includes('Resistance') || zone.type.includes('Liquidation')
+                              ? 'border-red-500/20 bg-red-500/5'
+                              : 'border-emerald-500/20 bg-emerald-500/5'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-3 h-3 rounded border-2 ${
+                              zone.type.includes('Supply') || zone.type.includes('Resistance') || zone.type.includes('Liquidation')
+                                ? 'bg-red-500/20 border-red-500'
+                                : 'bg-emerald-500/20 border-emerald-500'
+                            }`}></div>
+                            <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-black'}`}>
+                              {zone.level}
+                            </span>
+                          </div>
+                          <span className={`text-[9px] font-black uppercase px-2 py-1 rounded ${
+                            zone.type.includes('Supply') || zone.type.includes('Resistance') || zone.type.includes('Liquidation')
+                              ? 'bg-red-500/10 text-red-500'
+                              : 'bg-emerald-500/10 text-emerald-500'
+                          }`}>
+                            {zone.type}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -241,34 +432,164 @@ const App = () => {
         </div>
       </section>
 
-      {/* Utilities */}
+      {/* Enhanced Utilities with Mock Data */}
       <section className={`py-24 px-6 border-b ${sectionBorder}`}>
-        <div className={`max-w-7xl mx-auto grid lg:grid-cols-3 gap-px ${isDark ? 'bg-white/10 border-white/10' : 'bg-black/10 border-black/10'} border`}>
-          <div id="journal" className={`${bgColor} p-10 ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]'} transition-colors group`}>
-            <BookOpen className="text-emerald-500 mb-8" size={32} />
-            <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${isDark ? 'text-white' : 'text-black'}`}>Free Journal</h2>
-            <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-xs font-sans leading-relaxed mb-8`}>Professional trade logging with performance metrics and emotional tracking. 100% Free.</p>
-            <button className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group-hover:text-emerald-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>
-              Access Journal <ArrowRight size={14} />
-            </button>
+        <div className={`max-w-7xl mx-auto grid lg:grid-cols-3 gap-6`}>
+          <div id="journal" className={`rounded-xl border ${borderColor} ${bgColor} p-8 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/50 group relative overflow-hidden`}>
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div className="relative">
+              <div className="flex items-center justify-between mb-6">
+                <div className={`p-4 rounded-xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-500/10'} transition-all group-hover:scale-110 duration-300`}>
+                  <BookOpen className="text-blue-500" size={32} />
+                </div>
+                <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${isDark ? 'bg-white/10 text-white' : 'bg-black/10 text-black'}`}>
+                  Free
+                </span>
+              </div>
+              
+              <h2 className={`text-2xl font-black uppercase tracking-tight mb-3 ${isDark ? 'text-white' : 'text-black'}`}>
+                Trading Journal
+              </h2>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} text-sm font-sans leading-relaxed mb-6`}>
+                Professional trade logging with performance metrics and emotional tracking.
+              </p>
+              
+              {/* Journal Stats - Redesigned as cards */}
+              <div className="grid grid-cols-3 gap-3 mb-8">
+                <div className={`p-4 rounded-lg border ${borderColor} ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                  <div className={`text-2xl font-black mb-1 ${isDark ? 'text-white' : 'text-black'}`}>847</div>
+                  <div className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Trades
+                  </div>
+                </div>
+                <div className={`p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5`}>
+                  <div className="text-2xl font-black mb-1 text-emerald-500">67%</div>
+                  <div className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Win Rate
+                  </div>
+                </div>
+                <div className={`p-4 rounded-lg border ${borderColor} ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                  <div className={`text-2xl font-black mb-1 ${isDark ? 'text-white' : 'text-black'}`}>12K</div>
+                  <div className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Users
+                  </div>
+                </div>
+              </div>
+              
+              <button className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest group-hover:text-blue-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>
+                Access Journal <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
 
-          <div id="tsc" className={`${bgColor} p-10 ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]'} transition-colors group`}>
-            <Clock className="text-emerald-500 mb-8" size={32} />
-            <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${isDark ? 'text-white' : 'text-black'}`}>TSC</h2>
-            <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-xs font-sans leading-relaxed mb-8`}>Real-time Trading Session Clock tracking London, NY, and Tokyo liquidity cycles.</p>
-            <button className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group-hover:text-emerald-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>
-              Launch Clock <ArrowRight size={14} />
-            </button>
+          <div id="tsc" className={`rounded-xl border ${borderColor} ${bgColor} p-8 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/50 group relative overflow-hidden`}>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div className="relative">
+              <div className="flex items-center justify-between mb-6">
+                <div className={`p-4 rounded-xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-500/10'} transition-all group-hover:scale-110 duration-300`}>
+                  <Clock className="text-blue-500" size={32} />
+                </div>
+              </div>
+              
+              <h2 className={`text-2xl font-black uppercase tracking-tight mb-3 ${isDark ? 'text-white' : 'text-black'}`}>
+                Session Clock
+              </h2>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} text-sm font-sans leading-relaxed mb-6`}>
+                Real-time tracking of London, NY, and Tokyo liquidity cycles.
+              </p>
+              
+              {/* Session Status - Redesigned */}
+              <div className="space-y-3 mb-8">
+                <div className={`p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
+                      <span className={`text-sm font-black uppercase ${isDark ? 'text-white' : 'text-black'}`}>London</span>
+                    </div>
+                    <span className="text-emerald-500 font-black text-xs uppercase tracking-wider">Open</span>
+                  </div>
+                </div>
+                
+                <div className={`p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
+                      <span className={`text-sm font-black uppercase ${isDark ? 'text-white' : 'text-black'}`}>New York</span>
+                    </div>
+                    <span className="text-emerald-500 font-black text-xs uppercase tracking-wider">Open</span>
+                  </div>
+                </div>
+                
+                <div className={`p-4 rounded-lg border ${borderColor} ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${isDark ? 'bg-white/20' : 'bg-black/20'}`}></div>
+                      <span className={`text-sm font-black uppercase ${isDark ? 'text-white' : 'text-black'}`}>Tokyo</span>
+                    </div>
+                    <span className={`${isDark ? 'text-white/40' : 'text-black/40'} font-black text-xs uppercase tracking-wider`}>Closed</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest group-hover:text-blue-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>
+                Launch Clock <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
 
-          <div id="calendar" className={`${bgColor} p-10 ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]'} transition-colors group`}>
-            <Calendar className="text-emerald-500 mb-8" size={32} />
-            <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${isDark ? 'text-white' : 'text-black'}`}>Economic Calendar</h2>
-            <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-xs font-sans leading-relaxed mb-8`}>High-impact news filtering and macro data countdowns for intraday precision.</p>
-            <button className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group-hover:text-emerald-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>
-              Check Calendar <ArrowRight size={14} />
-            </button>
+          <div id="calendar" className={`rounded-xl border ${borderColor} ${bgColor} p-8 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/50 group relative overflow-hidden`}>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div className="relative">
+              <div className="flex items-center justify-between mb-6">
+                <div className={`p-4 rounded-xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-500/10'} transition-all group-hover:scale-110 duration-300`}>
+                  <Calendar className="text-blue-500" size={32} />
+                </div>
+              </div>
+              
+              <h2 className={`text-2xl font-black uppercase tracking-tight mb-3 ${isDark ? 'text-white' : 'text-black'}`}>
+                Economic Calendar
+              </h2>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} text-sm font-sans leading-relaxed mb-6`}>
+                High-impact news filtering and macro data countdowns.
+              </p>
+              
+              {/* Upcoming Events - Redesigned */}
+              <div className="space-y-3 mb-8">
+                <div className={`p-4 rounded-lg border border-red-500/20 bg-red-500/5`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`text-sm font-black ${isDark ? 'text-white' : 'text-black'}`}>NFP Report</div>
+                    <span className="text-red-500 text-[9px] font-black px-2 py-1 rounded bg-red-500/10 border border-red-500/30">
+                      HIGH
+                    </span>
+                  </div>
+                  <div className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'} flex items-center gap-2`}>
+                    <Clock size={10} />
+                    Feb 7, 8:30 AM EST
+                  </div>
+                </div>
+                
+                <div className={`p-4 rounded-lg border border-orange-500/20 bg-orange-500/5`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`text-sm font-black ${isDark ? 'text-white' : 'text-black'}`}>FOMC Minutes</div>
+                    <span className="text-orange-500 text-[9px] font-black px-2 py-1 rounded bg-orange-500/10 border border-orange-500/30">
+                      MED
+                    </span>
+                  </div>
+                  <div className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'} flex items-center gap-2`}>
+                    <Clock size={10} />
+                    Feb 21, 2:00 PM EST
+                  </div>
+                </div>
+              </div>
+              
+              <button className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest group-hover:text-blue-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>
+                Check Calendar <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -278,9 +599,9 @@ const App = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-12">
             <h2 className={`text-3xl font-black uppercase tracking-tighter flex items-center gap-4 ${isDark ? 'text-white' : 'text-black'}`}>
-              <Book className="text-emerald-500" /> Blog
+              <Book className="text-blue-500" /> Blog
             </h2>
-            <a href="#" className="text-[10px] font-black uppercase tracking-[0.2em] border-b border-emerald-500 pb-1">View Archives</a>
+            <a href="#" className="text-[10px] font-black uppercase tracking-[0.2em] border-b border-blue-500 pb-1">View Archives</a>
           </div>
 
           <div className={`space-y-px ${isDark ? 'bg-white/10' : 'bg-black/10'}`}>
@@ -292,7 +613,7 @@ const App = () => {
               <div key={idx} className={`group flex items-center justify-between p-8 ${bgColor} ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]'} transition-all cursor-pointer`}>
                 <div className="flex items-center gap-12">
                   <span className={`text-[9px] font-black uppercase w-20 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{post.cat}</span>
-                  <h4 className={`text-lg font-bold group-hover:text-emerald-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>{post.title}</h4>
+                  <h4 className={`text-lg font-bold group-hover:text-blue-500 transition-colors ${isDark ? 'text-white' : 'text-black'}`}>{post.title}</h4>
                 </div>
                 <span className={`text-[9px] font-mono uppercase ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{post.date}</span>
               </div>
@@ -302,13 +623,13 @@ const App = () => {
       </section>
 
       {/* Advanced Footer */}
-      <footer className={`${isDark ? 'bg-black' : 'bg-[#f5f5f5]'} border-t ${borderColor} pt-20 pb-10 px-6 overflow-hidden relative transition-colors`}>
+      <footer className={`${isDark ? 'bg-[#0d1117]' : 'bg-[#f0f2f5]'} border-t ${borderColor} pt-20 pb-10 px-6 overflow-hidden relative transition-colors`}>
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
             {/* Column 1: Brand */}
             <div className="space-y-6">
               <div className={`text-2xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-black'}`}>
-                FSDZONES<span className="text-emerald-500">.COM</span>
+                FSDZONES<span className="text-blue-500">.COM</span>
               </div>
               <div className="flex items-center gap-4 pt-2">
                 <a href="#" className={`${isDark ? 'text-slate-400 hover:text-[#1DA1F2]' : 'text-slate-500 hover:text-[#1DA1F2]'} transition-colors`}><Twitter size={18} fill="currentColor" stroke="none" /></a>
@@ -322,24 +643,24 @@ const App = () => {
             {/* Column 2: Markets */}
             <div>
               <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-8 ${isDark ? 'text-white' : 'text-black'}`}>Markets</h4>
-              <ul className={`space-y-4 text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-black'}`}>
-                <li><a href="#" className="hover:text-emerald-500 transition-colors">Major Forex Pairs</a></li>
-                <li><a href="#" className="hover:text-emerald-500 transition-colors">US Indices (NAS/SPX)</a></li>
-                <li><a href="#" className="hover:text-emerald-500 transition-colors">Commodities (Gold/Oil)</a></li>
-                <li><a href="#" className="hover:text-emerald-500 transition-colors">Cryptocurrency</a></li>
-                <li><a href="#" className="hover:text-emerald-500 transition-colors">Institutional Order Flow</a></li>
+              <ul className={`space-y-4 text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <li><a href="#" className="hover:text-blue-500 transition-colors">Major Forex Pairs</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition-colors">US Indices (NAS/SPX)</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition-colors">Commodities (Gold/Oil)</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition-colors">Cryptocurrency</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition-colors">Institutional Order Flow</a></li>
               </ul>
             </div>
 
             {/* Column 3: Resources */}
             <div>
               <h4 className={`text-[10px] font-black uppercase tracking-[0.3em] mb-8 ${isDark ? 'text-white' : 'text-black'}`}>Resources</h4>
-              <ul className={`space-y-4 text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-black'}`}>
-                <li><a href="#journal" className="hover:text-emerald-500 transition-colors">Free Trading Journal</a></li>
-                <li><a href="#tsc" className="hover:text-emerald-500 transition-colors">Session Clock (TSC)</a></li>
-                <li><a href="#calendar" className="hover:text-emerald-500 transition-colors">Economic Calendar</a></li>
-                <li><a href="#blog" className="hover:text-emerald-500 transition-colors">Strategy Blog</a></li>
-                <li><a href="#" className="hover:text-emerald-500 transition-colors">Backtesting Data</a></li>
+              <ul className={`space-y-4 text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <li><a href="#journal" className="hover:text-blue-500 transition-colors">Free Trading Journal</a></li>
+                <li><a href="#tsc" className="hover:text-blue-500 transition-colors">Session Clock (TSC)</a></li>
+                <li><a href="#calendar" className="hover:text-blue-500 transition-colors">Economic Calendar</a></li>
+                <li><a href="#blog" className="hover:text-blue-500 transition-colors">Strategy Blog</a></li>
+                <li><a href="#" className="hover:text-blue-500 transition-colors">Backtesting Data</a></li>
               </ul>
             </div>
 
@@ -353,7 +674,7 @@ const App = () => {
                   placeholder="EMAIL ADDRESS" 
                   className={`bg-transparent border-none text-[10px] p-2 flex-grow focus:outline-none ${isDark ? 'text-white' : 'text-black'} placeholder:text-slate-500 font-bold`}
                 />
-                <button className="bg-emerald-500 text-black px-4 text-[10px] font-black uppercase hover:bg-emerald-400 transition-colors">
+                <button className="bg-blue-500 text-white px-4 text-[10px] font-black uppercase hover:bg-blue-600 transition-colors">
                   Join
                 </button>
               </div>
@@ -372,16 +693,16 @@ const App = () => {
                 </div>
               </div>
               <div className={`flex gap-6 text-[9px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                <a href="#" className="hover:text-emerald-500 transition-colors">Privacy Policy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                <a href="#" className="hover:text-white transition-colors">Contact</a>
+                <a href="#" className="hover:text-blue-500 transition-colors">Privacy Policy</a>
+                <a href="#" className={`${isDark ? 'hover:text-white' : 'hover:text-black'} transition-colors`}>Terms of Service</a>
+                <a href="#" className={`${isDark ? 'hover:text-white' : 'hover:text-black'} transition-colors`}>Contact</a>
               </div>
             </div>
           </div>
         </div>
 
         {/* Decorative background element */}
-        <div className={`absolute top-0 right-0 w-96 h-96 blur-[120px] rounded-full -mr-48 -mt-48 ${isDark ? 'bg-emerald-500/5' : 'bg-emerald-500/10'}`}></div>
+        <div className={`absolute top-0 right-0 w-96 h-96 blur-[120px] rounded-full -mr-48 -mt-48 ${isDark ? 'bg-blue-500/5' : 'bg-blue-500/10'}`}></div>
       </footer>
     </div>
   );
