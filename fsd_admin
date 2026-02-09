@@ -12,6 +12,7 @@ import {
   MoreVertical, 
   Plus, 
   Mail, 
+  Bell,
   AlertCircle,
   ChevronRight,
   UserPlus, 
@@ -408,6 +409,10 @@ export default function App() {
             <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
               <Mail size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-950 shadow-sm" />
+            </button>
+            <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
+              <Bell size={20} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-600 rounded-full border-2 border-slate-950 shadow-sm" />
             </button>
           </div>
         </header>
