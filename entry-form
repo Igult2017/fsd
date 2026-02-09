@@ -454,21 +454,7 @@ const App = () => {
               
               {/* Header */}
               <header className="mb-8 flex justify-between items-center">
-                <div>
-                  <h2 className="text-sm md:text-base font-bold text-white tracking-tight mb-1 font-['Montserrat'] uppercase">
-                    {step === 1 ? 'Decision Architecture' : 
-                     step === 2 ? 'Execution Core' : 
-                     step === 3 ? 'Market Context' : 
-                     'Post-Trade Review'}
-                  </h2>
-                  <p className="text-slate-400 text-[8px] md:text-[9px] font-semibold font-['Montserrat']">
-                    {step === 1 ? 'Define thesis, edge, and invalidation before entry' : 
-                     step === 2 ? 'Fundamental positioning and visual evidence' : 
-                     step === 3 ? 'Quantifying the external environment' : 
-                     'Discipline, psychology, and performance metrics'}
-                  </p>
-                </div>
-                <div className="text-slate-800/30 text-3xl font-black select-none hidden sm:block font-['Montserrat']">0{step}</div>
+                <div className="text-slate-800/30 text-3xl font-black select-none font-['Montserrat']">0{step}</div>
               </header>
 
               {/* STEP 1: DECISION ARCHITECTURE */}
