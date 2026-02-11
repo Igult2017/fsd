@@ -35,16 +35,16 @@ const App = () => {
       <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/20">
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/20 shrink-0">
               <Cpu className="w-5 h-5 text-white" />
             </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-bold tracking-[0.15em] text-lg uppercase text-slate-100">AI Strategy<span className="text-blue-500"> Auditor</span></span>
-              <span className="text-[9px] text-slate-500 font-bold tracking-[0.3em] mt-1 uppercase">Institutional Grade Intelligence</span>
+            <div className="flex flex-col leading-none truncate">
+              <span className="font-bold tracking-[0.15em] text-lg uppercase text-slate-100 truncate">AI Strategy<span className="text-blue-500"> Auditor</span></span>
+              <span className="text-[9px] text-slate-500 font-bold tracking-[0.3em] mt-1 uppercase truncate">Institutional Grade Intelligence</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 shrink-0">
             <div className="hidden md:flex bg-slate-800/50 p-1 rounded-lg border border-slate-700">
               {levels.map((level) => (
                 <button
@@ -57,12 +57,13 @@ const App = () => {
                   }`}
                 >
                   {level.icon}
-                  {level.label}
+                  <span className="hidden lg:inline">{level.label}</span>
+                  <span className="lg:hidden">L{level.id}</span>
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-3 pl-4 border-l border-slate-800">
-              <div className="flex flex-col items-end">
+              <div className="hidden sm:flex flex-col items-end">
                 <span className="text-[10px] text-slate-500 font-bold uppercase">System Status</span>
                 <span className="text-[10px] text-emerald-400 font-bold uppercase flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -77,7 +78,7 @@ const App = () => {
 
       <main className="max-w-7xl mx-auto px-6 py-8 pb-24">
         {/* Header Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatCard label="Audit Win Rate" value="64.2%" trend="+2.1%" color="text-emerald-400" />
           <StatCard label="Edge Persistence" value="2.14" trend="+0.12" color="text-blue-400" />
           <StatCard label="Risk Entropy" value="Low" trend="-0.2" color="text-slate-400" />
@@ -87,22 +88,24 @@ const App = () => {
         {/* Level 1: Strategy Audit */}
         {activeLevel === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <h2 className="text-2xl font-bold flex items-center gap-3">
-                <Search className="text-blue-500" /> LEVEL 1 — STRATEGY AUDIT
+                <Search className="text-blue-500 shrink-0" /> LEVEL 1 — STRATEGY AUDIT
               </h2>
-              <span className="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400 border border-slate-700">Audit Cycle: Q4 2023 - PRESENT</span>
+              <span className="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400 border border-slate-700 w-fit">Audit Cycle: Q4 2023 - PRESENT</span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               {/* Executive Summary & Edge */}
               <div className="lg:col-span-2 space-y-6">
                 <Section title="Executive Summary" icon={<Zap className="w-4 h-4 text-yellow-400" />}>
-                  <p className="text-slate-300 leading-relaxed">
-                    The AI Auditor has identified a robust statistical edge during high-volatility London/NY overlap sessions. 
-                    Recent performance indicates a tightening of the equity curve with a specific reduction in "fat tail" risk events.
-                    System suggests shifting sizing from linear to volatility-weighted based on VIX thresholds above 18.
-                  </p>
+                  <div className="max-h-[120px] overflow-y-auto pr-2 custom-scrollbar">
+                    <p className="text-slate-300 leading-relaxed text-sm">
+                      The AI Auditor has identified a robust statistical edge during high-volatility London/NY overlap sessions. 
+                      Recent performance indicates a tightening of the equity curve with a specific reduction in "fat tail" risk events.
+                      System suggests shifting sizing from linear to volatility-weighted based on VIX thresholds above 18.
+                    </p>
+                  </div>
                 </Section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -113,20 +116,22 @@ const App = () => {
                         <div className="h-full bg-emerald-500" style={{ width: '88%' }}></div>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-400 font-mono tracking-tighter">Confidence Interval: 95% (+/- 2.1%) based on 482 samples.</p>
+                    <p className="text-xs text-slate-400 font-mono tracking-tighter truncate">Confidence Interval: 95% (+/- 2.1%) based on 482 samples.</p>
                   </Section>
 
                   <Section title="Edge Drivers" icon={<TrendingUp className="w-4 h-4 text-blue-400" />}>
-                    <ul className="text-sm space-y-2">
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        Mean Reversion during Asian session lulls
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        Momentum continuation at H1 supply/demand flips
-                      </li>
-                    </ul>
+                    <div className="max-h-[80px] overflow-y-auto pr-2 custom-scrollbar">
+                      <ul className="text-sm space-y-2">
+                        <li className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                          <span className="truncate lg:whitespace-normal">Mean Reversion during Asian session lulls</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                          <span className="truncate lg:whitespace-normal">Momentum continuation at H1 supply/demand flips</span>
+                        </li>
+                      </ul>
+                    </div>
                   </Section>
                 </div>
               </div>
@@ -134,17 +139,22 @@ const App = () => {
               {/* Sidebar: Monitor & Changes */}
               <div className="space-y-6">
                 <Section title="What to Monitor Next" icon={<Activity className="w-4 h-4 text-orange-400" />}>
-                  <div className="space-y-4">
+                  <div className="max-h-[120px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                     <MonitorItem label="Correlated USD Strength" status="High Priority" color="border-orange-500/50" />
                     <MonitorItem label="H4 Liquidity Gaps" status="Monitoring" color="border-slate-700" />
+                    <MonitorItem label="Volatility Contraction" status="New" color="border-blue-500/50" />
                   </div>
                 </Section>
                 
                 <Section title="Audit-Driven Changes" icon={<Clock className="w-4 h-4 text-purple-400" />}>
-                  <div className="space-y-3">
+                  <div className="max-h-[120px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                     <div className="text-xs border-l-2 border-purple-500 pl-3 py-1 bg-purple-500/5">
                       <div className="font-semibold text-slate-200">Trailing Stop Adjustment</div>
                       <div className="text-slate-500 italic">Implemented 14 days ago. ROI improved 0.4%.</div>
+                    </div>
+                    <div className="text-xs border-l-2 border-slate-600 pl-3 py-1 bg-slate-800/20">
+                      <div className="font-semibold text-slate-400">Previous: Fixed TP Ratio</div>
+                      <div className="text-slate-600 italic">Deprecated Q3.</div>
                     </div>
                   </div>
                 </Section>
@@ -153,14 +163,14 @@ const App = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Section title="Weaknesses & Failure Conditions" icon={<AlertTriangle className="w-4 h-4 text-red-400" />}>
-                <div className="bg-red-950/10 border border-red-900/30 p-4 rounded-lg">
+                <div className="bg-red-950/10 border border-red-900/30 p-4 rounded-lg max-h-[140px] overflow-y-auto custom-scrollbar">
                   <p className="text-sm text-red-200 mb-2 font-bold">Low Liquidity Environments</p>
                   <p className="text-xs text-red-300/80 leading-relaxed">Strategy fails significantly during bank holidays and pre-FOMC consolidation. AI recommends disabling auto-execution 4 hours prior to red-folder news events.</p>
                 </div>
               </Section>
               
               <Section title="Psychology Impact" icon={<Brain className="w-4 h-4 text-pink-400" />}>
-                <div className="flex gap-4">
+                <div className="flex gap-4 h-full items-center">
                   <div className="flex-1 text-center p-3 bg-slate-900/80 rounded-lg border border-slate-800">
                     <div className="text-2xl font-bold text-pink-400 font-mono">7.8</div>
                     <div className="text-[10px] uppercase text-slate-500 mt-1 font-bold">Stress Score</div>
@@ -179,7 +189,7 @@ const App = () => {
         {activeLevel === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-2xl font-bold flex items-center gap-3">
-              <Database className="text-emerald-500" /> LEVEL 2 — EVIDENCE & PROOF
+              <Database className="text-emerald-500 shrink-0" /> LEVEL 2 — EVIDENCE & PROOF
             </h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -200,8 +210,8 @@ const App = () => {
               </Section>
 
               <Section title="Edge Evidence (Monte Carlo)">
-                <div className="flex items-end gap-1 h-24">
-                  {[40, 70, 45, 90, 65, 80, 50, 95, 100, 75, 85, 60].map((h, i) => (
+                <div className="flex items-end gap-1 h-24 overflow-hidden">
+                  {[40, 70, 45, 90, 65, 80, 50, 95, 100, 75, 85, 60, 40, 55, 70, 30].map((h, i) => (
                     <div key={i} className="flex-1 bg-blue-500/20 hover:bg-blue-500/50 transition-all rounded-t-sm" style={{ height: `${h}%` }}></div>
                   ))}
                 </div>
@@ -210,21 +220,23 @@ const App = () => {
             </div>
 
             <Section title="Winning vs Losing Profiles (AI Classification)">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider bg-emerald-400/5 px-2 py-1 rounded inline-block">Alpha Profile (Success Factors)</div>
-                  <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
+                <div className="space-y-4 max-h-[250px] overflow-y-auto pr-4 custom-scrollbar">
+                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider bg-emerald-400/5 px-2 py-1 rounded sticky top-0 backdrop-blur-sm z-10 border border-emerald-500/10">Alpha Profile (Success Factors)</div>
+                  <div className="space-y-4">
                     <ProfileBar label="ATR Volatility" value="1.2 - 1.8" percent={85} color="bg-emerald-500" />
                     <ProfileBar label="Time of Day" value="LDN Open" percent={70} color="bg-emerald-500" />
                     <ProfileBar label="RSI Range" value="40 - 60" percent={92} color="bg-emerald-500" />
+                    <ProfileBar label="Volume Spike" value="> 2.0x SMA" percent={65} color="bg-emerald-500" />
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="text-xs font-bold text-red-400 uppercase tracking-wider bg-red-400/5 px-2 py-1 rounded inline-block">Failure Profile (Decay Factors)</div>
-                  <div className="space-y-2">
+                <div className="space-y-4 max-h-[250px] overflow-y-auto pr-4 custom-scrollbar">
+                  <div className="text-xs font-bold text-red-400 uppercase tracking-wider bg-red-400/5 px-2 py-1 rounded sticky top-0 backdrop-blur-sm z-10 border border-red-500/10">Failure Profile (Decay Factors)</div>
+                  <div className="space-y-4">
                     <ProfileBar label="ATR Volatility" value="< 0.5" percent={65} color="bg-red-500" />
                     <ProfileBar label="Spread" value="> 2.5 pips" percent={88} color="bg-red-500" />
                     <ProfileBar label="News Buffer" value="< 15 min" percent={45} color="bg-red-500" />
+                    <ProfileBar label="Market Regime" value="Consolidation" percent={78} color="bg-red-500" />
                   </div>
                 </div>
               </div>
@@ -236,50 +248,60 @@ const App = () => {
         {activeLevel === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
              <h2 className="text-2xl font-bold flex items-center gap-3">
-              <Activity className="text-purple-500" /> LEVEL 3 — DIAGNOSTICS
+              <Activity className="text-purple-500 shrink-0" /> LEVEL 3 — DIAGNOSTICS
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               <div className="lg:col-span-2">
                 <Section title="Component Breakdown">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead>
-                        <tr className="text-slate-500 border-b border-slate-800">
-                          <th className="pb-3 font-bold uppercase text-[10px] tracking-widest">Sub-Strategy</th>
-                          <th className="pb-3 font-bold uppercase text-[10px] tracking-widest text-center">Audit Freq</th>
-                          <th className="pb-3 font-bold uppercase text-[10px] tracking-widest text-center">Expectancy</th>
-                          <th className="pb-3 font-bold uppercase text-[10px] tracking-widest text-right">Leakage</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/50">
-                        <TableRow name="Mean Rev H1" freq="42%" exp="+1.2" dd="Low" />
-                        <TableRow name="Trend Cont M15" freq="38%" exp="+0.8" dd="Med" />
-                        <TableRow name="Breakout D1" freq="20%" exp="+2.4" dd="Minimal" />
-                      </tbody>
-                    </table>
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <div className="min-w-[500px]">
+                      <table className="w-full text-sm text-left table-fixed">
+                        <thead>
+                          <tr className="text-slate-500 border-b border-slate-800">
+                            <th className="pb-3 font-bold uppercase text-[10px] tracking-widest w-[40%]">Sub-Strategy</th>
+                            <th className="pb-3 font-bold uppercase text-[10px] tracking-widest text-center w-[20%]">Audit Freq</th>
+                            <th className="pb-3 font-bold uppercase text-[10px] tracking-widest text-center w-[20%]">Expectancy</th>
+                            <th className="pb-3 font-bold uppercase text-[10px] tracking-widest text-right w-[20%]">Leakage</th>
+                          </tr>
+                        </thead>
+                      </table>
+                      <div className="max-h-[280px] overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-sm text-left table-fixed">
+                          <tbody className="divide-y divide-slate-800/50">
+                            <TableRow name="Mean Rev H1" freq="42%" exp="+1.2" dd="Low" />
+                            <TableRow name="Trend Cont M15" freq="38%" exp="+0.8" dd="Med" />
+                            <TableRow name="Breakout D1" freq="20%" exp="+2.4" dd="Minimal" />
+                            <TableRow name="Scalp M1" freq="12%" exp="-0.2" dd="High" />
+                            <TableRow name="Swing W1" freq="5%" exp="+3.1" dd="Very Low" />
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </Section>
               </div>
               <Section title="Failure Mode Analysis">
-                <div className="space-y-4">
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   <FailureMode label="Execution Slippage" impact="High" val="0.8% ROI Decay" />
                   <FailureMode label="Pattern Overfit" impact="Med" val="Moderate Signal Noise" />
+                  <FailureMode label="API Latency" impact="Low" val="Minimal Impact" />
+                  <FailureMode label="Stale Data" impact="High" val="System Critical" />
                 </div>
               </Section>
             </div>
             <Section title="Neuro-Diagnostic Analysis">
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800 border-t-orange-500/30">
-                    <div className="text-slate-500 text-xs mb-1 uppercase font-bold">Decision Fatigue</div>
-                    <div className="text-xl font-bold text-orange-400">Degradation after N=4</div>
+                    <div className="text-slate-500 text-xs mb-1 uppercase font-bold truncate">Decision Fatigue</div>
+                    <div className="text-xl font-bold text-orange-400 truncate">Degradation after N=4</div>
                   </div>
                   <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800 border-t-emerald-500/30">
-                    <div className="text-slate-500 text-xs mb-1 uppercase font-bold">Emotional Drift</div>
-                    <div className="text-xl font-bold text-emerald-400">Nominal (0.12 index)</div>
+                    <div className="text-slate-500 text-xs mb-1 uppercase font-bold truncate">Emotional Drift</div>
+                    <div className="text-xl font-bold text-emerald-400 truncate">Nominal (0.12 index)</div>
                   </div>
                   <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800 border-t-blue-500/30">
-                    <div className="text-slate-500 text-xs mb-1 uppercase font-bold">Hold-Time Fidelity</div>
-                    <div className="text-xl font-bold text-blue-400">94.2% Stability</div>
+                    <div className="text-slate-500 text-xs mb-1 uppercase font-bold truncate">Hold-Time Fidelity</div>
+                    <div className="text-xl font-bold text-blue-400 truncate">94.2% Stability</div>
                   </div>
                </div>
             </Section>
@@ -290,42 +312,50 @@ const App = () => {
         {activeLevel === 4 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-2xl font-bold flex items-center gap-3">
-              <PlusCircle className="text-blue-500" /> LEVEL 4 — ACTION & ITERATION
+              <PlusCircle className="text-blue-500 shrink-0" /> LEVEL 4 — ACTION & ITERATION
             </h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               <Section title="AI Policy Suggestions" icon={<Zap className="w-4 h-4 text-yellow-500" />}>
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-opacity">
-                      <Cpu className="w-12 h-12 text-blue-500" />
+                <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-opacity">
+                        <Cpu className="w-12 h-12 text-blue-500" />
+                      </div>
+                      <div className="text-blue-400 font-bold mb-1 flex items-center gap-2">
+                        <PlusCircle className="w-4 h-4" /> {i === 1 ? 'Scale-In Protocol 2.0' : 'Volatility Ceiling Mod'}
+                      </div>
+                      <p className="text-sm text-slate-300 leading-relaxed max-h-[60px] overflow-hidden text-ellipsis line-clamp-2">
+                        {i === 1 
+                          ? 'System Audit suggests adding 50% size after 1:1 RR is hit. Projected net profit increase of +14.2%.' 
+                          : 'Reduce aggressive position sizing by 30% when VIX exceeds 35 for 3 consecutive hours.'}
+                      </p>
+                      <button className="mt-4 text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 uppercase tracking-widest border border-blue-500/20 px-3 py-1.5 rounded-lg bg-blue-500/5 transition-all">
+                        Integrate <ChevronDown className="w-3 h-3" />
+                      </button>
                     </div>
-                    <div className="text-blue-400 font-bold mb-1 flex items-center gap-2">
-                      <PlusCircle className="w-4 h-4" /> Scale-In Protocol 2.0
-                    </div>
-                    <p className="text-sm text-slate-300 leading-relaxed">System Audit suggests adding 50% size after 1:1 RR is hit. Projected net profit increase of +14.2% with 0.8% drawdown offset.</p>
-                    <button className="mt-4 text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 uppercase tracking-widest border border-blue-500/20 px-3 py-1.5 rounded-lg bg-blue-500/5 transition-all">
-                      Integrate into Strategy <ChevronDown className="w-3 h-3" />
-                    </button>
-                  </div>
+                  ))}
                 </div>
               </Section>
 
               <Section title="Audit-Enforced Guardrails" icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}>
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                   <GuardrailItem label="Max Daily Loss" value="2.0%" status="Active" />
                   <GuardrailItem label="Correlation Limit" value="0.75" status="Active" />
                   <GuardrailItem label="Volatility Ceiling" value="VIX 35" status="Review" color="text-yellow-400" />
+                  <GuardrailItem label="Max Open Pairs" value="4" status="Active" />
+                  <GuardrailItem label="Margin Buffer" value="25%" status="Active" />
                 </div>
               </Section>
             </div>
 
             <Section title="Audit Monitoring (Next Cycle Metrics)">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {['MFE Deviation', 'Tick-Level Alpha', 'Strategy Skew', 'Kurtosis Factor'].map((metric) => (
-                  <div key={metric} className="p-4 border border-slate-800 rounded-xl flex items-center justify-between bg-slate-900/20">
-                    <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">{metric}</span>
-                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" />
+                  <div key={metric} className="p-4 border border-slate-800 rounded-xl flex items-center justify-between bg-slate-900/20 overflow-hidden">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter truncate pr-2">{metric}</span>
+                    <div className="w-2 h-2 shrink-0 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" />
                   </div>
                 ))}
               </div>
@@ -349,6 +379,23 @@ const App = () => {
           </button>
         ))}
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+          height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #475569;
+        }
+      `}} />
     </div>
   );
 };
@@ -356,21 +403,23 @@ const App = () => {
 /* Components */
 
 const Section = ({ title, children, icon }) => (
-  <section className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-6 hover:border-slate-700/80 transition-all duration-300">
-    <div className="flex items-center gap-3 mb-6">
-      {icon && <div className="p-2 bg-slate-800/50 border border-slate-700/50 rounded-lg">{icon}</div>}
-      <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-slate-400">{title}</h3>
+  <section className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-5 md:p-6 hover:border-slate-700/80 transition-all duration-300 flex flex-col h-full overflow-hidden">
+    <div className="flex items-center gap-3 mb-5 shrink-0">
+      {icon && <div className="p-2 bg-slate-800/50 border border-slate-700/50 rounded-lg shrink-0">{icon}</div>}
+      <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-slate-400 truncate">{title}</h3>
     </div>
-    {children}
+    <div className="flex-1 overflow-hidden">
+      {children}
+    </div>
   </section>
 );
 
 const StatCard = ({ label, value, trend, color }) => (
-  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-1 hover:bg-slate-900/80 transition-all">
-    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</span>
-    <div className="flex items-baseline justify-between">
-      <span className={`text-2xl font-bold font-mono ${color}`}>{value}</span>
-      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800/50 ${trend.startsWith('+') ? 'text-emerald-400' : 'text-slate-400'}`}>
+  <div className="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-2xl flex flex-col gap-1 hover:bg-slate-900/80 transition-all overflow-hidden">
+    <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">{label}</span>
+    <div className="flex items-baseline justify-between gap-2 overflow-hidden">
+      <span className={`text-xl sm:text-2xl font-bold font-mono truncate ${color}`}>{value}</span>
+      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-800/50 shrink-0 ${trend.startsWith('+') ? 'text-emerald-400' : 'text-slate-400'}`}>
         {trend}
       </span>
     </div>
@@ -378,52 +427,54 @@ const StatCard = ({ label, value, trend, color }) => (
 );
 
 const MonitorItem = ({ label, status, color }) => (
-  <div className={`p-3 border-l-4 rounded-r-lg bg-slate-800/20 flex items-center justify-between border-slate-800 ${color}`}>
-    <span className="text-sm font-bold text-slate-300 tracking-tight">{label}</span>
-    <span className="text-[9px] uppercase font-black text-slate-500 bg-slate-800/40 px-2 py-0.5 rounded">{status}</span>
+  <div className={`p-3 border-l-4 rounded-r-lg bg-slate-800/20 flex items-center justify-between border-slate-800 gap-4 ${color}`}>
+    <span className="text-sm font-bold text-slate-300 tracking-tight truncate">{label}</span>
+    <span className="text-[9px] uppercase font-black text-slate-500 bg-slate-800/40 px-2 py-0.5 rounded shrink-0">{status}</span>
   </div>
 );
 
 const ProfileBar = ({ label, value, percent, color }) => (
   <div className="space-y-1 group">
-    <div className="flex justify-between text-[11px] mb-1">
-      <span className="text-slate-500 font-bold uppercase text-[9px] tracking-tighter">{label}: <span className="text-slate-300 font-mono text-xs">{value}</span></span>
-      <span className="font-mono text-slate-500 font-bold">{percent}%</span>
+    <div className="flex justify-between text-[11px] mb-1 gap-2">
+      <span className="text-slate-500 font-bold uppercase text-[9px] tracking-tighter truncate">
+        {label}: <span className="text-slate-300 font-mono text-[10px]">{value}</span>
+      </span>
+      <span className="font-mono text-slate-500 font-bold shrink-0">{percent}%</span>
     </div>
-    <div className="h-1 bg-slate-800/50 rounded-full overflow-hidden">
+    <div className="h-1 bg-slate-800/50 rounded-full overflow-hidden shrink-0">
       <div className={`h-full ${color} transition-all duration-1000 group-hover:opacity-80`} style={{ width: `${percent}%` }}></div>
     </div>
   </div>
 );
 
 const TableRow = ({ name, freq, exp, dd }) => (
-  <tr className="group hover:bg-slate-800/20 transition-colors">
-    <td className="py-4 font-bold text-slate-300 text-xs">{name}</td>
-    <td className="py-4 text-slate-400 text-center text-xs font-mono">{freq}</td>
-    <td className={`py-4 font-bold text-center text-xs font-mono ${exp.startsWith('+') ? 'text-emerald-400' : 'text-red-400'}`}>{exp}</td>
-    <td className="py-4 text-slate-500 text-right text-[10px] uppercase font-bold tracking-tighter">{dd}</td>
+  <tr className="group hover:bg-slate-800/20 transition-colors border-b border-slate-800/30 last:border-0">
+    <td className="py-4 font-bold text-slate-300 text-xs truncate w-[40%] pr-4">{name}</td>
+    <td className="py-4 text-slate-400 text-center text-xs font-mono w-[20%]">{freq}</td>
+    <td className={`py-4 font-bold text-center text-xs font-mono w-[20%] ${exp.startsWith('+') ? 'text-emerald-400' : 'text-red-400'}`}>{exp}</td>
+    <td className="py-4 text-slate-500 text-right text-[10px] uppercase font-bold tracking-tighter w-[20%] truncate pl-4">{dd}</td>
   </tr>
 );
 
 const FailureMode = ({ label, impact, val }) => (
-  <div className="flex items-center justify-between p-3 border border-slate-800/60 rounded-xl bg-slate-900/30">
-    <div>
-      <div className="text-xs font-bold text-slate-200">{label}</div>
-      <div className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">{val}</div>
+  <div className="flex items-center justify-between p-3 border border-slate-800/60 rounded-xl bg-slate-900/30 gap-4">
+    <div className="min-w-0">
+      <div className="text-xs font-bold text-slate-200 truncate">{label}</div>
+      <div className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter truncate">{val}</div>
     </div>
-    <span className={`text-[10px] font-black px-2 py-1 rounded tracking-widest ${impact === 'High' ? 'bg-red-950/30 text-red-500 border border-red-900/30' : 'bg-orange-950/30 text-orange-500 border border-orange-900/30'}`}>
+    <span className={`text-[9px] font-black px-2 py-1 rounded tracking-widest shrink-0 ${impact === 'High' ? 'bg-red-950/30 text-red-500 border border-red-900/30' : 'bg-orange-950/30 text-orange-500 border border-orange-900/30'}`}>
       {impact}
     </span>
   </div>
 );
 
 const GuardrailItem = ({ label, value, status, color = "text-emerald-400" }) => (
-  <div className="flex items-center justify-between p-3 bg-slate-800/20 rounded-xl border border-slate-700/30">
-    <div className="flex flex-col">
-      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</span>
-      <span className="text-sm font-bold font-mono">{value}</span>
+  <div className="flex items-center justify-between p-3 bg-slate-800/20 rounded-xl border border-slate-700/30 gap-4">
+    <div className="flex flex-col min-w-0">
+      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">{label}</span>
+      <span className="text-sm font-bold font-mono truncate">{value}</span>
     </div>
-    <span className={`text-[9px] font-black uppercase tracking-widest bg-slate-800/40 px-2 py-0.5 rounded ${color}`}>{status}</span>
+    <span className={`text-[9px] font-black uppercase tracking-widest bg-slate-800/40 px-2 py-0.5 rounded shrink-0 ${color}`}>{status}</span>
   </div>
 );
 
