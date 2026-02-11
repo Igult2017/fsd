@@ -246,7 +246,7 @@ const App = () => {
       {rows ? (
         <textarea
           rows={rows}
-          className="w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold placeholder:text-slate-700 placeholder:font-normal focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none backdrop-blur-sm font-['Montserrat']"
+          className="w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold placeholder:text-slate-700 placeholder:font-normal focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none backdrop-blur-sm font-['Montserrat'] italic"
           placeholder={placeholder}
           value={formData[field]}
           onChange={(e) => updateField(field, e.target.value)}
@@ -254,7 +254,7 @@ const App = () => {
       ) : (
         <input
           type={type}
-          className={`w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold placeholder:text-slate-700 placeholder:font-normal focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all backdrop-blur-sm ${type === 'number' || type === 'time' || type === 'datetime-local' ? "font-['JetBrains_Mono']" : "font-['Montserrat']"}`}
+          className={`w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold placeholder:text-slate-700 placeholder:font-normal focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all backdrop-blur-sm italic ${type === 'number' || type === 'time' || type === 'datetime-local' ? "font-['JetBrains_Mono']" : "font-['Montserrat']"}`}
           placeholder={placeholder}
           value={formData[field]}
           onChange={(e) => updateField(field, e.target.value)}
@@ -268,11 +268,11 @@ const App = () => {
       <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">{label}</label>
       <div className="relative">
         <select
-          className="w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none cursor-pointer backdrop-blur-sm font-['Montserrat']"
+          className="w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none cursor-pointer backdrop-blur-sm font-['Montserrat'] italic"
           value={formData[field]}
           onChange={(e) => updateField(field, e.target.value)}
         >
-          {options.map(opt => <option key={opt} value={opt} className="bg-slate-900 font-semibold">{opt}</option>)}
+          {options.map(opt => <option key={opt} value={opt} className="bg-slate-900 font-semibold italic">{opt}</option>)}
         </select>
         <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none rotate-90" />
       </div>
@@ -366,7 +366,7 @@ const App = () => {
       }`} />
       <div className="space-y-0.5">
         <p className="text-[7px] font-bold uppercase tracking-wider text-slate-300 font-['Montserrat']">{title}</p>
-        <p className="text-[8px] leading-relaxed text-slate-300 font-semibold font-['Montserrat']">{description}</p>
+        <p className="text-[8px] leading-relaxed text-slate-200 font-semibold font-['Montserrat'] italic">{description}</p>
       </div>
     </div>
   );
@@ -419,7 +419,7 @@ const App = () => {
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-[8px] font-bold text-amber-400 uppercase tracking-widest font-['Montserrat']">Pro Tip</span>
               </div>
-              <p className="text-[8px] text-amber-100 leading-relaxed font-semibold font-['Montserrat']">
+              <p className="text-[8px] text-amber-200 leading-relaxed font-semibold font-['Montserrat'] italic">
                 Complete Decision Architecture before entering trades for maximum discipline.
               </p>
             </div>
@@ -454,7 +454,7 @@ const App = () => {
               
               {/* Header */}
               <header className="mb-8 flex justify-between items-center">
-                <div className="text-slate-800/30 text-3xl font-black select-none font-['Montserrat']">0{step}</div>
+                <div className="text-slate-700/60 text-4xl font-black select-none font-['Montserrat']">0{step}</div>
               </header>
 
               {/* STEP 1: DECISION ARCHITECTURE */}
@@ -467,7 +467,7 @@ const App = () => {
                       <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                       <div>
                         <h4 className="text-[9px] font-bold text-amber-300 uppercase tracking-wide mb-1 font-['Montserrat']">Why This Matters</h4>
-                        <p className="text-[8px] text-amber-100 leading-relaxed font-semibold font-['Montserrat']">
+                        <p className="text-[8px] text-amber-200 leading-relaxed font-semibold font-['Montserrat'] italic">
                           Most traders lose because they enter on impulse. This section enforces pre-trade clarity and prevents emotional decisions.
                         </p>
                       </div>
@@ -750,7 +750,7 @@ const App = () => {
                           <div className="w-14 h-14 bg-slate-900/60 rounded-none flex items-center justify-center mb-4 group-hover:scale-105 group-hover:bg-blue-600/10 transition-all border border-slate-800/60">
                             <Camera className="w-6 h-6 text-slate-500 group-hover:text-blue-400 transition-colors" />
                           </div>
-                          <span className="text-[10px] font-semibold text-slate-300 mb-1 font-['Montserrat'] uppercase">Upload Chart Evidence</span>
+                          <span className="text-[10px] font-semibold text-slate-300 mb-1 font-['Montserrat']">upload trade setup screenshot</span>
                           <span className="text-[9px] text-slate-600 font-bold uppercase tracking-wider font-['Montserrat']">PNG, JPG up to 10MB</span>
                         </label>
                       )}
@@ -1037,7 +1037,7 @@ const App = () => {
                     {/* Left: Metrics */}
                     <div className="lg:col-span-2 space-y-8">
                       <div>
-                        <SectionHeader icon={BarChart3} title="Execution Metrics" color="violet" />
+                        <SectionHeader icon={Gauge} title="Execution Metrics" color="violet" />
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           <InputField label="Planned R:R" field="plannedRR" placeholder="1:2" />
                           <InputField label="Achieved R:R" field="achievedRR" placeholder="1:1.5" />
@@ -1084,7 +1084,7 @@ const App = () => {
                       <div className="space-y-2">
                         <label className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider block font-['Montserrat']">What Worked</label>
                         <textarea 
-                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat']" 
+                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat'] italic" 
                           rows="3"
                           placeholder="What did you execute well?"
                           value={formData.whatWorked}
@@ -1095,7 +1095,7 @@ const App = () => {
                       <div className="space-y-2">
                         <label className="text-[9px] font-bold text-rose-400 uppercase tracking-wider block font-['Montserrat']">What Failed</label>
                         <textarea 
-                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat']" 
+                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat'] italic" 
                           rows="3"
                           placeholder="What went wrong?"
                           value={formData.whatFailed}
@@ -1106,7 +1106,7 @@ const App = () => {
                       <div className="space-y-2">
                         <label className="text-[9px] font-bold text-blue-400 uppercase tracking-wider block font-['Montserrat']">Future Adjustments</label>
                         <textarea 
-                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat']" 
+                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat'] italic" 
                           rows="3"
                           placeholder="What will you change next time?"
                           value={formData.adjustments}
