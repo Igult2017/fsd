@@ -28,7 +28,9 @@ import {
   Sun,
   Moon,
   User,
-  Diamond
+  Diamond,
+  Menu,
+  X
 } from 'lucide-react';
 
 // --- Mock Data ---
@@ -68,16 +70,26 @@ const StatCard = ({ label, value, change, icon: Icon, color }) => (
   </div>
 );
 
-const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (
-  <button 
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-      active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-    }`}
-  >
-    <Icon size={18} strokeWidth={2.5} />
-    <span className="font-bold text-[11px] tracking-widest uppercase">{label}</span>
-  </button>
+const SidebarItem = ({ icon: Icon, label, active = false, onClick, hasDropdown = false, isOpen = false, onToggle, collapsed = false }) => (
+  <div>
+    <button 
+      onClick={hasDropdown ? onToggle : onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+        active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+      } ${collapsed ? 'justify-center' : ''}`}
+      title={collapsed ? label : ''}
+    >
+      <Icon size={18} strokeWidth={2.5} />
+      {!collapsed && (
+        <>
+          <span className="font-bold text-[11px] tracking-widest uppercase flex-1 text-left">{label}</span>
+          {hasDropdown && (
+            <ChevronRight size={14} className={`transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+          )}
+        </>
+      )}
+    </button>
+  </div>
 );
 
 const MiniCalendar = () => {
@@ -360,6 +372,9 @@ const App = () => {
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [isDarkTheme, setIsDarkTheme] = React.useState(true);
   const [sessions, setSessions] = React.useState([]);
+  const [selectedSession, setSelectedSession] = React.useState(null);
+  const [sessionsDropdownOpen, setSessionsDropdownOpen] = React.useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
 
   React.useEffect(() => {
     const savedSessions = localStorage.getItem('tradingSessions');
@@ -386,7 +401,42 @@ const App = () => {
 
   const handleDeleteSession = (sessionId) => {
     setSessions(sessions.filter(s => s.id !== sessionId));
+    if (selectedSession?.id === sessionId) {
+      setSelectedSession(null);
+    }
   };
+
+  const handleSelectSession = (session) => {
+    setSelectedSession(session);
+    setActiveTab('dashboard');
+    setSessionsDropdownOpen(false);
+  };
+
+  // Get current session data or use mock data
+  const currentSessionData = selectedSession || {
+    sessionName: 'Demo Session',
+    startingBalance: 42850.12,
+    currentBalance: 43992.12,
+    trades: MOCK_TRADES
+  };
+
+  const sessionStats = React.useMemo(() => {
+    const trades = currentSessionData.trades || [];
+    const wins = trades.filter(t => t.status === 'Win').length;
+    const totalTrades = trades.length || 5;
+    const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(0) : '60';
+    const totalPnL = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const profitLoss = currentSessionData.currentBalance - currentSessionData.startingBalance;
+    
+    return [
+      { label: 'Total P&L', value: `$${profitLoss.toLocaleString()}`, change: profitLoss >= 0 ? `+${((profitLoss / currentSessionData.startingBalance) * 100).toFixed(1)}%` : `-${((Math.abs(profitLoss) / currentSessionData.startingBalance) * 100).toFixed(1)}%`, icon: DollarSign, color: 'text-emerald-500' },
+      { label: 'Win Rate', value: `${winRate}%`, change: '+2.1%', icon: Percent, color: 'text-blue-500' },
+      { label: 'R Expectancy', value: '1.42R', change: '+0.12', icon: Activity, color: 'text-yellow-500' },
+      { label: 'Trade Count', value: String(totalTrades), change: '+5', icon: Hash, color: 'text-indigo-400' },
+      { label: 'Profit Factor', value: '2.45', change: '+0.3', icon: TrendingUp, color: 'text-purple-500' },
+      { label: 'Avg Trade', value: totalTrades > 0 ? `$${(totalPnL / totalTrades).toFixed(2)}` : '$0', change: '-$12.0', icon: Clock, color: 'text-orange-500' },
+    ];
+  }, [currentSessionData]);
 
   return (
     <>
@@ -399,47 +449,194 @@ const App = () => {
       `}</style>
       
       <div className="flex h-screen bg-black text-slate-200 overflow-hidden font-geist">
-        <aside className="w-64 border-r border-slate-800 flex flex-col p-5 bg-slate-950/80 backdrop-blur-xl shrink-0">
-          <div className="flex items-center gap-3 px-3 mb-10">
+        {/* Sidebar - Collapsible */}
+        <aside className={`border-r border-slate-800 flex flex-col p-5 bg-slate-950/80 backdrop-blur-xl shrink-0 transition-all duration-300 ${
+          sidebarCollapsed ? 'w-20' : 'w-64'
+        }`}>
+          <div className={`flex items-center gap-3 px-3 mb-10 ${sidebarCollapsed ? 'justify-center' : ''}`}>
             <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center shadow-2xl shadow-indigo-600/40">
               <Diamond size={20} className="text-white" strokeWidth={2.5} fill="white" />
             </div>
-            <span className="text-xl font-black tracking-[0.15em] text-white uppercase italic font-geist">FSDZONES</span>
+            {!sidebarCollapsed && (
+              <span className="text-xl font-black tracking-[0.15em] text-white uppercase italic font-geist">FSDZONES</span>
+            )}
           </div>
 
           <nav className="space-y-1.5 flex-1 overflow-y-auto no-scrollbar">
-            <SidebarItem icon={Layout} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-            <SidebarItem icon={BookOpen} label="Journal" active={activeTab === 'journal'} onClick={() => setActiveTab('journal')} />
-            <SidebarItem icon={LineChart} label="Analytics" active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
-            <SidebarItem icon={Calendar} label="Calendar" active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} />
-            <SidebarItem icon={ShieldCheck} label="Strategy Audit" active={activeTab === 'strategy'} onClick={() => setActiveTab('strategy')} />
-            <SidebarItem icon={TrendingDown} label="Drawdown" active={activeTab === 'drawdown'} onClick={() => setActiveTab('drawdown')} />
-            <SidebarItem icon={Lock} label="Trade Vault" active={activeTab === 'vault'} onClick={() => setActiveTab('vault')} />
+            <SidebarItem 
+              icon={Layout} 
+              label="Dashboard" 
+              active={activeTab === 'dashboard'} 
+              onClick={() => setActiveTab('dashboard')}
+              collapsed={sidebarCollapsed}
+            />
+            <SidebarItem 
+              icon={BookOpen} 
+              label="Journal" 
+              active={activeTab === 'journal'} 
+              onClick={() => setActiveTab('journal')}
+              collapsed={sidebarCollapsed}
+            />
+            <SidebarItem 
+              icon={LineChart} 
+              label="Analytics" 
+              active={activeTab === 'analytics'} 
+              onClick={() => setActiveTab('analytics')}
+              collapsed={sidebarCollapsed}
+            />
+            <SidebarItem 
+              icon={Calendar} 
+              label="Calendar" 
+              active={activeTab === 'calendar'} 
+              onClick={() => setActiveTab('calendar')}
+              collapsed={sidebarCollapsed}
+            />
+            <SidebarItem 
+              icon={ShieldCheck} 
+              label="Strategy Audit" 
+              active={activeTab === 'strategy'} 
+              onClick={() => setActiveTab('strategy')}
+              collapsed={sidebarCollapsed}
+            />
+            <SidebarItem 
+              icon={TrendingDown} 
+              label="Drawdown" 
+              active={activeTab === 'drawdown'} 
+              onClick={() => setActiveTab('drawdown')}
+              collapsed={sidebarCollapsed}
+            />
+            <SidebarItem 
+              icon={Lock} 
+              label="Trade Vault" 
+              active={activeTab === 'vault'} 
+              onClick={() => setActiveTab('vault')}
+              collapsed={sidebarCollapsed}
+            />
             
-            <div className="pt-6 mt-6 border-t border-slate-800/60 space-y-1.5">
-              <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Live Trading</p>
-              <SidebarItem icon={Globe} label="Sessions" active={activeTab === 'sessions'} onClick={() => setActiveTab('sessions')} />
-              <SidebarItem icon={PlusSquare} label="Create Session" active={activeTab === 'create-session'} onClick={() => setActiveTab('create-session')} />
-            </div>
+            {!sidebarCollapsed && (
+              <>
+                <div className="pt-6 mt-6 border-t border-slate-800/60 space-y-1.5">
+                  <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Live Trading</p>
+                  <SidebarItem 
+                    icon={Globe} 
+                    label="Sessions" 
+                    hasDropdown={true}
+                    isOpen={sessionsDropdownOpen}
+                    onToggle={() => setSessionsDropdownOpen(!sessionsDropdownOpen)}
+                    collapsed={sidebarCollapsed}
+                  />
+                  {sessionsDropdownOpen && (
+                    <div className="ml-4 pl-4 border-l-2 border-slate-800 space-y-1">
+                      {sessions.length === 0 ? (
+                        <p className="text-[10px] text-slate-600 px-4 py-2 italic">No sessions yet</p>
+                      ) : (
+                        sessions.map(session => (
+                          <button
+                            key={session.id}
+                            onClick={() => handleSelectSession(session)}
+                            className={`w-full text-left px-4 py-2 rounded-lg transition-all text-[10px] font-bold ${
+                              selectedSession?.id === session.id 
+                                ? 'bg-indigo-500/20 text-indigo-300' 
+                                : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="truncate">{session.sessionName}</span>
+                              <span className="text-[8px] font-mono ml-2">${session.currentBalance.toLocaleString()}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                  <SidebarItem 
+                    icon={PlusSquare} 
+                    label="Create Session" 
+                    active={activeTab === 'create-session'} 
+                    onClick={() => setActiveTab('create-session')}
+                    collapsed={sidebarCollapsed}
+                  />
+                </div>
 
-            <div className="pt-6 mt-2 border-t border-slate-800/60 space-y-1.5">
-              <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Account</p>
-              <SidebarItem icon={UserPlus} label="Add Account" active={activeTab === 'add-account'} onClick={() => setActiveTab('add-account')} />
-              <SidebarItem icon={Users} label="Accounts" active={activeTab === 'accounts'} onClick={() => setActiveTab('accounts')} />
-            </div>
+                <div className="pt-6 mt-2 border-t border-slate-800/60 space-y-1.5">
+                  <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Account</p>
+                  <SidebarItem 
+                    icon={UserPlus} 
+                    label="Add Account" 
+                    active={activeTab === 'add-account'} 
+                    onClick={() => setActiveTab('add-account')}
+                    collapsed={sidebarCollapsed}
+                  />
+                  <SidebarItem 
+                    icon={Users} 
+                    label="Accounts" 
+                    active={activeTab === 'accounts'} 
+                    onClick={() => setActiveTab('accounts')}
+                    collapsed={sidebarCollapsed}
+                  />
+                </div>
+              </>
+            )}
+            
+            {sidebarCollapsed && (
+              <>
+                <div className="pt-6 mt-6 border-t border-slate-800/60 space-y-1.5">
+                  <SidebarItem 
+                    icon={Globe} 
+                    label="Sessions" 
+                    collapsed={sidebarCollapsed}
+                    onClick={() => setActiveTab('sessions')}
+                  />
+                  <SidebarItem 
+                    icon={PlusSquare} 
+                    label="Create" 
+                    active={activeTab === 'create-session'} 
+                    onClick={() => setActiveTab('create-session')}
+                    collapsed={sidebarCollapsed}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="pt-6 mt-2">
-              <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+              <SidebarItem 
+                icon={Settings} 
+                label="Settings" 
+                active={activeTab === 'settings'} 
+                onClick={() => setActiveTab('settings')}
+                collapsed={sidebarCollapsed}
+              />
             </div>
           </nav>
 
-          <div className="mt-auto bg-slate-900/40 p-5 rounded-2xl border border-slate-800/60 backdrop-blur-sm">
-            <p className="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-[0.2em]">Account Balance</p>
-            <p className="text-2xl font-bold text-white font-mono tracking-tighter">$42,850.12</p>
-            <div className="h-1.5 w-full bg-slate-800 rounded-full mt-4 overflow-hidden">
-              <div className="h-full bg-indigo-500 w-3/4 shadow-[0_0_12px_rgba(99,102,241,0.6)]" />
+          {!sidebarCollapsed && (
+            <div className="mt-auto bg-slate-900/40 p-5 rounded-2xl border border-slate-800/60 backdrop-blur-sm">
+              <p className="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-[0.2em]">
+                {selectedSession ? 'Session Balance' : 'Account Balance'}
+              </p>
+              <p className="text-2xl font-bold text-white font-mono tracking-tighter">
+                ${(selectedSession?.currentBalance || 42850.12).toLocaleString()}
+              </p>
+              {selectedSession && (
+                <div className="mt-3">
+                  <p className="text-[8px] text-slate-600 uppercase tracking-wider mb-1">Starting Balance</p>
+                  <p className="text-sm text-slate-400 font-mono">${selectedSession.startingBalance.toLocaleString()}</p>
+                </div>
+              )}
+              <div className="h-1.5 w-full bg-slate-800 rounded-full mt-4 overflow-hidden">
+                <div className="h-full bg-indigo-500 w-3/4 shadow-[0_0_12px_rgba(99,102,241,0.6)]" />
+              </div>
             </div>
-          </div>
+          )}
+          
+          {/* Toggle Button */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="mt-4 p-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all border border-slate-700 flex items-center justify-center"
+            title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          >
+            {sidebarCollapsed ? <ChevronRight size={18} className="text-slate-400" /> : <ChevronLeft size={18} className="text-slate-400" />}
+          </button>
         </aside>
 
         <div className="flex-1 flex flex-col min-w-0 bg-slate-950">
@@ -494,8 +691,24 @@ const App = () => {
                 <SessionsList sessions={sessions} onDeleteSession={handleDeleteSession} />
               ) : (
                 <>
+              {selectedSession && (
+                <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-black">Active Session</p>
+                      <h2 className="text-2xl font-black text-white tracking-tight">{selectedSession.sessionName}</h2>
+                    </div>
+                    <button 
+                      onClick={() => setSelectedSession(null)}
+                      className="text-xs text-slate-400 hover:text-white transition-all px-4 py-2 bg-slate-800/50 rounded-lg"
+                    >
+                      Clear Session
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {STATS.map((stat, idx) => (
+                {sessionStats.map((stat, idx) => (
                   <StatCard key={idx} {...stat} />
                 ))}
               </div>
@@ -597,7 +810,7 @@ const App = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/50">
-                          {MOCK_TRADES.map((trade) => (
+                          {(currentSessionData.trades && currentSessionData.trades.length > 0 ? currentSessionData.trades : MOCK_TRADES).map((trade) => (
                             <tr key={trade.id} className="hover:bg-slate-800/40 transition-all group">
                               <td className="px-8 py-5">
                                 <div className="flex flex-col">
