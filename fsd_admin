@@ -1,84 +1,88 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  LayoutDashboard, 
-  Users, 
-  LineChart, 
-  FileText, 
-  Megaphone, 
-  Settings, 
-  Search, 
-  TrendingUp, 
-  TrendingDown, 
-  MoreVertical, 
-  Plus, 
-  Mail, 
-  Bell,
-  AlertCircle,
-  ChevronRight,
-  UserPlus, 
-  ShieldCheck,
-  Globe,
-  Clock
+  LayoutDashboard, Users, LineChart, FileText, Megaphone, Settings, Search, TrendingUp,
+  MoreVertical, Plus, Mail, Bell, AlertCircle, ChevronRight, UserPlus, ShieldCheck,
+  Globe, Clock, HeadphonesIcon, Cpu, Activity, Zap, AlertTriangle, CheckCircle,
+  XCircle, RefreshCw, MessageSquare, Phone, Star, Timer, Database, Server,
+  Wifi, HardDrive, BarChart3, Eye, Ban, Unlock, Trash2, Send, X, ChevronDown,
+  ArrowUpRight, ArrowDownRight, Circle, RotateCcw
 } from 'lucide-react';
 
 // --- Mock Data ---
 const MOCK_USERS = [
-  { id: 1, name: 'Alex Thompson', email: 'alex@example.com', plan: 'Pro', status: 'Active', winRate: '68%', lastLogin: '2h ago' },
-  { id: 2, name: 'Sarah Chen', email: 'sarah.c@trading.io', plan: 'Free', status: 'Inactive', winRate: '42%', lastLogin: '3d ago' },
-  { id: 3, name: 'Marcus Miller', email: 'marcus@fx.net', plan: 'Enterprise', status: 'Active', winRate: '71%', lastLogin: '15m ago' },
-  { id: 4, name: 'Elena Rodriguez', email: 'elena.r@crypto.com', plan: 'Pro', status: 'Banned', winRate: '55%', lastLogin: '1w ago' },
+  { id: 1, name: 'Alex Thompson', email: 'alex@example.com', plan: 'Pro', status: 'Active', winRate: '68%', lastLogin: '2h ago', tickets: 2 },
+  { id: 2, name: 'Sarah Chen', email: 'sarah.c@trading.io', plan: 'Free', status: 'Inactive', winRate: '42%', lastLogin: '3d ago', tickets: 0 },
+  { id: 3, name: 'Marcus Miller', email: 'marcus@fx.net', plan: 'Enterprise', status: 'Active', winRate: '71%', lastLogin: '15m ago', tickets: 1 },
+  { id: 4, name: 'Elena Rodriguez', email: 'elena.r@crypto.com', plan: 'Pro', status: 'Banned', winRate: '55%', lastLogin: '1w ago', tickets: 5 },
 ];
 
 const MOCK_POSTS = [
-  { id: 1, title: 'Weekly Market Recap: CPI Volatility', author: 'Admin', date: '2023-10-24', status: 'Published' },
-  { id: 2, title: 'Top 5 Psychological Biases in Trading', author: 'Admin', date: '2023-10-22', status: 'Draft' },
+  { id: 1, title: 'Weekly Market Recap: CPI Volatility', author: 'Admin', date: '2023-10-24', status: 'Published', section: 'blog' },
+  { id: 2, title: 'Top 5 Psychological Biases in Trading', author: 'Admin', date: '2023-10-22', status: 'Draft', section: 'blog' },
+  { id: 3, title: 'Breakout Strategy: 3-EMA Confluence', author: 'Admin', date: '2023-10-20', status: 'Published', section: 'verified-strategies' },
+  { id: 4, title: 'Scalping the London Open — Full Playbook', author: 'Admin', date: '2023-10-18', status: 'Draft', section: 'verified-strategies' },
 ];
 
 const GROWTH_DATA = [40, 55, 45, 70, 65, 85, 75, 90, 80, 95, 88, 110];
+
+const MOCK_TICKETS = [
+  { id: 'TK-1042', user: 'Alex Thompson', email: 'alex@example.com', subject: 'API connection drops intermittently', priority: 'High', status: 'Open', created: '10m ago', channel: 'email', satisfaction: null },
+  { id: 'TK-1041', user: 'Marcus Miller', email: 'marcus@fx.net', subject: 'Unable to export trade history CSV', priority: 'Medium', status: 'In Progress', created: '1h ago', channel: 'chat', satisfaction: null },
+  { id: 'TK-1040', user: 'Priya Sharma', email: 'priya@inv.co', subject: 'Billing discrepancy on last invoice', priority: 'High', status: 'Open', created: '3h ago', channel: 'phone', satisfaction: null },
+  { id: 'TK-1039', user: 'Daniel Park', email: 'dpark@trade.io', subject: 'Feature request: Dark mode toggle', priority: 'Low', status: 'Resolved', created: '1d ago', channel: 'chat', satisfaction: 5 },
+  { id: 'TK-1038', user: 'Sarah Chen', email: 'sarah.c@trading.io', subject: 'Login 2FA not sending SMS code', priority: 'Critical', status: 'Resolved', created: '2d ago', channel: 'email', satisfaction: 4 },
+];
+
+// System metrics generator
+const generateMetric = (base, variance) => +(base + (Math.random() - 0.5) * variance).toFixed(1);
+
+const INITIAL_SYSTEM_METRICS = {
+  cpu: 34, memory: 61, latency: 42, uptime: 99.97,
+  requestsPerSec: 847, errorRate: 0.12, dbQueryTime: 18, activeConnections: 1243
+};
+
+const INITIAL_LOGS = [
+  { id: 1, time: '14:32:01', level: 'error', service: 'Binance-API', message: 'Connection timeout after 5000ms — retrying (3/5)', resolved: false },
+  { id: 2, time: '14:31:44', level: 'warn', service: 'Auth-Service', message: 'Elevated failed login attempts from IP 185.220.x.x', resolved: false },
+  { id: 3, time: '14:30:12', level: 'info', service: 'Trade-Engine', message: 'Successfully processed 1,240 trade signals in batch', resolved: true },
+  { id: 4, time: '14:29:55', level: 'error', service: 'DB-Cluster', message: 'Replica lag exceeded threshold: 340ms (limit: 200ms)', resolved: true },
+  { id: 5, time: '14:28:30', level: 'info', service: 'Cache-Layer', message: 'Redis cache warmed — hit rate now at 94.2%', resolved: true },
+  { id: 6, time: '14:27:11', level: 'warn', service: 'Payment-SVC', message: 'Stripe webhook delivery delayed by 12s', resolved: false },
+];
 
 // --- Sub-Components ---
 
 const StatCard = ({ title, value, change, trend, icon: Icon }) => (
   <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm">
     <div className="flex justify-between items-start mb-4">
-      <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-        <Icon size={20} />
-      </div>
-      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${trend === 'up' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-        {change}
-      </span>
+      <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400"><Icon size={20} /></div>
+      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${trend === 'up' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{change}</span>
     </div>
-    <h3 className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest truncate" title={title}>{title}</h3>
+    <h3 className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest truncate">{title}</h3>
     <p className="text-2xl font-bold text-white mt-1 tracking-tight">{value}</p>
   </div>
 );
 
-const SidebarItem = ({ id, active, label, icon: Icon, onClick }) => (
+const SidebarItem = ({ id, active, label, icon: Icon, onClick, badge }) => (
   <button
     onClick={() => onClick(id)}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-      active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-    }`}
+    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
   >
     <Icon size={20} />
-    <span className="font-semibold text-sm">{label}</span>
+    <span className="font-semibold text-sm flex-1 text-left">{label}</span>
+    {badge && <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{badge}</span>}
   </button>
 );
 
 const LineGraph = ({ data }) => {
-  const width = 500;
-  const height = 200;
-  const padding = 20;
-  
+  const width = 500, height = 200, padding = 20;
   const maxValue = Math.max(...data);
   const points = data.map((val, i) => {
     const x = (i / (data.length - 1)) * (width - padding * 2) + padding;
     const y = height - ((val / maxValue) * (height - padding * 2) + padding);
     return `${x},${y}`;
   }).join(' ');
-
   const areaPoints = `20,${height} ${points} ${width - padding},${height}`;
-
   return (
     <div className="w-full overflow-hidden">
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-64 drop-shadow-2xl">
@@ -88,62 +92,672 @@ const LineGraph = ({ data }) => {
             <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
           </linearGradient>
         </defs>
-        
-        {/* Grid Lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-          <line 
-            key={i}
-            x1={padding} 
-            y1={padding + (height - padding * 2) * p} 
-            x2={width - padding} 
-            y2={padding + (height - padding * 2) * p} 
-            stroke="#1e293b" 
-            strokeWidth="1"
-          />
+          <line key={i} x1={padding} y1={padding + (height - padding * 2) * p} x2={width - padding} y2={padding + (height - padding * 2) * p} stroke="#1e293b" strokeWidth="1" />
         ))}
-
-        {/* Fill Area */}
-        <polyline
-          fill="url(#lineGradient)"
-          points={areaPoints}
-        />
-
-        {/* The Line */}
-        <polyline
-          fill="none"
-          stroke="#6366f1"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          points={points}
-        />
-
-        {/* Data Points */}
+        <polyline fill="url(#lineGradient)" points={areaPoints} />
+        <polyline fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={points} />
         {data.map((val, i) => {
           const x = (i / (data.length - 1)) * (width - padding * 2) + padding;
           const y = height - ((val / maxValue) * (height - padding * 2) + padding);
-          return (
-            <circle 
-              key={i} 
-              cx={x} 
-              cy={y} 
-              r="4" 
-              className="fill-indigo-500 stroke-slate-900 stroke-2 hover:r-6 transition-all cursor-pointer"
-            />
-          );
+          return <circle key={i} cx={x} cy={y} r="4" className="fill-indigo-500 stroke-slate-900 stroke-2 cursor-pointer" />;
         })}
       </svg>
     </div>
   );
 };
 
-// --- Main App Component ---
+// Sparkline for system metrics
+const Sparkline = ({ data, color = '#6366f1', danger = false }) => {
+  const w = 80, h = 32, pad = 2;
+  const max = Math.max(...data, 1);
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * (w - pad * 2) + pad;
+    const y = h - ((v / max) * (h - pad * 2) + pad);
+    return `${x},${y}`;
+  }).join(' ');
+  const c = danger ? '#f43f5e' : color;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-20 h-8">
+      <polyline fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={pts} opacity="0.7" />
+    </svg>
+  );
+};
 
+// Gauge ring
+const GaugeRing = ({ value, max = 100, color, size = 64, strokeWidth = 6 }) => {
+  const r = (size - strokeWidth) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.min(value / max, 1);
+  const dash = pct * circ;
+  const isDanger = pct > 0.8;
+  const ringColor = isDanger ? '#f43f5e' : pct > 0.6 ? '#f59e0b' : color;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#1e293b" strokeWidth={strokeWidth} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={ringColor} strokeWidth={strokeWidth}
+        strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray 0.6s ease, stroke 0.3s ease' }} />
+    </svg>
+  );
+};
+
+// --- CUSTOMER CARE SECTION ---
+const CustomerCareSection = () => {
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [tickets, setTickets] = useState(MOCK_TICKETS);
+  const [replyText, setReplyText] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [actionUser, setActionUser] = useState(null);
+  const [actionType, setActionType] = useState(null);
+
+  const openCount = tickets.filter(t => t.status === 'Open').length;
+  const criticalCount = tickets.filter(t => t.priority === 'Critical').length;
+  const resolvedToday = tickets.filter(t => t.status === 'Resolved').length;
+  const avgSat = (tickets.filter(t => t.satisfaction).reduce((s, t) => s + t.satisfaction, 0) / tickets.filter(t => t.satisfaction).length).toFixed(1);
+
+  const filtered = filterStatus === 'All' ? tickets : tickets.filter(t => t.status === filterStatus);
+
+  const priorityColor = { Critical: 'bg-rose-500/15 text-rose-400 border-rose-500/30', High: 'bg-amber-500/15 text-amber-400 border-amber-500/30', Medium: 'bg-blue-500/15 text-blue-300 border-blue-500/30', Low: 'bg-slate-700 text-slate-400 border-slate-600' };
+  const statusColor = { Open: 'text-amber-400', 'In Progress': 'text-blue-400', Resolved: 'text-emerald-400' };
+  const channelIcon = { email: Mail, chat: MessageSquare, phone: Phone };
+
+  const handleResolve = (id) => {
+    setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'Resolved' } : t));
+    if (selectedTicket?.id === id) setSelectedTicket(prev => ({ ...prev, status: 'Resolved' }));
+  };
+
+  const handleUserAction = (user, type) => { setActionUser(user); setActionType(type); };
+
+  const performAction = () => {
+    if (actionType === 'ban') {
+      // Would update user status
+    }
+    setActionUser(null); setActionType(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Bar */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Open Tickets', value: openCount, sub: `${criticalCount} critical`, color: 'text-amber-400', bg: 'bg-amber-500/10', icon: MessageSquare },
+          { label: 'Avg Response', value: '4m 12s', sub: '↓ 22% from last week', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: Timer },
+          { label: 'Resolved Today', value: resolvedToday, sub: 'of 8 total tickets', color: 'text-indigo-400', bg: 'bg-indigo-500/10', icon: CheckCircle },
+          { label: 'CSAT Score', value: avgSat + '/5', sub: 'Based on 2 reviews', color: 'text-amber-400', bg: 'bg-amber-500/10', icon: Star },
+        ].map((s, i) => (
+          <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`${s.bg} p-2 rounded-lg`}><s.icon size={18} className={s.color} /></div>
+            </div>
+            <p className={`text-2xl font-black tracking-tight ${s.color}`}>{s.value}</p>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">{s.label}</p>
+            <p className="text-slate-600 text-xs mt-0.5">{s.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* Ticket Queue */}
+        <div className="xl:col-span-3 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="p-5 border-b border-slate-800 flex items-center justify-between gap-3">
+            <h3 className="font-black text-white tracking-tight text-lg">Support Queue</h3>
+            <div className="flex items-center gap-2">
+              {['All', 'Open', 'In Progress', 'Resolved'].map(f => (
+                <button key={f} onClick={() => setFilterStatus(f)}
+                  className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md transition-all ${filterStatus === f ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}>
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="divide-y divide-slate-800">
+            {filtered.map(ticket => {
+              const ChanIcon = channelIcon[ticket.channel];
+              return (
+                <div key={ticket.id} onClick={() => setSelectedTicket(ticket)}
+                  className={`p-4 cursor-pointer transition-all hover:bg-slate-800/40 ${selectedTicket?.id === ticket.id ? 'bg-indigo-600/10 border-l-2 border-indigo-500' : 'border-l-2 border-transparent'}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-slate-500 text-[10px] font-black">{ticket.id}</span>
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${priorityColor[ticket.priority]}`}>{ticket.priority}</span>
+                      </div>
+                      <p className="text-white text-sm font-semibold truncate">{ticket.subject}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">{ticket.user} · {ticket.created}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className={`text-[10px] font-black ${statusColor[ticket.status]}`}>{ticket.status}</span>
+                      <ChanIcon size={14} className="text-slate-600" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Ticket Detail / User Actions Panel */}
+        <div className="xl:col-span-2 space-y-4">
+          {selectedTicket ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+              <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-500 text-xs font-black">{selectedTicket.id}</span>
+                  <h4 className="text-white font-bold text-sm mt-0.5 leading-tight">{selectedTicket.subject}</h4>
+                </div>
+                <button onClick={() => setSelectedTicket(null)} className="text-slate-500 hover:text-white"><X size={18} /></button>
+              </div>
+              <div className="p-5 space-y-4">
+                {/* User card */}
+                <div className="bg-slate-800/60 rounded-lg p-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-black text-white flex-shrink-0">
+                    {selectedTicket.user.split(' ').map(n=>n[0]).join('')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-bold truncate">{selectedTicket.user}</p>
+                    <p className="text-slate-500 text-xs">{selectedTicket.email}</p>
+                  </div>
+                  <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${priorityColor[selectedTicket.priority]}`}>{selectedTicket.priority}</span>
+                </div>
+
+                {/* Quick Actions */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Quick Actions</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Resolve', icon: CheckCircle, color: 'text-emerald-400 hover:bg-emerald-500/10 border-emerald-500/20', action: () => handleResolve(selectedTicket.id) },
+                      { label: 'Escalate', icon: AlertTriangle, color: 'text-amber-400 hover:bg-amber-500/10 border-amber-500/20', action: () => {} },
+                      { label: 'Ban User', icon: Ban, color: 'text-rose-400 hover:bg-rose-500/10 border-rose-500/20', action: () => handleUserAction(selectedTicket.user, 'ban') },
+                      { label: 'Reset Pass', icon: RotateCcw, color: 'text-blue-400 hover:bg-blue-500/10 border-blue-500/20', action: () => {} },
+                    ].map((btn, i) => (
+                      <button key={i} onClick={btn.action}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-transparent text-xs font-bold transition-all ${btn.color}`}>
+                        <btn.icon size={13} />{btn.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reply box */}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Reply to Customer</p>
+                  <textarea value={replyText} onChange={e => setReplyText(e.target.value)} rows="3"
+                    className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg p-3 text-sm font-medium placeholder:text-slate-600 resize-none"
+                    placeholder="Type your response..." />
+                  <button className="mt-2 w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest py-2.5 rounded-lg transition-colors">
+                    <Send size={13} /> Send Reply
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+              <MessageSquare size={32} className="text-slate-700 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm font-medium">Select a ticket to view details and take action</p>
+            </div>
+          )}
+
+          {/* User Management Panel */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+              <h3 className="font-black text-white tracking-tight">User Quick Manage</h3>
+              <Users size={16} className="text-slate-500" />
+            </div>
+            <div className="divide-y divide-slate-800">
+              {MOCK_USERS.map(user => (
+                <div key={user.id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-800/30 transition-colors">
+                  <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[9px] font-black text-white flex-shrink-0">
+                    {user.name.split(' ').map(n=>n[0]).join('')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-xs font-bold truncate">{user.name}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className={`w-1 h-1 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : user.status === 'Banned' ? 'bg-rose-500' : 'bg-slate-500'}`} />
+                      <span className="text-slate-600 text-[9px] font-bold uppercase">{user.status}</span>
+                      {user.tickets > 0 && <span className="bg-amber-500/20 text-amber-400 text-[9px] font-black px-1 rounded">{user.tickets}t</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button className="p-1.5 text-slate-600 hover:text-blue-400 transition-colors rounded hover:bg-blue-500/10" title="View"><Eye size={12} /></button>
+                    {user.status !== 'Banned' ?
+                      <button className="p-1.5 text-slate-600 hover:text-rose-400 transition-colors rounded hover:bg-rose-500/10" title="Ban"><Ban size={12} /></button> :
+                      <button className="p-1.5 text-slate-600 hover:text-emerald-400 transition-colors rounded hover:bg-emerald-500/10" title="Unban"><Unlock size={12} /></button>
+                    }
+                    <button className="p-1.5 text-slate-600 hover:text-rose-400 transition-colors rounded hover:bg-rose-500/10" title="Delete"><Trash2 size={12} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action confirmation modal */}
+      {actionUser && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="w-12 h-12 rounded-full bg-rose-500/15 flex items-center justify-center mx-auto mb-4">
+              <Ban size={22} className="text-rose-400" />
+            </div>
+            <h3 className="text-white font-black text-center text-lg mb-2">Confirm Ban</h3>
+            <p className="text-slate-400 text-sm text-center mb-6">This will immediately suspend <span className="text-white font-bold">{actionUser}</span>'s account and revoke all access.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => { setActionUser(null); setActionType(null); }} className="py-2.5 border border-slate-700 text-slate-300 text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors">Cancel</button>
+              <button onClick={performAction} className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-lg transition-colors">Ban Account</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- SYSTEM MONITOR SECTION ---
+const SystemMonitorSection = () => {
+  const [metrics, setMetrics] = useState(INITIAL_SYSTEM_METRICS);
+  const [logs, setLogs] = useState(INITIAL_LOGS);
+  const [history, setHistory] = useState({
+    cpu: [28, 31, 34, 30, 33, 34], memory: [58, 60, 61, 62, 60, 61],
+    latency: [38, 45, 42, 44, 40, 42], requests: [800, 820, 847, 835, 847, 847]
+  });
+  const [isLive, setIsLive] = useState(true);
+  const [resolvedIds, setResolvedIds] = useState(new Set(INITIAL_LOGS.filter(l => l.resolved).map(l => l.id)));
+  const logIdRef = useRef(7);
+  const timerRef = useRef(null);
+
+  const NEW_LOG_POOL = [
+    { level: 'error', service: 'Binance-API', message: 'WebSocket feed disconnected — reconnecting...' },
+    { level: 'warn', service: 'Rate-Limiter', message: 'User #3842 hit API quota — throttling applied' },
+    { level: 'info', service: 'Trade-Engine', message: 'New market signal batch queued: 340 entries' },
+    { level: 'error', service: 'Auth-Service', message: 'JWT signing key rotation failed — fallback active' },
+    { level: 'warn', service: 'DB-Cluster', message: 'Slow query detected: 1.2s (SELECT on trades table)' },
+    { level: 'info', service: 'Cache-Layer', message: 'Cache invalidation triggered by config update' },
+    { level: 'error', service: 'Payment-SVC', message: 'Webhook signature mismatch — event dropped' },
+    { level: 'info', service: 'CDN-Edge', message: 'Asset cache refreshed across 6 edge nodes' },
+  ];
+
+  useEffect(() => {
+    if (!isLive) { clearInterval(timerRef.current); return; }
+    timerRef.current = setInterval(() => {
+      setMetrics(prev => ({
+        cpu: generateMetric(prev.cpu, 8),
+        memory: generateMetric(prev.memory, 4),
+        latency: generateMetric(prev.latency, 10),
+        uptime: prev.uptime,
+        requestsPerSec: Math.round(generateMetric(prev.requestsPerSec, 60)),
+        errorRate: +(generateMetric(prev.errorRate, 0.1)).toFixed(2),
+        dbQueryTime: Math.round(generateMetric(prev.dbQueryTime, 6)),
+        activeConnections: Math.round(generateMetric(prev.activeConnections, 50)),
+      }));
+      setHistory(prev => ({
+        cpu: [...prev.cpu.slice(-11), generateMetric(metrics.cpu, 8)],
+        memory: [...prev.memory.slice(-11), generateMetric(metrics.memory, 4)],
+        latency: [...prev.latency.slice(-11), generateMetric(metrics.latency, 10)],
+        requests: [...prev.requests.slice(-11), Math.round(generateMetric(metrics.requestsPerSec, 60))],
+      }));
+      // Occasionally inject a new log
+      if (Math.random() < 0.3) {
+        const template = NEW_LOG_POOL[Math.floor(Math.random() * NEW_LOG_POOL.length)];
+        const now = new Date();
+        const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        setLogs(prev => [{ id: logIdRef.current++, time, level: template.level, service: template.service, message: template.message, resolved: false }, ...prev.slice(0, 19)]);
+      }
+    }, 1800);
+    return () => clearInterval(timerRef.current);
+  }, [isLive, metrics]);
+
+  const resolveLog = (id) => setResolvedIds(prev => new Set([...prev, id]));
+  const clearResolved = () => setResolvedIds(prev => { const n = new Set(prev); logs.forEach(l => { if (l.resolved || prev.has(l.id)) n.add(l.id); }); return n; });
+
+  const levelStyle = { error: 'bg-rose-500/10 text-rose-400 border border-rose-500/20', warn: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', info: 'bg-slate-700/50 text-slate-400 border border-slate-700' };
+  const levelDot = { error: 'bg-rose-500', warn: 'bg-amber-500', info: 'bg-slate-500' };
+
+  const visibleLogs = logs.filter(l => !resolvedIds.has(l.id) || l.level === 'error');
+  const errorCount = logs.filter(l => l.level === 'error' && !resolvedIds.has(l.id)).length;
+  const warnCount = logs.filter(l => l.level === 'warn' && !resolvedIds.has(l.id)).length;
+
+  const overallHealth = metrics.cpu < 80 && metrics.errorRate < 1 && metrics.latency < 100;
+
+  return (
+    <div className="space-y-6">
+      {/* Health Banner */}
+      <div className={`rounded-xl px-6 py-4 flex items-center justify-between border ${overallHealth ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-2.5 h-2.5 rounded-full ${overallHealth ? 'bg-emerald-500' : 'bg-rose-500'} shadow-[0_0_8px_currentColor] ${isLive ? 'animate-pulse' : ''}`} />
+          <span className={`font-black text-sm uppercase tracking-widest ${overallHealth ? 'text-emerald-400' : 'text-rose-400'}`}>
+            {overallHealth ? 'All Systems Operational' : 'Degraded Performance Detected'}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-slate-500 text-xs font-bold">Uptime: <span className="text-emerald-400">{metrics.uptime}%</span></span>
+          <button onClick={() => setIsLive(p => !p)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${isLive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}>
+            <RefreshCw size={11} className={isLive ? 'animate-spin' : ''} style={{ animationDuration: '3s' }} />
+            {isLive ? 'Live' : 'Paused'}
+          </button>
+        </div>
+      </div>
+
+      {/* Primary Metrics Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'CPU Usage', value: metrics.cpu, unit: '%', history: history.cpu, icon: Cpu, danger: metrics.cpu > 80 },
+          { label: 'Memory', value: metrics.memory, unit: '%', history: history.memory, icon: Database, danger: metrics.memory > 85 },
+          { label: 'Avg Latency', value: metrics.latency, unit: 'ms', history: history.latency, icon: Zap, danger: metrics.latency > 100 },
+          { label: 'Requests/sec', value: metrics.requestsPerSec, unit: '', history: history.requests, icon: Activity, danger: false },
+        ].map((m, i) => (
+          <div key={i} className={`bg-slate-900 border rounded-xl p-5 ${m.danger ? 'border-rose-500/30' : 'border-slate-800'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2 rounded-lg ${m.danger ? 'bg-rose-500/10' : 'bg-slate-800'}`}>
+                <m.icon size={16} className={m.danger ? 'text-rose-400' : 'text-slate-400'} />
+              </div>
+              <div className="relative flex items-center justify-center">
+                <GaugeRing value={m.unit === '%' ? m.value : Math.min((m.value / (m.label === 'Avg Latency' ? 200 : 2000)) * 100, 100)} color="#6366f1" size={44} strokeWidth={5} />
+                <span className={`absolute text-[9px] font-black ${m.danger ? 'text-rose-400' : 'text-slate-400'}`}>
+                  {m.unit === '%' ? m.value : ''}
+                </span>
+              </div>
+            </div>
+            <p className={`text-2xl font-black tracking-tight ${m.danger ? 'text-rose-400' : 'text-white'}`}>
+              {m.value}<span className="text-sm font-bold ml-0.5 text-slate-500">{m.unit}</span>
+            </p>
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">{m.label}</p>
+            <div className="mt-3">
+              <Sparkline data={m.history} danger={m.danger} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Secondary Metrics + Services */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-3">
+          <h3 className="text-white font-black text-sm uppercase tracking-widest">Service Status</h3>
+          {[
+            { name: 'Trade Engine', status: 'operational', latency: '18ms' },
+            { name: 'Binance API', status: 'degraded', latency: '340ms' },
+            { name: 'Auth Service', status: 'operational', latency: '12ms' },
+            { name: 'Payment SVC', status: 'degraded', latency: '210ms' },
+            { name: 'DB Cluster', status: 'operational', latency: '8ms' },
+            { name: 'Cache Layer', status: 'operational', latency: '2ms' },
+            { name: 'CDN Edge', status: 'operational', latency: '6ms' },
+          ].map((svc, i) => (
+            <div key={i} className={`flex items-center justify-between px-4 py-2.5 rounded-lg border ${svc.status === 'degraded' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-slate-900 border-slate-800'}`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${svc.status === 'operational' ? 'bg-emerald-500' : svc.status === 'degraded' ? 'bg-amber-500 animate-pulse' : 'bg-rose-500 animate-pulse'}`} />
+                <span className="text-slate-300 text-xs font-semibold">{svc.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-600 text-[10px] font-mono">{svc.latency}</span>
+                <span className={`text-[9px] font-black uppercase ${svc.status === 'operational' ? 'text-emerald-500' : 'text-amber-500'}`}>{svc.status}</span>
+              </div>
+            </div>
+          ))}
+          {/* Extra mini-metrics */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {[
+              { label: 'Error Rate', value: metrics.errorRate + '%', ok: metrics.errorRate < 1 },
+              { label: 'DB Query', value: metrics.dbQueryTime + 'ms', ok: metrics.dbQueryTime < 50 },
+              { label: 'Connections', value: metrics.activeConnections.toLocaleString(), ok: true },
+              { label: 'Active Logs', value: errorCount + ' err', ok: errorCount === 0 },
+            ].map((m, i) => (
+              <div key={i} className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5">
+                <p className={`text-base font-black tracking-tight ${m.ok ? 'text-white' : 'text-rose-400'}`}>{m.value}</p>
+                <p className="text-slate-600 text-[9px] font-black uppercase tracking-widest mt-0.5">{m.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Live Log Feed */}
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h3 className="text-white font-black tracking-tight">Live Event Log</h3>
+              {errorCount > 0 && <span className="bg-rose-500/15 text-rose-400 border border-rose-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">{errorCount} errors</span>}
+              {warnCount > 0 && <span className="bg-amber-500/15 text-amber-400 border border-amber-500/20 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">{warnCount} warnings</span>}
+            </div>
+            <button onClick={clearResolved} className="text-slate-500 hover:text-slate-300 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-colors">
+              <Trash2 size={11} /> Clear Resolved
+            </button>
+          </div>
+          <div className="h-[420px] overflow-y-auto font-mono">
+            {logs.filter(l => !resolvedIds.has(l.id)).map(log => (
+              <div key={log.id} className={`flex items-start gap-3 px-5 py-3 border-b border-slate-800/60 hover:bg-slate-800/20 transition-colors group`}>
+                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${levelDot[log.level]} ${log.level !== 'info' ? 'animate-pulse' : ''}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-slate-600 text-[10px]">{log.time}</span>
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${levelStyle[log.level]}`}>{log.level}</span>
+                    <span className="text-slate-500 text-[10px] font-bold">{log.service}</span>
+                  </div>
+                  <p className="text-slate-300 text-xs leading-relaxed">{log.message}</p>
+                </div>
+                {log.level !== 'info' && (
+                  <button onClick={() => resolveLog(log.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 text-slate-600 hover:text-emerald-400 rounded hover:bg-emerald-500/10"
+                    title="Mark resolved">
+                    <CheckCircle size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+            {logs.filter(l => !resolvedIds.has(l.id)).length === 0 && (
+              <div className="flex flex-col items-center justify-center h-32 text-slate-700">
+                <CheckCircle size={28} className="text-emerald-700 mb-2" />
+                <p className="text-sm font-bold text-slate-600">All clear — no active incidents</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- BLOG SECTION ---
+const SECTION_META = {
+  blog: { label: 'Blog', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/30', dot: 'bg-indigo-500' },
+  'verified-strategies': { label: 'Verified Strategies', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', dot: 'bg-amber-500' },
+};
+
+const BlogSection = () => {
+  const [posts, setPosts] = useState(MOCK_POSTS);
+  const [activeSection, setActiveSection] = useState('all');
+  const [showModal, setShowModal] = useState(false);
+  const [editPost, setEditPost] = useState(null);
+  const [form, setForm] = useState({ title: '', section: 'blog', status: 'Draft' });
+
+  const filtered = activeSection === 'all' ? posts : posts.filter(p => p.section === activeSection);
+
+  const blogCount = posts.filter(p => p.section === 'blog').length;
+  const stratCount = posts.filter(p => p.section === 'verified-strategies').length;
+
+  const openNew = () => { setEditPost(null); setForm({ title: '', section: 'blog', status: 'Draft' }); setShowModal(true); };
+  const openEdit = (post) => { setEditPost(post); setForm({ title: post.title, section: post.section, status: post.status }); setShowModal(true); };
+
+  const handleSave = () => {
+    if (!form.title.trim()) return;
+    if (editPost) {
+      setPosts(prev => prev.map(p => p.id === editPost.id ? { ...p, ...form } : p));
+    } else {
+      const today = new Date().toISOString().slice(0, 10);
+      setPosts(prev => [...prev, { id: Date.now(), author: 'Admin', date: today, ...form }]);
+    }
+    setShowModal(false);
+  };
+
+  const handleDelete = (id) => setPosts(prev => prev.filter(p => p.id !== id));
+
+  const toggleStatus = (id) => setPosts(prev => prev.map(p => p.id === id ? { ...p, status: p.status === 'Published' ? 'Draft' : 'Published' } : p));
+
+  const changeSection = (id, section) => setPosts(prev => prev.map(p => p.id === id ? { ...p, section } : p));
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-white tracking-tighter">Content Manager</h2>
+          <p className="text-slate-500 text-sm mt-0.5">Publish to Blog or Verified Strategies</p>
+        </div>
+        <button onClick={openNew} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-indigo-600/20">
+          <Plus size={18} /> New Post
+        </button>
+      </div>
+
+      {/* Section Tabs */}
+      <div className="flex items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
+        {[
+          { id: 'all', label: 'All Posts', count: posts.length },
+          { id: 'blog', label: 'Blog', count: blogCount },
+          { id: 'verified-strategies', label: 'Verified Strategies', count: stratCount },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveSection(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeSection === tab.id ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>
+            {tab.id !== 'all' && <div className={`w-1.5 h-1.5 rounded-full ${SECTION_META[tab.id]?.dot}`} />}
+            {tab.label}
+            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${activeSection === tab.id ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-500'}`}>{tab.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Post Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {filtered.map(post => {
+          const sec = SECTION_META[post.section];
+          return (
+            <div key={post.id} className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-5 rounded-xl flex flex-col justify-between transition-all group">
+              <div>
+                {/* Top row — status + date */}
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border ${post.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700/80 text-slate-400 border-slate-600'}`}>
+                      {post.status}
+                    </span>
+                    {/* Section badge */}
+                    <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border ${sec.bg} ${sec.color} ${sec.border}`}>
+                      <span className="flex items-center gap-1"><div className={`w-1 h-1 rounded-full ${sec.dot} inline-block`} />{sec.label}</span>
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-600 font-medium flex-shrink-0">{post.date}</span>
+                </div>
+
+                <h4 className="text-base font-bold text-white mb-2 leading-snug">{post.title}</h4>
+                <p className="text-slate-500 text-sm line-clamp-2 font-medium leading-relaxed">
+                  {post.section === 'verified-strategies'
+                    ? 'A battle-tested strategy with detailed entry/exit rules, backtested across 3 years of data...'
+                    : 'Exploring the impact of the latest market data on major FX pairs and the volatility expected...'}
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
+                <span className="text-xs text-slate-600 font-semibold">By {post.author}</span>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Move to other section */}
+                  <button
+                    onClick={() => changeSection(post.id, post.section === 'blog' ? 'verified-strategies' : 'blog')}
+                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all"
+                    title={`Move to ${post.section === 'blog' ? 'Verified Strategies' : 'Blog'}`}>
+                    <ChevronRight size={11} />
+                    Move to {post.section === 'blog' ? 'Strategies' : 'Blog'}
+                  </button>
+                  <div className="w-px h-3 bg-slate-700" />
+                  <button onClick={() => toggleStatus(post.id)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-all">
+                    {post.status === 'Published' ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <div className="w-px h-3 bg-slate-700" />
+                  <button onClick={() => openEdit(post)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-white hover:bg-slate-700 transition-all">Edit</button>
+                  <button onClick={() => handleDelete(post.id)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all">Delete</button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <div className="md:col-span-2 py-16 text-center text-slate-600">
+            <FileText size={32} className="mx-auto mb-3 text-slate-700" />
+            <p className="font-bold text-slate-500">No posts in this section yet</p>
+            <button onClick={openNew} className="mt-3 text-indigo-400 text-sm font-bold hover:underline">Create one →</button>
+          </div>
+        )}
+      </div>
+
+      {/* New / Edit Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-7 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-white tracking-tight">{editPost ? 'Edit Post' : 'New Post'}</h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
+            </div>
+
+            <div className="space-y-5">
+              {/* Title */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Post Title</label>
+                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+                  className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-semibold placeholder:text-slate-600"
+                  placeholder="Enter post title..." />
+              </div>
+
+              {/* Section Selector */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Publish Destination</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(SECTION_META).map(([key, meta]) => (
+                    <button key={key} onClick={() => setForm(p => ({ ...p, section: key }))}
+                      className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${form.section === key ? `${meta.bg} ${meta.border} ${meta.color}` : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${meta.dot}`} />
+                      <div>
+                        <p className="text-xs font-black">{meta.label}</p>
+                        <p className="text-[10px] opacity-60 mt-0.5">
+                          {key === 'blog' ? 'General articles & recaps' : 'Curated trade strategies'}
+                        </p>
+                      </div>
+                      {form.section === key && <CheckCircle size={14} className="ml-auto flex-shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Publish Status</label>
+                <div className="flex gap-3">
+                  {['Draft', 'Published'].map(s => (
+                    <button key={s} onClick={() => setForm(p => ({ ...p, status: s }))}
+                      className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest border transition-all ${form.status === s
+                        ? s === 'Published' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-700 border-slate-600 text-white'
+                        : 'bg-transparent border-slate-700 text-slate-500 hover:border-slate-500'}`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-7">
+              <button onClick={() => setShowModal(false)} className="py-3 border border-slate-700 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-800 transition-colors">Cancel</button>
+              <button onClick={handleSave} className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-indigo-600/20">
+                {editPost ? 'Save Changes' : 'Create Post'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- MAIN APP ---
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [searchQuery, setSearchQuery] = useState('');
+  const openTickets = MOCK_TICKETS.filter(t => t.status === 'Open').length;
 
-  // Sections
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -155,29 +769,16 @@ export default function App() {
               <StatCard title="Avg. Session Dur." value="12m 42s" change="+4.1%" trend="up" icon={Clock} />
               <StatCard title="Subscription MRR" value="$84,200" change="+18.3%" trend="up" icon={Globe} />
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-xl">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <TrendingUp size={20} className="text-emerald-400" /> Growth Analytics
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20">
-                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                      <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-tighter">New Traders</span>
-                    </div>
-                    <select className="bg-slate-800 text-slate-300 text-xs font-medium rounded-md px-3 py-1.5 border border-slate-700 outline-none cursor-pointer">
-                      <option>Last 12 Months</option>
-                      <option>Last 30 Days</option>
-                    </select>
-                  </div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2"><TrendingUp size={20} className="text-emerald-400" /> Growth Analytics</h3>
+                  <select className="bg-slate-800 text-slate-300 text-xs font-medium rounded-md px-3 py-1.5 border border-slate-700 outline-none cursor-pointer">
+                    <option>Last 12 Months</option><option>Last 30 Days</option>
+                  </select>
                 </div>
-                <div className="w-full">
-                  <LineGraph data={GROWTH_DATA} />
-                </div>
+                <LineGraph data={GROWTH_DATA} />
               </div>
-              
               <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl">
                 <h3 className="text-lg font-bold text-white mb-4">Recent Activity</h3>
                 <div className="space-y-4">
@@ -189,15 +790,12 @@ export default function App() {
                     <div key={i} className="flex gap-3 text-sm">
                       <div className={`w-2 h-2 mt-1.5 rounded-full ${act.type === 'error' ? 'bg-rose-500' : 'bg-indigo-500'}`} />
                       <div>
-                        <p className="text-slate-300 font-medium tracking-tight">{act.text}</p>
+                        <p className="text-slate-300 font-medium">{act.text}</p>
                         <p className="text-slate-500 text-xs mt-0.5">{act.time}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <button className="w-full mt-6 py-2.5 text-indigo-400 text-xs font-bold uppercase tracking-widest hover:text-indigo-300 transition-colors border border-indigo-500/20 rounded-lg bg-indigo-500/5">
-                  View All Logs
-                </button>
               </div>
             </div>
           </div>
@@ -209,11 +807,7 @@ export default function App() {
             <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="Search traders..." 
-                  className="bg-slate-800 text-white pl-10 pr-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 w-full md:w-64 text-sm font-medium"
-                />
+                <input type="text" placeholder="Search traders..." className="bg-slate-800 text-white pl-10 pr-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 w-full md:w-64 text-sm font-medium" />
               </div>
               <button className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-bold">
                 <UserPlus size={18} /> Add User
@@ -222,37 +816,19 @@ export default function App() {
             <table className="w-full text-left">
               <thead className="bg-slate-800/50 text-slate-400 text-[11px] uppercase font-bold tracking-widest">
                 <tr>
-                  <th className="px-6 py-4">User</th>
-                  <th className="px-6 py-4">Plan</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-center">Win Rate</th>
-                  <th className="px-6 py-4">Last Login</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">User</th><th className="px-6 py-4">Plan</th><th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-center">Win Rate</th><th className="px-6 py-4">Last Login</th><th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {MOCK_USERS.map(user => (
                   <tr key={user.id} className="text-slate-300 hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-white text-sm">{user.name}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{user.email}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter ${user.plan === 'Enterprise' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-700 text-slate-300'}`}>
-                        {user.plan}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-tight">
-                        <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : user.status === 'Banned' ? 'bg-rose-500' : 'bg-slate-500'}`} />
-                        {user.status}
-                      </div>
-                    </td>
+                    <td className="px-6 py-4"><div className="font-semibold text-white text-sm">{user.name}</div><div className="text-xs text-slate-500 mt-0.5">{user.email}</div></td>
+                    <td className="px-6 py-4"><span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${user.plan === 'Enterprise' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-700 text-slate-300'}`}>{user.plan}</span></td>
+                    <td className="px-6 py-4"><div className="flex items-center gap-2 text-xs font-bold uppercase"><div className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : user.status === 'Banned' ? 'bg-rose-500' : 'bg-slate-500'}`} />{user.status}</div></td>
                     <td className="px-6 py-4 font-mono text-sm text-center font-bold text-indigo-400">{user.winRate}</td>
                     <td className="px-6 py-4 text-slate-500 text-xs font-medium">{user.lastLogin}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-slate-500 hover:text-white"><MoreVertical size={18} /></button>
-                    </td>
+                    <td className="px-6 py-4 text-right"><button className="text-slate-500 hover:text-white"><MoreVertical size={18} /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -261,165 +837,137 @@ export default function App() {
         );
 
       case 'blog':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-black text-white tracking-tighter">Blogpost Manager</h2>
-              <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-bold">
-                <Plus size={18} /> New Post
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {MOCK_POSTS.map(post => (
-                <div key={post.id} className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between hover:border-slate-700 transition-colors">
-                  <div>
-                    <div className="flex justify-between items-start mb-3">
-                      <span className={`text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded ${post.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-700 text-slate-300'}`}>
-                        {post.status}
-                      </span>
-                      <span className="text-xs text-slate-500 font-bold">{post.date}</span>
-                    </div>
-                    <h4 className="text-lg font-bold text-white mb-2 leading-tight tracking-tight">{post.title}</h4>
-                    <p className="text-slate-400 text-sm line-clamp-2 mb-4 font-medium leading-relaxed">
-                      Exploring the impact of the latest Consumer Price Index data on major FX pairs and the volatility expected...
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-800">
-                    <span className="text-xs text-slate-500 font-semibold tracking-tight">By {post.author}</span>
-                    <button className="text-indigo-400 text-xs font-bold uppercase tracking-widest hover:underline">Edit Content</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+        return <BlogSection />;
+
 
       case 'marketing':
         return (
           <div className="max-w-4xl space-y-8">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
-              <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2 tracking-tight">
-                <Megaphone className="text-indigo-400" /> Multi-Channel Broadcast
-              </h3>
+              <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2 tracking-tight"><Megaphone className="text-indigo-400" /> Multi-Channel Broadcast</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Target Audience</label>
                   <select className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 text-sm font-bold">
-                    <option>All Users (12,842)</option>
-                    <option>Free Plan Only</option>
-                    <option>Inactive Users ({'>'} 30 days)</option>
-                    <option>Pro Traders</option>
+                    <option>All Users (12,842)</option><option>Free Plan Only</option><option>Inactive Users</option><option>Pro Traders</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Communication Method</label>
                   <div className="grid grid-cols-3 gap-3">
-                    <button className="flex flex-col items-center gap-2 p-4 border border-indigo-500/50 bg-indigo-500/10 rounded-xl text-indigo-400">
-                      <Mail size={24} /> <span className="text-[10px] font-black uppercase tracking-widest">Email</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500 transition-colors">
-                      <AlertCircle size={24} /> <span className="text-[10px] font-black uppercase tracking-widest">Push</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500 transition-colors">
-                      <ShieldCheck size={24} /> <span className="text-[10px] font-black uppercase tracking-widest">In-App</span>
-                    </button>
+                    <button className="flex flex-col items-center gap-2 p-4 border border-indigo-500/50 bg-indigo-500/10 rounded-xl text-indigo-400"><Mail size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Email</span></button>
+                    <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500"><AlertCircle size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Push</span></button>
+                    <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500"><ShieldCheck size={24} /><span className="text-[10px] font-black uppercase tracking-widest">In-App</span></button>
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Message Content</label>
-                  <textarea 
-                    rows="4"
-                    className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 placeholder:text-slate-600 text-sm font-medium"
-                    placeholder="Enter your announcement or promo code here..."
-                  ></textarea>
+                  <textarea rows="4" className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 placeholder:text-slate-600 text-sm font-medium" placeholder="Enter your announcement or promo code here..."></textarea>
                 </div>
-                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-lg shadow-lg transition-all uppercase tracking-[0.2em] text-xs">
-                  Send Campaign Now
-                </button>
+                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-lg shadow-lg transition-all uppercase tracking-[0.2em] text-xs">Send Campaign Now</button>
               </div>
             </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-xl flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer group">
-                <div>
-                  <h4 className="text-white font-bold tracking-tight">Active Promos</h4>
-                  <p className="text-slate-500 text-xs font-semibold">SUMMER25 - 25% off Yearly</p>
-                </div>
+                <div><h4 className="text-white font-bold">Active Promos</h4><p className="text-slate-500 text-xs font-semibold">SUMMER25 - 25% off Yearly</p></div>
                 <ChevronRight className="text-slate-600 group-hover:text-white transition-colors" />
               </div>
               <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-xl flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer group">
-                <div>
-                  <h4 className="text-white font-bold tracking-tight">Email Templates</h4>
-                  <p className="text-slate-500 text-xs font-semibold">6 Saved layouts</p>
-                </div>
+                <div><h4 className="text-white font-bold">Email Templates</h4><p className="text-slate-500 text-xs font-semibold">6 Saved layouts</p></div>
                 <ChevronRight className="text-slate-600 group-hover:text-white transition-colors" />
               </div>
             </div>
           </div>
         );
+
+      case 'customer-care':
+        return <CustomerCareSection />;
+
+      case 'system-monitor':
+        return <SystemMonitorSection />;
 
       default:
         return <div className="p-12 text-center text-slate-500 italic font-medium">Section coming soon...</div>;
     }
   };
 
+  const pageTitle = {
+    dashboard: 'Overview', users: 'User Accounts', analytics: 'Trade Analysis',
+    blog: 'Blogpost', marketing: 'Marketing', 'customer-care': 'Customer Care',
+    'system-monitor': 'System Monitor', settings: 'System Settings'
+  };
+
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-['Inter',_ui-sans-serif,_system-ui,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI',_Roboto,_'Helvetica_Neue',_Arial,_'Noto_Sans',_sans-serif]">
-      {/* Google Font Import */}
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden" style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { scrollbar-width: none; -ms-overflow-style: none; }
+        *::-webkit-scrollbar { display: none; }
       `}</style>
-      
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
-        <div className="p-6">
-          <div className="flex items-center gap-3 text-indigo-500 mb-8">
-            <div className="bg-indigo-600 p-2 rounded-lg shadow-inner">
-              <LayoutDashboard size={24} className="text-white" />
-            </div>
+      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 h-screen">
+        {/* Logo — fixed at top */}
+        <div className="flex-shrink-0 px-6 pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-600 p-2 rounded-lg shadow-inner"><LayoutDashboard size={24} className="text-white" /></div>
             <span className="font-black text-xl tracking-tighter text-white uppercase">FSD ADMIN</span>
           </div>
-          
-          <nav className="space-y-2">
+        </div>
+
+        {/* Nav — scrollable middle */}
+        <div className="flex-1 overflow-y-auto px-6 py-2 min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="space-y-1">
             <SidebarItem id="dashboard" label="Overview" icon={LayoutDashboard} active={activeTab === 'dashboard'} onClick={setActiveTab} />
             <SidebarItem id="users" label="User Accounts" icon={Users} active={activeTab === 'users'} onClick={setActiveTab} />
             <SidebarItem id="analytics" label="Trade Analysis" icon={LineChart} active={activeTab === 'analytics'} onClick={setActiveTab} />
             <SidebarItem id="blog" label="Blogpost" icon={FileText} active={activeTab === 'blog'} onClick={setActiveTab} />
             <SidebarItem id="marketing" label="Marketing" icon={Megaphone} active={activeTab === 'marketing'} onClick={setActiveTab} />
+
+            <div className="pt-3 pb-1"><div className="h-px bg-slate-800" /></div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 px-4 pb-1">Operations</p>
+
+            <SidebarItem id="customer-care" label="Customer Care" icon={HeadphonesIcon} active={activeTab === 'customer-care'} onClick={setActiveTab} badge={openTickets} />
+            <SidebarItem id="system-monitor" label="System Monitor" icon={Activity} active={activeTab === 'system-monitor'} onClick={setActiveTab} />
+
+            <div className="pt-3 pb-1"><div className="h-px bg-slate-800" /></div>
+
+            <SidebarItem id="settings" label="System Settings" icon={Settings} active={activeTab === 'settings'} onClick={setActiveTab} />
           </nav>
         </div>
-        
-        <div className="mt-auto p-6 border-t border-slate-800">
-          <SidebarItem id="settings" label="System Settings" icon={Settings} active={activeTab === 'settings'} onClick={setActiveTab} />
-          <div className="mt-6 flex items-center gap-3 p-2 bg-slate-800/50 rounded-lg">
-            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-black text-[10px] shadow-sm">AD</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate tracking-tight">Admin User</p>
-              <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">Super Admin</p>
+
+        {/* Admin profile — always pinned at bottom */}
+        <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900">
+          <div className="flex items-center gap-3 p-3 bg-slate-800 hover:bg-slate-700/80 rounded-xl cursor-pointer transition-colors group">
+            <div className="relative flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xs text-white shadow-lg">AD</div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" />
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">Admin User</p>
+              <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">Super Admin</p>
+            </div>
+            <Settings size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" />
           </div>
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main */}
       <main className="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
         <header className="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-black capitalize tracking-tight">{activeTab === 'blog' ? 'Blogpost' : activeTab.replace('-', ' ')}</h1>
+          <h1 className="text-xl font-black capitalize tracking-tight">{pageTitle[activeTab] || activeTab}</h1>
           <div className="flex items-center gap-4">
             <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
               <Mail size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-950 shadow-sm" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-950" />
             </button>
             <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
               <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-600 rounded-full border-2 border-slate-950 shadow-sm" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-600 rounded-full border-2 border-slate-950" />
             </button>
           </div>
         </header>
-
-        <section className="p-8">
-          {renderContent()}
-        </section>
+        <section className="p-8">{renderContent()}</section>
       </main>
     </div>
   );
