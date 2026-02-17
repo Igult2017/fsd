@@ -21,6 +21,8 @@ const MOCK_POSTS = [
   { id: 2, title: 'Top 5 Psychological Biases in Trading', author: 'Admin', date: '2023-10-22', status: 'Draft', section: 'blog' },
   { id: 3, title: 'Breakout Strategy: 3-EMA Confluence', author: 'Admin', date: '2023-10-20', status: 'Published', section: 'verified-strategies' },
   { id: 4, title: 'Scalping the London Open — Full Playbook', author: 'Admin', date: '2023-10-18', status: 'Draft', section: 'verified-strategies' },
+  { id: 5, title: 'EUR/USD Buy Signal', author: 'Admin', date: '2023-10-24', status: 'Published', section: 'trade-signals', signal: { pair: 'EUR/USD', action: 'BUY', entry: '1.0632', sl: '1.0589', tp1: '1.0685', tp2: '1.0740', tp3: '1.0800', rr: '2.8', timeframe: 'H4', confidence: 'High', market: 'Forex', rationale: 'Price bounced off key demand zone with bullish engulfing confirmation. RSI divergence supports upside continuation.' } },
+  { id: 6, title: 'BTC/USDT Short Setup', author: 'Admin', date: '2023-10-23', status: 'Published', section: 'trade-signals', signal: { pair: 'BTC/USDT', action: 'SELL', entry: '34,280', sl: '35,100', tp1: '33,200', tp2: '32,000', tp3: '', rr: '1.9', timeframe: 'D1', confidence: 'Medium', market: 'Crypto', rationale: 'Rejection at key resistance with bearish divergence on daily RSI. Volume declining on recent push up.' } },
 ];
 
 const GROWTH_DATA = [40, 55, 45, 70, 65, 85, 75, 90, 80, 95, 88, 110];
@@ -422,7 +424,7 @@ const SystemMonitorSection = () => {
   return (
     <div className="space-y-6">
       {/* Health Banner */}
-      <div className={`rounded-xl px-6 py-4 flex items-center justify-between border ${overallHealth ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
+      <div className={`rounded-xl px-6 py-4 flex flex-wrap items-center justify-between gap-3 border ${overallHealth ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
         <div className="flex items-center gap-3">
           <div className={`w-2.5 h-2.5 rounded-full ${overallHealth ? 'bg-emerald-500' : 'bg-rose-500'} shadow-[0_0_8px_currentColor] ${isLive ? 'animate-pulse' : ''}`} />
           <span className={`font-black text-sm uppercase tracking-widest ${overallHealth ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -440,7 +442,7 @@ const SystemMonitorSection = () => {
       </div>
 
       {/* Primary Metrics Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { label: 'CPU Usage', value: metrics.cpu, unit: '%', history: history.cpu, icon: Cpu, danger: metrics.cpu > 80 },
           { label: 'Memory', value: metrics.memory, unit: '%', history: history.memory, icon: Database, danger: metrics.memory > 85 },
@@ -471,8 +473,8 @@ const SystemMonitorSection = () => {
       </div>
 
       {/* Secondary Metrics + Services */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-3">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-1 space-y-3">
           <h3 className="text-white font-black text-sm uppercase tracking-widest">Service Status</h3>
           {[
             { name: 'Trade Engine', status: 'operational', latency: '18ms' },
@@ -511,7 +513,7 @@ const SystemMonitorSection = () => {
         </div>
 
         {/* Live Log Feed */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <h3 className="text-white font-black tracking-tight">Live Event Log</h3>
@@ -522,7 +524,7 @@ const SystemMonitorSection = () => {
               <Trash2 size={11} /> Clear Resolved
             </button>
           </div>
-          <div className="h-[420px] overflow-y-auto font-mono">
+          <div className="h-[480px] overflow-y-auto font-mono">
             {logs.filter(l => !resolvedIds.has(l.id)).map(log => (
               <div key={log.id} className={`flex items-start gap-3 px-5 py-3 border-b border-slate-800/60 hover:bg-slate-800/20 transition-colors group`}>
                 <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${levelDot[log.level]} ${log.level !== 'info' ? 'animate-pulse' : ''}`} />
@@ -560,6 +562,33 @@ const SystemMonitorSection = () => {
 const SECTION_META = {
   blog: { label: 'Blog', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/30', dot: 'bg-indigo-500' },
   'verified-strategies': { label: 'Verified Strategies', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', dot: 'bg-amber-500' },
+  'trade-signals': { label: 'Trade Signals', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-emerald-500' },
+};
+
+const SOCIAL_PLATFORMS = [
+  { id: 'facebook',  label: 'Facebook',  color: '#1877F2', activeRing: 'ring-[#1877F2]/40', activeBg: 'bg-[#1877F2]/10', activeBorder: 'border-[#1877F2]/40', activeText: 'text-[#1877F2]',
+    icon: () => <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.265h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg> },
+  { id: 'twitter',   label: 'X (Twitter)', color: '#000000', activeRing: 'ring-slate-400/40', activeBg: 'bg-slate-400/10', activeBorder: 'border-slate-400/40', activeText: 'text-slate-200',
+    icon: () => <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.261 5.638 5.902-5.638zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
+  { id: 'linkedin',  label: 'LinkedIn',  color: '#0A66C2', activeRing: 'ring-[#0A66C2]/40', activeBg: 'bg-[#0A66C2]/10', activeBorder: 'border-[#0A66C2]/40', activeText: 'text-[#0A66C2]',
+    icon: () => <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
+  { id: 'instagram', label: 'Instagram', color: '#E1306C', activeRing: 'ring-[#E1306C]/40', activeBg: 'bg-[#E1306C]/10', activeBorder: 'border-[#E1306C]/40', activeText: 'text-[#E1306C]',
+    icon: () => <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> },
+  { id: 'telegram',  label: 'Telegram',  color: '#26A5E4', activeRing: 'ring-[#26A5E4]/40', activeBg: 'bg-[#26A5E4]/10', activeBorder: 'border-[#26A5E4]/40', activeText: 'text-[#26A5E4]',
+    icon: () => <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> },
+  { id: 'whatsapp',  label: 'WhatsApp',  color: '#25D366', activeRing: 'ring-[#25D366]/40', activeBg: 'bg-[#25D366]/10', activeBorder: 'border-[#25D366]/40', activeText: 'text-[#25D366]',
+    icon: () => <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> },
+];
+
+const EXPERTISE_OPTIONS = ['Technical Analysis', 'Fundamental Analysis', 'Forex', 'Crypto', 'Stocks', 'Commodities', 'Options', 'Scalping', 'Swing Trading', 'Risk Management', 'Price Action', 'Algo Trading'];
+
+const EMPTY_FORM = {
+  title: '', section: 'blog', status: 'Draft',
+  authorName: '', authorBio: '', authorExpertise: [],
+  authorTwitter: '', authorLinkedin: '', authorInstagram: '', authorYoutube: '',
+  shareOn: [],
+  youtubeUrl: '', youtubeTitle: '',
+  signal: { pair: '', action: 'BUY', market: 'Forex', timeframe: 'H1', entry: '', sl: '', tp1: '', tp2: '', tp3: '', rr: '', confidence: 'High', rationale: '' },
 };
 
 const BlogSection = () => {
@@ -567,15 +596,21 @@ const BlogSection = () => {
   const [activeSection, setActiveSection] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editPost, setEditPost] = useState(null);
-  const [form, setForm] = useState({ title: '', section: 'blog', status: 'Draft' });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [modalTab, setModalTab] = useState('post');
+  const [ytPreview, setYtPreview] = useState(null);
 
   const filtered = activeSection === 'all' ? posts : posts.filter(p => p.section === activeSection);
-
   const blogCount = posts.filter(p => p.section === 'blog').length;
   const stratCount = posts.filter(p => p.section === 'verified-strategies').length;
+  const signalCount = posts.filter(p => p.section === 'trade-signals').length;
 
-  const openNew = () => { setEditPost(null); setForm({ title: '', section: 'blog', status: 'Draft' }); setShowModal(true); };
-  const openEdit = (post) => { setEditPost(post); setForm({ title: post.title, section: post.section, status: post.status }); setShowModal(true); };
+  const openNew = () => { setEditPost(null); setForm(EMPTY_FORM); setModalTab('post'); setYtPreview(null); setShowModal(true); };
+  const openEdit = (post) => {
+    setEditPost(post);
+    setForm({ ...EMPTY_FORM, title: post.title, section: post.section, status: post.status, signal: post.signal || EMPTY_FORM.signal });
+    setModalTab('post'); setYtPreview(null); setShowModal(true);
+  };
 
   const handleSave = () => {
     if (!form.title.trim()) return;
@@ -583,16 +618,62 @@ const BlogSection = () => {
       setPosts(prev => prev.map(p => p.id === editPost.id ? { ...p, ...form } : p));
     } else {
       const today = new Date().toISOString().slice(0, 10);
-      setPosts(prev => [...prev, { id: Date.now(), author: 'Admin', date: today, ...form }]);
+      setPosts(prev => [...prev, { id: Date.now(), author: form.authorName || 'Admin', date: today, ...form }]);
     }
     setShowModal(false);
   };
 
   const handleDelete = (id) => setPosts(prev => prev.filter(p => p.id !== id));
-
   const toggleStatus = (id) => setPosts(prev => prev.map(p => p.id === id ? { ...p, status: p.status === 'Published' ? 'Draft' : 'Published' } : p));
-
   const changeSection = (id, section) => setPosts(prev => prev.map(p => p.id === id ? { ...p, section } : p));
+
+  const toggleExpertise = (tag) => setForm(p => ({
+    ...p, authorExpertise: p.authorExpertise.includes(tag) ? p.authorExpertise.filter(t => t !== tag) : [...p.authorExpertise, tag]
+  }));
+
+  const toggleShare = (id) => setForm(p => ({
+    ...p, shareOn: p.shareOn.includes(id) ? p.shareOn.filter(s => s !== id) : [...p.shareOn, id]
+  }));
+
+  const extractYtId = (url) => {
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\n?#]+)/);
+    return m ? m[1] : null;
+  };
+
+  const handleYtUrl = (url) => {
+    setForm(p => ({ ...p, youtubeUrl: url }));
+    const id = extractYtId(url);
+    setYtPreview(id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null);
+  };
+
+  const f = (key) => form[key];
+  const set = (key, val) => setForm(p => ({ ...p, [key]: val }));
+  const setSignal = (key, val) => setForm(p => ({ ...p, signal: { ...p.signal, [key]: val } }));
+  const sg = (key) => form.signal[key];
+
+  const isSignal = form.section === 'trade-signals';
+
+  const MODAL_TABS = [
+    { id: 'post',    label: 'Post',    icon: FileText },
+    ...(isSignal ? [{ id: 'signal', label: 'Signal', icon: TrendingUp }] : []),
+    { id: 'author',  label: 'Author',  icon: Users },
+    { id: 'media',   label: 'YouTube', icon: Activity },
+    { id: 'share',   label: 'Share',   icon: Globe },
+  ];
+
+  const completedTabs = {
+    post:   !!form.title.trim(),
+    signal: !!(form.signal.pair && form.signal.entry && form.signal.sl && form.signal.tp1),
+    author: !!form.authorName.trim(),
+    media:  !!form.youtubeUrl.trim(),
+    share:  form.shareOn.length > 0,
+  };
+
+  // When section changes away from trade-signals, jump back to 'post' tab if on 'signal'
+  const handleSectionChange = (val) => {
+    set('section', val);
+    if (val !== 'trade-signals' && modalTab === 'signal') setModalTab('post');
+  };
 
   return (
     <div className="space-y-6">
@@ -600,7 +681,7 @@ const BlogSection = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-white tracking-tighter">Content Manager</h2>
-          <p className="text-slate-500 text-sm mt-0.5">Publish to Blog or Verified Strategies</p>
+          <p className="text-slate-500 text-sm mt-0.5">Publish to Blog, Verified Strategies or Trade Signals</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-indigo-600/20">
           <Plus size={18} /> New Post
@@ -608,11 +689,12 @@ const BlogSection = () => {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
+      <div className="flex flex-wrap items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
         {[
-          { id: 'all', label: 'All Posts', count: posts.length },
+          { id: 'all', label: 'All', count: posts.length },
           { id: 'blog', label: 'Blog', count: blogCount },
-          { id: 'verified-strategies', label: 'Verified Strategies', count: stratCount },
+          { id: 'verified-strategies', label: 'Strategies', count: stratCount },
+          { id: 'trade-signals', label: 'Signals', count: signalCount },
         ].map(tab => (
           <button key={tab.id} onClick={() => setActiveSection(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeSection === tab.id ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}>
@@ -623,46 +705,110 @@ const BlogSection = () => {
         ))}
       </div>
 
-      {/* Post Cards */}
+      {/* Post / Signal Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {filtered.map(post => {
           const sec = SECTION_META[post.section];
+          const isSignalCard = post.section === 'trade-signals' && post.signal;
+          const sig = post.signal || {};
+
+          // Shared footer actions
+          const CardFooter = () => (
+            <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
+              <span className="text-xs text-slate-600 font-semibold">By {post.author}</span>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => toggleStatus(post.id)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-all">
+                  {post.status === 'Published' ? 'Unpublish' : 'Publish'}
+                </button>
+                <div className="w-px h-3 bg-slate-700" />
+                <button onClick={() => openEdit(post)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-white hover:bg-slate-700 transition-all">Edit</button>
+                <button onClick={() => handleDelete(post.id)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all">Delete</button>
+              </div>
+            </div>
+          );
+
+          if (isSignalCard) {
+            const isBuy = sig.action === 'BUY';
+            return (
+              <div key={post.id} className={`bg-slate-900 border hover:border-slate-600 rounded-xl overflow-hidden transition-all group ${isBuy ? 'border-emerald-500/20' : 'border-rose-500/20'}`}>
+                {/* Signal header bar */}
+                <div className={`px-5 py-3 flex items-center justify-between ${isBuy ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xl font-black tracking-tight ${isBuy ? 'text-emerald-400' : 'text-rose-400'}`}>{sig.pair}</span>
+                    <span className={`text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest ${isBuy ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>{sig.action}</span>
+                    <span className="text-[10px] text-slate-500 font-bold bg-slate-800 px-2 py-0.5 rounded">{sig.timeframe}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${post.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700 text-slate-400 border-slate-600'}`}>{post.status}</span>
+                    <span className="text-xs text-slate-600">{post.date}</span>
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  {/* Entry / SL / TP grid */}
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {[
+                      { label: 'Entry', value: sig.entry, color: 'text-white' },
+                      { label: 'Stop Loss', value: sig.sl, color: 'text-rose-400' },
+                      { label: 'TP 1', value: sig.tp1, color: 'text-emerald-400' },
+                      { label: 'TP 2', value: sig.tp2 || '—', color: sig.tp2 ? 'text-emerald-300' : 'text-slate-600' },
+                    ].map(({ label, value, color }) => (
+                      <div key={label} className="bg-slate-800/60 rounded-lg px-3 py-2.5 text-center">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">{label}</p>
+                        <p className={`text-sm font-black ${color}`}>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* R:R + Confidence + Market row */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg">
+                      <span className="text-slate-500 text-[10px] font-black uppercase">R:R</span>
+                      <span className="text-indigo-400 font-black text-sm">1:{sig.rr}</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider
+                      ${sig.confidence === 'High' ? 'bg-emerald-500/10 text-emerald-400' : sig.confidence === 'Medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-700 text-slate-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${sig.confidence === 'High' ? 'bg-emerald-500' : sig.confidence === 'Medium' ? 'bg-amber-500' : 'bg-slate-500'}`} />
+                      {sig.confidence} Confidence
+                    </div>
+                    <div className="bg-slate-800 px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-400 uppercase">{sig.market}</div>
+                  </div>
+
+                  {/* Rationale */}
+                  {sig.rationale && (
+                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 italic border-l-2 border-slate-700 pl-3">{sig.rationale}</p>
+                  )}
+
+                  <CardFooter />
+                </div>
+              </div>
+            );
+          }
+
+          // Normal blog / strategy card
           return (
             <div key={post.id} className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-5 rounded-xl flex flex-col justify-between transition-all group">
               <div>
-                {/* Top row — status + date */}
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border ${post.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700/80 text-slate-400 border-slate-600'}`}>
-                      {post.status}
-                    </span>
-                    {/* Section badge */}
+                    <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border ${post.status === 'Published' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700/80 text-slate-400 border-slate-600'}`}>{post.status}</span>
                     <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full border ${sec.bg} ${sec.color} ${sec.border}`}>
                       <span className="flex items-center gap-1"><div className={`w-1 h-1 rounded-full ${sec.dot} inline-block`} />{sec.label}</span>
                     </span>
                   </div>
                   <span className="text-xs text-slate-600 font-medium flex-shrink-0">{post.date}</span>
                 </div>
-
                 <h4 className="text-base font-bold text-white mb-2 leading-snug">{post.title}</h4>
                 <p className="text-slate-500 text-sm line-clamp-2 font-medium leading-relaxed">
-                  {post.section === 'verified-strategies'
-                    ? 'A battle-tested strategy with detailed entry/exit rules, backtested across 3 years of data...'
-                    : 'Exploring the impact of the latest market data on major FX pairs and the volatility expected...'}
+                  {post.section === 'verified-strategies' ? 'A battle-tested strategy with detailed entry/exit rules, backtested across 3 years of data...' : 'Exploring the impact of the latest market data on major FX pairs and the volatility expected...'}
                 </p>
               </div>
-
-              {/* Footer */}
               <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
                 <span className="text-xs text-slate-600 font-semibold">By {post.author}</span>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {/* Move to other section */}
-                  <button
-                    onClick={() => changeSection(post.id, post.section === 'blog' ? 'verified-strategies' : 'blog')}
-                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all"
-                    title={`Move to ${post.section === 'blog' ? 'Verified Strategies' : 'Blog'}`}>
-                    <ChevronRight size={11} />
-                    Move to {post.section === 'blog' ? 'Strategies' : 'Blog'}
+                  <button onClick={() => changeSection(post.id, post.section === 'blog' ? 'verified-strategies' : 'blog')}
+                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all">
+                    <ChevronRight size={11} />Move to {post.section === 'blog' ? 'Strategies' : 'Blog'}
                   </button>
                   <div className="w-px h-3 bg-slate-700" />
                   <button onClick={() => toggleStatus(post.id)} className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-all">
@@ -676,9 +822,8 @@ const BlogSection = () => {
             </div>
           );
         })}
-
         {filtered.length === 0 && (
-          <div className="md:col-span-2 py-16 text-center text-slate-600">
+          <div className="md:col-span-2 py-16 text-center">
             <FileText size={32} className="mx-auto mb-3 text-slate-700" />
             <p className="font-bold text-slate-500">No posts in this section yet</p>
             <button onClick={openNew} className="mt-3 text-indigo-400 text-sm font-bold hover:underline">Create one →</button>
@@ -686,65 +831,394 @@ const BlogSection = () => {
         )}
       </div>
 
-      {/* New / Edit Modal */}
+      {/* ── MODAL ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-7 w-full max-w-lg shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh]">
+
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-slate-800 flex-shrink-0">
               <h3 className="text-xl font-black text-white tracking-tight">{editPost ? 'Edit Post' : 'New Post'}</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
+              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-white transition-colors p-1"><X size={20} /></button>
             </div>
 
-            <div className="space-y-5">
-              {/* Title */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Post Title</label>
-                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                  className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-semibold placeholder:text-slate-600"
-                  placeholder="Enter post title..." />
-              </div>
+            {/* Step tabs */}
+            <div className="flex items-center gap-1 px-7 py-3 border-b border-slate-800 flex-shrink-0">
+              {MODAL_TABS.map((tab, i) => (
+                <button key={tab.id} onClick={() => setModalTab(tab.id)}
+                  className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${modalTab === tab.id ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}>
+                  <tab.icon size={13} />
+                  {tab.label}
+                  {completedTabs[tab.id] && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900" />
+                  )}
+                </button>
+              ))}
+            </div>
 
-              {/* Section Selector */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Publish Destination</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(SECTION_META).map(([key, meta]) => (
-                    <button key={key} onClick={() => setForm(p => ({ ...p, section: key }))}
-                      className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${form.section === key ? `${meta.bg} ${meta.border} ${meta.color}` : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${meta.dot}`} />
-                      <div>
-                        <p className="text-xs font-black">{meta.label}</p>
-                        <p className="text-[10px] opacity-60 mt-0.5">
-                          {key === 'blog' ? 'General articles & recaps' : 'Curated trade strategies'}
-                        </p>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-7 py-6 min-h-0">
+
+              {/* ── TAB: POST ── */}
+              {modalTab === 'post' && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Post Title</label>
+                    <input value={f('title')} onChange={e => set('title', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-semibold placeholder:text-slate-600"
+                      placeholder={f('section') === 'trade-signals' ? 'e.g. EUR/USD Buy Signal — H4 Breakout' : 'Enter post title...'} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Publish Destination</label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {Object.entries(SECTION_META).map(([key, meta]) => (
+                        <button key={key} onClick={() => handleSectionChange(key)}
+                          className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${f('section') === key ? `${meta.bg} ${meta.border} ${meta.color}` : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${meta.dot}`} />
+                          <div className="flex-1">
+                            <p className="text-xs font-black">{meta.label}</p>
+                            <p className="text-[10px] opacity-60 mt-0.5">
+                              {key === 'blog' ? 'General articles & market recaps' : key === 'verified-strategies' ? 'Curated trade strategies' : 'Live BUY / SELL trade signals'}
+                            </p>
+                          </div>
+                          {f('section') === key && <CheckCircle size={14} className="ml-auto flex-shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Publish Status</label>
+                    <div className="flex gap-3">
+                      {['Draft', 'Published'].map(s => (
+                        <button key={s} onClick={() => set('status', s)}
+                          className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest border transition-all ${f('status') === s
+                            ? s === 'Published' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-700 border-slate-600 text-white'
+                            : 'bg-transparent border-slate-700 text-slate-500 hover:border-slate-500'}`}>{s}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── TAB: SIGNAL ── */}
+              {modalTab === 'signal' && (
+                <div className="space-y-5">
+                  {/* BUY / SELL toggle */}
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Signal Direction</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {['BUY', 'SELL'].map(action => (
+                        <button key={action} onClick={() => setSignal('action', action)}
+                          className={`py-4 rounded-xl border font-black text-lg tracking-tight transition-all ${sg('action') === action
+                            ? action === 'BUY' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' : 'bg-rose-500/15 border-rose-500/40 text-rose-400'
+                            : 'bg-slate-800/50 border-slate-700 text-slate-500 hover:border-slate-600'}`}>
+                          {action === 'BUY' ? '▲ BUY' : '▼ SELL'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pair + Market + Timeframe row */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Pair / Asset</label>
+                      <input value={sg('pair')} onChange={e => setSignal('pair', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-3 py-2.5 text-sm font-bold placeholder:text-slate-600 uppercase"
+                        placeholder="EUR/USD" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Market</label>
+                      <select value={sg('market')} onChange={e => setSignal('market', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-3 py-2.5 text-sm font-bold">
+                        {['Forex', 'Crypto', 'Stocks', 'Commodities', 'Indices'].map(m => <option key={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Timeframe</label>
+                      <select value={sg('timeframe')} onChange={e => setSignal('timeframe', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-3 py-2.5 text-sm font-bold">
+                        {['M5','M15','M30','H1','H4','D1','W1'].map(t => <option key={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Entry / SL */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Entry Price</label>
+                      <input value={sg('entry')} onChange={e => setSignal('entry', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-3 py-2.5 text-sm font-mono font-bold placeholder:text-slate-600"
+                        placeholder="1.0632" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-rose-500/70 mb-2">Stop Loss</label>
+                      <input value={sg('sl')} onChange={e => setSignal('sl', e.target.value)}
+                        className="w-full bg-slate-800 border border-rose-500/20 focus:border-rose-500 outline-none text-rose-300 rounded-lg px-3 py-2.5 text-sm font-mono font-bold placeholder:text-slate-600"
+                        placeholder="1.0589" />
+                    </div>
+                  </div>
+
+                  {/* TP 1 / 2 / 3 */}
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-emerald-500/70 mb-2">Take Profit Levels</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {['tp1','tp2','tp3'].map((tp, i) => (
+                        <div key={tp}>
+                          <label className="block text-[9px] font-black uppercase text-slate-600 mb-1">TP {i+1}{i > 0 ? ' (opt)' : ' *'}</label>
+                          <input value={sg(tp)} onChange={e => setSignal(tp, e.target.value)}
+                            className="w-full bg-slate-800 border border-emerald-500/20 focus:border-emerald-500 outline-none text-emerald-300 rounded-lg px-3 py-2.5 text-sm font-mono font-bold placeholder:text-slate-600"
+                            placeholder={i === 0 ? '1.0685' : i === 1 ? '1.0740' : '1.0800'} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* R:R + Confidence */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Risk:Reward Ratio</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-black">1:</span>
+                        <input value={sg('rr')} onChange={e => setSignal('rr', e.target.value)}
+                          className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-indigo-300 rounded-lg pl-8 pr-3 py-2.5 text-sm font-mono font-bold placeholder:text-slate-600"
+                          placeholder="2.5" />
                       </div>
-                      {form.section === key && <CheckCircle size={14} className="ml-auto flex-shrink-0" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Confidence Level</label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {['High','Medium','Low'].map(c => (
+                          <button key={c} onClick={() => setSignal('confidence', c)}
+                            className={`py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wide border transition-all ${sg('confidence') === c
+                              ? c === 'High' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                                : c === 'Medium' ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
+                                : 'bg-slate-700 border-slate-600 text-slate-300'
+                              : 'bg-transparent border-slate-700 text-slate-500 hover:border-slate-600'}`}>{c}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Status */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Publish Status</label>
-                <div className="flex gap-3">
-                  {['Draft', 'Published'].map(s => (
-                    <button key={s} onClick={() => setForm(p => ({ ...p, status: s }))}
-                      className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest border transition-all ${form.status === s
-                        ? s === 'Published' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-transparent border-slate-700 text-slate-500 hover:border-slate-500'}`}>
-                      {s}
-                    </button>
-                  ))}
+                  {/* Rationale */}
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Trade Rationale</label>
+                    <textarea value={sg('rationale')} onChange={e => setSignal('rationale', e.target.value)} rows={3}
+                      className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-medium placeholder:text-slate-600 resize-none"
+                      placeholder="Explain the technical or fundamental reason for this signal..." />
+                  </div>
+
+                  {/* Live preview card */}
+                  {(sg('pair') || sg('entry')) && (
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Preview</label>
+                      <div className={`rounded-xl overflow-hidden border ${sg('action') === 'BUY' ? 'border-emerald-500/20' : 'border-rose-500/20'}`}>
+                        <div className={`px-4 py-2.5 flex items-center gap-3 ${sg('action') === 'BUY' ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                          <span className={`font-black ${sg('action') === 'BUY' ? 'text-emerald-400' : 'text-rose-400'}`}>{sg('pair') || '—'}</span>
+                          <span className={`text-xs font-black px-2 py-0.5 rounded-full uppercase ${sg('action') === 'BUY' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>{sg('action')}</span>
+                          <span className="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded font-bold">{sg('timeframe')}</span>
+                        </div>
+                        <div className="px-4 py-3 grid grid-cols-4 gap-2 bg-slate-900">
+                          {[['Entry', sg('entry'), 'text-white'], ['SL', sg('sl'), 'text-rose-400'], ['TP1', sg('tp1'), 'text-emerald-400'], ['R:R', sg('rr') ? '1:'+sg('rr') : '—', 'text-indigo-400']].map(([l,v,c]) => (
+                            <div key={l} className="text-center">
+                              <p className="text-[9px] text-slate-600 font-black uppercase">{l}</p>
+                              <p className={`text-sm font-black ${c}`}>{v || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+
+              {/* ── TAB: AUTHOR ── */}
+              {modalTab === 'author' && (
+                <div className="space-y-5">
+                  {/* Avatar + Name row */}
+                  <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-black text-white flex-shrink-0">
+                      {f('authorName') ? f('authorName').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() : '?'}
+                    </div>
+                    <div className="flex-1">
+                      <input value={f('authorName')} onChange={e => set('authorName', e.target.value)}
+                        className="w-full bg-transparent border-b border-slate-700 focus:border-indigo-500 outline-none text-white text-base font-bold placeholder:text-slate-600 pb-1"
+                        placeholder="Author full name..." />
+                      <p className="text-slate-600 text-xs mt-1">Avatar auto-generated from initials</p>
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Short Bio</label>
+                    <textarea value={f('authorBio')} onChange={e => set('authorBio', e.target.value)} rows={3}
+                      className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-medium placeholder:text-slate-600 resize-none"
+                      placeholder="Briefly describe the author's background and trading experience..." />
+                  </div>
+
+                  {/* Expertise tags */}
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Areas of Expertise</label>
+                    <div className="flex flex-wrap gap-2">
+                      {EXPERTISE_OPTIONS.map(tag => {
+                        const active = f('authorExpertise').includes(tag);
+                        return (
+                          <button key={tag} onClick={() => toggleExpertise(tag)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'}`}>
+                            {active && <span className="mr-1">✓</span>}{tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Social handles */}
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Social Media Handles</label>
+                    <div className="space-y-3">
+                      {[
+                        { key: 'authorTwitter',   icon: '𝕏', label: 'X / Twitter', placeholder: '@handle' },
+                        { key: 'authorLinkedin',  icon: 'in', label: 'LinkedIn', placeholder: 'linkedin.com/in/username' },
+                        { key: 'authorInstagram', icon: '◎', label: 'Instagram', placeholder: '@handle' },
+                        { key: 'authorYoutube',   icon: '▶', label: 'YouTube Channel', placeholder: 'youtube.com/@channel' },
+                      ].map(({ key, icon, label, placeholder }) => (
+                        <div key={key} className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-black text-slate-400 flex-shrink-0">{icon}</div>
+                          <div className="flex-1">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-600">{label}</label>
+                            <input value={f(key)} onChange={e => set(key, e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-3 py-2 text-sm font-medium placeholder:text-slate-600 mt-0.5"
+                              placeholder={placeholder} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── TAB: YOUTUBE ── */}
+              {modalTab === 'media' && (
+                <div className="space-y-5">
+                  <div className="p-4 bg-rose-500/5 border border-rose-500/15 rounded-xl flex items-start gap-3">
+                    <div className="w-8 h-8 bg-rose-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="white"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-bold">Attach a YouTube Video</p>
+                      <p className="text-slate-500 text-xs mt-0.5">Paste a YouTube link to embed a video walkthrough or tutorial alongside this post.</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">YouTube URL</label>
+                    <input value={f('youtubeUrl')} onChange={e => handleYtUrl(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 focus:border-rose-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-medium placeholder:text-slate-600"
+                      placeholder="https://youtube.com/watch?v=..." />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Video Caption <span className="text-slate-700 normal-case font-medium">(optional)</span></label>
+                    <input value={f('youtubeTitle')} onChange={e => set('youtubeTitle', e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none text-white rounded-lg px-4 py-3 text-sm font-medium placeholder:text-slate-600"
+                      placeholder="e.g. 'Full strategy breakdown — 22min'" />
+                  </div>
+
+                  {/* Thumbnail preview */}
+                  {ytPreview ? (
+                    <div className="relative rounded-xl overflow-hidden border border-slate-700">
+                      <img src={ytPreview} alt="YouTube thumbnail" className="w-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <div className="w-14 h-14 bg-rose-600 rounded-full flex items-center justify-center shadow-2xl">
+                          <svg viewBox="0 0 24 24" className="w-6 h-6 ml-1" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                      </div>
+                      {f('youtubeTitle') && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-4 py-3">
+                          <p className="text-white text-sm font-bold">{f('youtubeTitle')}</p>
+                        </div>
+                      )}
+                      <button onClick={() => { set('youtubeUrl', ''); set('youtubeTitle', ''); setYtPreview(null); }}
+                        className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border-2 border-dashed border-slate-700 h-36 flex flex-col items-center justify-center gap-2 text-slate-600">
+                      <svg viewBox="0 0 24 24" className="w-8 h-8 opacity-40" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+                      <p className="text-sm font-semibold">Paste a YouTube URL above to preview</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: SHARE ── */}
+              {modalTab === 'share' && (
+                <div className="space-y-5">
+                  <div className="p-4 bg-indigo-500/5 border border-indigo-500/15 rounded-xl">
+                    <p className="text-white text-sm font-bold">Auto-share on publish</p>
+                    <p className="text-slate-500 text-xs mt-1">Select the platforms where this post will be automatically shared when its status is set to <span className="text-emerald-400 font-bold">Published</span>.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {SOCIAL_PLATFORMS.map(p => {
+                      const active = f('shareOn').includes(p.id);
+                      return (
+                        <button key={p.id} onClick={() => toggleShare(p.id)}
+                          className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${active ? `${p.activeBg} ${p.activeBorder} ring-1 ${p.activeRing}` : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'}`}>
+                          <div className={`flex-shrink-0 transition-colors ${active ? p.activeText : 'text-slate-500'}`}><p.icon /></div>
+                          <span className={`text-sm font-bold flex-1 ${active ? p.activeText : 'text-slate-400'}`}>{p.label}</span>
+                          {active
+                            ? <CheckCircle size={15} className={p.activeText} />
+                            : <div className="w-4 h-4 rounded-full border border-slate-600" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {f('shareOn').length > 0 && (
+                    <div className="p-4 bg-slate-800/60 rounded-xl border border-slate-700">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Summary</p>
+                      <p className="text-white text-sm font-semibold">
+                        Will share to <span className="text-indigo-400 font-black">{f('shareOn').length}</span> platform{f('shareOn').length !== 1 ? 's' : ''} on publish
+                      </p>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {f('shareOn').map(id => {
+                          const pl = SOCIAL_PLATFORMS.find(p => p.id === id);
+                          return (
+                            <span key={id} className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${pl.activeBg} ${pl.activeBorder} ${pl.activeText}`}>
+                              <pl.icon />{pl.label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-7">
-              <button onClick={() => setShowModal(false)} className="py-3 border border-slate-700 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-800 transition-colors">Cancel</button>
-              <button onClick={handleSave} className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-indigo-600/20">
-                {editPost ? 'Save Changes' : 'Create Post'}
-              </button>
+            {/* Footer */}
+            <div className="px-7 py-5 border-t border-slate-800 flex items-center justify-between gap-3 flex-shrink-0">
+              <div className="flex gap-1">
+                {MODAL_TABS.map((tab, i) => (
+                  <div key={tab.id} className={`w-1.5 h-1.5 rounded-full transition-all ${modalTab === tab.id ? 'bg-indigo-500 w-4' : completedTabs[tab.id] ? 'bg-emerald-500' : 'bg-slate-700'}`} />
+                ))}
+              </div>
+              <div className="flex gap-3">
+                {MODAL_TABS.indexOf(MODAL_TABS.find(t => t.id === modalTab)) > 0 && (
+                  <button onClick={() => { const i = MODAL_TABS.findIndex(t => t.id === modalTab); setModalTab(MODAL_TABS[i-1].id); }}
+                    className="px-4 py-2.5 border border-slate-700 text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-800 transition-colors">← Back</button>
+                )}
+                {MODAL_TABS.indexOf(MODAL_TABS.find(t => t.id === modalTab)) < MODAL_TABS.length - 1 ? (
+                  <button onClick={() => { const i = MODAL_TABS.findIndex(t => t.id === modalTab); setModalTab(MODAL_TABS[i+1].id); }}
+                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors">Next →</button>
+                ) : (
+                  <button onClick={handleSave}
+                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-indigo-600/20">
+                    {editPost ? 'Save Changes' : 'Create Post'} ✓
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -842,39 +1316,74 @@ export default function App() {
 
       case 'marketing':
         return (
-          <div className="max-w-4xl space-y-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
-              <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2 tracking-tight"><Megaphone className="text-indigo-400" /> Multi-Channel Broadcast</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Target Audience</label>
-                  <select className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 text-sm font-bold">
-                    <option>All Users (12,842)</option><option>Free Plan Only</option><option>Inactive Users</option><option>Pro Traders</option>
-                  </select>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+              {/* Broadcast Panel */}
+              <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-8">
+                <h3 className="text-xl font-black text-white mb-6 flex items-center gap-2 tracking-tight"><Megaphone className="text-indigo-400" /> Multi-Channel Broadcast</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Target Audience</label>
+                    <select className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 text-sm font-bold">
+                      <option>All Users (12,842)</option><option>Free Plan Only</option><option>Inactive Users</option><option>Pro Traders</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Communication Method</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button className="flex flex-col items-center gap-2 p-4 border border-indigo-500/50 bg-indigo-500/10 rounded-xl text-indigo-400"><Mail size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Email</span></button>
+                      <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500"><AlertCircle size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Push</span></button>
+                      <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500"><ShieldCheck size={24} /><span className="text-[10px] font-black uppercase tracking-widest">In-App</span></button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Message Content</label>
+                    <textarea rows="5" className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 placeholder:text-slate-600 text-sm font-medium resize-none" placeholder="Enter your announcement or promo code here..."></textarea>
+                  </div>
+                  <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-lg shadow-lg transition-all uppercase tracking-[0.2em] text-xs">Send Campaign Now</button>
                 </div>
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Communication Method</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button className="flex flex-col items-center gap-2 p-4 border border-indigo-500/50 bg-indigo-500/10 rounded-xl text-indigo-400"><Mail size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Email</span></button>
-                    <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500"><AlertCircle size={24} /><span className="text-[10px] font-black uppercase tracking-widest">Push</span></button>
-                    <button className="flex flex-col items-center gap-2 p-4 border border-slate-700 bg-slate-800/50 rounded-xl text-slate-400 hover:border-slate-500"><ShieldCheck size={24} /><span className="text-[10px] font-black uppercase tracking-widest">In-App</span></button>
+              </div>
+
+              {/* Side Panel */}
+              <div className="xl:col-span-1 space-y-4">
+                {/* Campaign Stats */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Campaign Stats</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Emails Sent', value: '24,810', change: '+12%', up: true },
+                      { label: 'Open Rate', value: '38.4%', change: '+2.1%', up: true },
+                      { label: 'Click Rate', value: '9.2%', change: '-0.4%', up: false },
+                      { label: 'Unsubscribes', value: '142', change: '+8', up: false },
+                    ].map((s, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-slate-400 text-sm font-semibold">{s.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-black text-sm">{s.value}</span>
+                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${s.up ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{s.change}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Message Content</label>
-                  <textarea rows="4" className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-indigo-500 placeholder:text-slate-600 text-sm font-medium" placeholder="Enter your announcement or promo code here..."></textarea>
+
+                {/* Quick Links */}
+                <div className="space-y-3">
+                  {[
+                    { label: 'Active Promos', sub: 'SUMMER25 — 25% off Yearly' },
+                    { label: 'Email Templates', sub: '6 Saved layouts' },
+                    { label: 'Scheduled Campaigns', sub: '2 Queued for next week' },
+                    { label: 'Subscriber Segments', sub: '8 Custom groups' },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-slate-900/50 border border-slate-800 px-5 py-4 rounded-xl flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer group">
+                      <div>
+                        <h4 className="text-white font-bold text-sm">{item.label}</h4>
+                        <p className="text-slate-500 text-xs font-semibold mt-0.5">{item.sub}</p>
+                      </div>
+                      <ChevronRight size={16} className="text-slate-600 group-hover:text-white transition-colors flex-shrink-0" />
+                    </div>
+                  ))}
                 </div>
-                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-lg shadow-lg transition-all uppercase tracking-[0.2em] text-xs">Send Campaign Now</button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-xl flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer group">
-                <div><h4 className="text-white font-bold">Active Promos</h4><p className="text-slate-500 text-xs font-semibold">SUMMER25 - 25% off Yearly</p></div>
-                <ChevronRight className="text-slate-600 group-hover:text-white transition-colors" />
-              </div>
-              <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-xl flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer group">
-                <div><h4 className="text-white font-bold">Email Templates</h4><p className="text-slate-500 text-xs font-semibold">6 Saved layouts</p></div>
-                <ChevronRight className="text-slate-600 group-hover:text-white transition-colors" />
               </div>
             </div>
           </div>
@@ -897,66 +1406,122 @@ export default function App() {
     'system-monitor': 'System Monitor', settings: 'System Settings'
   };
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden" style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         * { scrollbar-width: none; -ms-overflow-style: none; }
         *::-webkit-scrollbar { display: none; }
+        .sidebar-transition { transition: width 0.25s cubic-bezier(0.4,0,0.2,1); }
+        .label-transition { transition: opacity 0.15s ease, width 0.25s cubic-bezier(0.4,0,0.2,1), max-width 0.25s cubic-bezier(0.4,0,0.2,1); }
       `}</style>
 
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 h-screen">
-        {/* Logo — fixed at top */}
-        <div className="flex-shrink-0 px-6 pt-6 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-lg shadow-inner"><LayoutDashboard size={24} className="text-white" /></div>
-            <span className="font-black text-xl tracking-tighter text-white uppercase">FSD ADMIN</span>
-          </div>
+      <aside className={`sidebar-transition relative bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 h-screen ${sidebarCollapsed ? 'w-[68px]' : 'w-64'}`}>
+
+        {/* Collapse / expand arrow tab — sits on the right edge */}
+        <button
+          onClick={() => setSidebarCollapsed(p => !p)}
+          className="absolute -right-3 top-[72px] z-20 w-6 h-6 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 transition-all shadow-md"
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <svg viewBox="0 0 24 24" className={`w-3 h-3 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        {/* Logo */}
+        <div className={`flex-shrink-0 pt-4 pb-3 flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-2.5'}`}>
+          <img
+            src="data:image/png;base64,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"
+            alt="FSD Admin"
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-slate-700"
+          />
+          {!sidebarCollapsed && (
+            <span className="font-black text-lg tracking-tighter text-white uppercase whitespace-nowrap overflow-hidden">FSD ADMIN</span>
+          )}
         </div>
 
-        {/* Nav — scrollable middle */}
-        <div className="flex-1 overflow-y-auto px-6 py-2 min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <nav className="space-y-1">
-            <SidebarItem id="dashboard" label="Overview" icon={LayoutDashboard} active={activeTab === 'dashboard'} onClick={setActiveTab} />
-            <SidebarItem id="users" label="User Accounts" icon={Users} active={activeTab === 'users'} onClick={setActiveTab} />
-            <SidebarItem id="analytics" label="Trade Analysis" icon={LineChart} active={activeTab === 'analytics'} onClick={setActiveTab} />
-            <SidebarItem id="blog" label="Blogpost" icon={FileText} active={activeTab === 'blog'} onClick={setActiveTab} />
-            <SidebarItem id="marketing" label="Marketing" icon={Megaphone} active={activeTab === 'marketing'} onClick={setActiveTab} />
+        {/* Nav */}
+        <div className="flex-1 overflow-y-auto py-2 min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2">
+          <nav className="space-y-0.5">
+            {[
+              { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+              { id: 'users', label: 'User Accounts', icon: Users },
+              { id: 'analytics', label: 'Trade Analysis', icon: LineChart },
+              { id: 'blog', label: 'Blogpost', icon: FileText },
+              { id: 'marketing', label: 'Marketing', icon: Megaphone },
+            ].map(item => (
+              <button key={item.id} onClick={() => setActiveTab(item.id)} title={sidebarCollapsed ? item.label : ''}
+                className={`w-full flex items-center gap-3 rounded-lg transition-all duration-200 ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5'} ${activeTab === item.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
+                <item.icon size={20} className="flex-shrink-0" />
+                {!sidebarCollapsed && <span className="font-semibold text-sm whitespace-nowrap">{item.label}</span>}
+              </button>
+            ))}
 
-            <div className="pt-3 pb-1"><div className="h-px bg-slate-800" /></div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 px-4 pb-1">Operations</p>
+            {!sidebarCollapsed
+              ? <><div className="pt-3 pb-1 px-1"><div className="h-px bg-slate-800" /></div><p className="text-[9px] font-black uppercase tracking-widest text-slate-600 px-3 pb-1">Operations</p></>
+              : <div className="py-2 px-2"><div className="h-px bg-slate-800" /></div>
+            }
 
-            <SidebarItem id="customer-care" label="Customer Care" icon={HeadphonesIcon} active={activeTab === 'customer-care'} onClick={setActiveTab} badge={openTickets} />
-            <SidebarItem id="system-monitor" label="System Monitor" icon={Activity} active={activeTab === 'system-monitor'} onClick={setActiveTab} />
+            {[
+              { id: 'customer-care', label: 'Customer Care', icon: HeadphonesIcon, badge: openTickets },
+              { id: 'system-monitor', label: 'System Monitor', icon: Activity },
+            ].map(item => (
+              <button key={item.id} onClick={() => setActiveTab(item.id)} title={sidebarCollapsed ? item.label : ''}
+                className={`w-full flex items-center gap-3 rounded-lg transition-all duration-200 relative ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5'} ${activeTab === item.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
+                <item.icon size={20} className="flex-shrink-0" />
+                {!sidebarCollapsed && <span className="font-semibold text-sm flex-1 text-left whitespace-nowrap">{item.label}</span>}
+                {item.badge > 0 && (
+                  <span className={`bg-rose-500 text-white text-[9px] font-black rounded-full min-w-[18px] text-center ${sidebarCollapsed ? 'absolute top-1 right-1 px-1 py-0.5' : 'px-1.5 py-0.5'}`}>{item.badge}</span>
+                )}
+              </button>
+            ))}
 
-            <div className="pt-3 pb-1"><div className="h-px bg-slate-800" /></div>
+            {!sidebarCollapsed && <div className="pt-3 pb-1 px-1"><div className="h-px bg-slate-800" /></div>}
+            {sidebarCollapsed && <div className="py-2 px-2"><div className="h-px bg-slate-800" /></div>}
 
-            <SidebarItem id="settings" label="System Settings" icon={Settings} active={activeTab === 'settings'} onClick={setActiveTab} />
+            <button onClick={() => setActiveTab('settings')} title={sidebarCollapsed ? 'System Settings' : ''}
+              className={`w-full flex items-center gap-3 rounded-lg transition-all duration-200 ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5'} ${activeTab === 'settings' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
+              <Settings size={20} className="flex-shrink-0" />
+              {!sidebarCollapsed && <span className="font-semibold text-sm whitespace-nowrap">System Settings</span>}
+            </button>
           </nav>
         </div>
 
-        {/* Admin profile — always pinned at bottom */}
-        <div className="flex-shrink-0 p-4 border-t border-slate-800 bg-slate-900">
-          <div className="flex items-center gap-3 p-3 bg-slate-800 hover:bg-slate-700/80 rounded-xl cursor-pointer transition-colors group">
-            <div className="relative flex-shrink-0">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xs text-white shadow-lg">AD</div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" />
+        {/* Admin profile */}
+        <div className={`flex-shrink-0 border-t border-slate-800 bg-slate-900 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
+          {sidebarCollapsed ? (
+            <div className="flex justify-center py-1">
+              <div className="relative cursor-pointer" title="Admin User">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xs text-white shadow-lg">AD</div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900" />
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">Admin User</p>
-              <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">Super Admin</p>
+          ) : (
+            <div className="flex items-center gap-3 p-2.5 bg-slate-800 hover:bg-slate-700/80 rounded-xl cursor-pointer transition-colors group">
+              <div className="relative flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-xs text-white shadow-lg">AD</div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate">Admin User</p>
+                <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">Super Admin</p>
+              </div>
+              <Settings size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" />
             </div>
-            <Settings size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0" />
-          </div>
+          )}
         </div>
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
-        <header className="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-8 py-4 flex justify-between items-center">
+      <main className="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 min-w-0">
+        <header className="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-black capitalize tracking-tight">{pageTitle[activeTab] || activeTab}</h1>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-2">
             <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
               <Mail size={20} />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-950" />
