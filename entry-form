@@ -118,8 +118,6 @@ const INITIAL_FORM_STATE = {
   whatFailed: '',
   adjustments: '',
   notes: '',
-  
-  // Decision Architecture Fields
   thesis: '',
   trigger: '',
   invalidationLogic: '',
@@ -132,11 +130,7 @@ const INITIAL_FORM_STATE = {
   impulseCheckRevenge: false,
   impulseCheckBored: false,
   impulseCheckEmotional: false,
-  
-  // NEW: Exit Causation
   primaryExitReason: 'Target Hit',
-  
-  // NEW: Timeframe Context
   htfBias: 'Bull',
   htfKeyLevelPresent: 'Yes',
   trendAlignment: 'Yes',
@@ -144,22 +138,19 @@ const INITIAL_FORM_STATE = {
   entryTFContext: '',
   otherConfluences: '',
   multitimeframeAlignment: 'Yes',
-  
-  // NEW: Portfolio Awareness
   openTradesCount: '',
   totalRiskOpen: '',
   correlatedExposure: 'No',
-  
-  // NEW: Behavioral State
   energyLevel: 3,
   focusLevel: 3,
   externalDistraction: 'No',
   confidenceAtEntry: 3,
-  
-  // NEW: Rule Governance
   setupFullyValid: 'Yes',
   anyRuleBroken: 'No',
-  ruleBroken: ''
+  ruleBroken: '',
+  strategyVersionId: '',
+  spreadAtEntry: '',
+  atrAtEntry: ''
 };
 
 const App = () => {
@@ -170,176 +161,192 @@ const App = () => {
 
   useEffect(() => {
     const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
-    return () => {
-        if (document.head.contains(link)) document.head.removeChild(link);
-    };
+    return () => { if (document.head.contains(link)) document.head.removeChild(link); };
   }, []);
 
-  const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const updateField = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        updateField('screenshot', reader.result);
-      };
+      reader.onloadend = () => updateField('screenshot', reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const resetForm = () => {
-    setFormData(INITIAL_FORM_STATE);
-    setStep(1);
-    setShowResetConfirm(false);
-  };
-
+  const resetForm = () => { setFormData(INITIAL_FORM_STATE); setStep(1); setShowResetConfirm(false); };
   const nextStep = () => setStep(s => Math.min(4, s + 1));
   const prevStep = () => setStep(s => Math.max(1, s - 1));
 
-  const SectionHeader = ({ icon: Icon, title, color = "blue", badge, subtitle }) => (
-    <div className="mb-8">
-      <div className="flex items-center gap-3 mb-2">
-        <div className={`p-2 rounded-none ${
-          color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : 
-          color === 'indigo' ? 'bg-indigo-500/10 border border-indigo-500/20' : 
-          color === 'violet' ? 'bg-violet-500/10 border border-violet-500/20' :
-          color === 'amber' ? 'bg-amber-500/10 border border-amber-500/20' :
-          color === 'emerald' ? 'bg-emerald-500/10 border border-emerald-500/20' :
-          color === 'rose' ? 'bg-rose-500/10 border border-rose-500/20' :
-          'bg-purple-500/10 border border-purple-500/20'
-        }`}>
-          <Icon className={`w-4 h-4 ${
-            color === 'blue' ? 'text-blue-400' : 
-            color === 'indigo' ? 'text-indigo-400' : 
-            color === 'violet' ? 'text-violet-400' :
-            color === 'amber' ? 'text-amber-400' :
-            color === 'emerald' ? 'text-emerald-400' :
-            color === 'rose' ? 'text-rose-400' :
-            'text-purple-400'
-          }`} />
+  // ─── Shared component styles ───────────────────────────────────────────────
+  const inputBase = `w-full px-3 py-2.5 rounded-lg border border-[#2a3347] bg-[#131c2e] text-[#e2e8f0] text-sm placeholder-[#3d4f6b] focus:border-[#6366f1] focus:outline-none focus:ring-2 focus:ring-[#6366f1]/20 transition-all`;
+  const labelBase = `block text-xs font-semibold text-[#8896a9] uppercase tracking-wider mb-1.5`;
+
+  // ─── Sub-components ────────────────────────────────────────────────────────
+  const SectionHeader = ({ icon: Icon, title, color = "indigo", badge, subtitle }) => {
+    const colorMap = {
+      blue:    { bg: 'bg-[#1e3a5f]/40', border: 'border-[#2d5a8e]/40', text: 'text-[#60a5fa]' },
+      indigo:  { bg: 'bg-[#2e1065]/30', border: 'border-[#4c1d95]/40', text: 'text-[#a78bfa]' },
+      violet:  { bg: 'bg-[#2d1b69]/30', border: 'border-[#4c1d95]/40', text: 'text-[#c4b5fd]' },
+      amber:   { bg: 'bg-[#451a03]/30', border: 'border-[#78350f]/40', text: 'text-[#fbbf24]' },
+      emerald: { bg: 'bg-[#064e3b]/30', border: 'border-[#065f46]/40', text: 'text-[#34d399]' },
+      rose:    { bg: 'bg-[#4c0519]/30', border: 'border-[#881337]/40', text: 'text-[#fb7185]' },
+    };
+    const c = colorMap[color] || colorMap.indigo;
+    return (
+      <div className="mb-6">
+        <div className="flex items-center gap-2.5 mb-1.5">
+          <div className={`p-1.5 rounded-md ${c.bg} border ${c.border}`}>
+            <Icon className={`w-3.5 h-3.5 ${c.text}`} />
+          </div>
+          <h3 className="text-[10px] font-black text-[#cbd5e1] uppercase tracking-[0.15em]">{title}</h3>
+          {badge && (
+            <span className="px-1.5 py-0.5 bg-[#451a03]/60 border border-[#78350f]/50 text-[#fbbf24] text-[8px] font-black uppercase tracking-wide rounded">
+              {badge}
+            </span>
+          )}
         </div>
-        <h3 className="text-[9px] font-bold text-slate-200 uppercase tracking-wider font-['Montserrat']">
-          {title}
-        </h3>
-        {badge && (
-          <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase tracking-wide rounded">
-            {badge}
-          </span>
-        )}
+        {subtitle && <p className="text-[9px] text-[#4b5a6e] font-medium ml-9 italic">{subtitle}</p>}
+        <div className="h-px bg-[#1e2d42] mt-3" />
       </div>
-      {subtitle && (
-        <p className="text-[8px] text-slate-400 ml-11 font-semibold font-['Montserrat']">{subtitle}</p>
-      )}
-      <div className="h-px bg-gradient-to-r from-slate-800/80 via-slate-700/40 to-transparent mt-3" />
-    </div>
-  );
+    );
+  };
 
   const InputField = ({ label, field, type = "text", placeholder = "", rows }) => (
-    <div className="space-y-2">
-      <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">{label}</label>
+    <div>
+      <label className={labelBase}>{label}</label>
       {rows ? (
         <textarea
           rows={rows}
-          className="w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold placeholder:text-slate-700 placeholder:font-normal focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none backdrop-blur-sm font-['Montserrat'] italic"
+          className={`${inputBase} resize-none italic`}
           placeholder={placeholder}
           value={formData[field]}
-          onChange={(e) => updateField(field, e.target.value)}
+          onChange={e => updateField(field, e.target.value)}
         />
       ) : (
         <input
           type={type}
-          className={`w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold placeholder:text-slate-700 placeholder:font-normal focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all backdrop-blur-sm italic ${type === 'number' || type === 'time' || type === 'datetime-local' ? "font-['JetBrains_Mono']" : "font-['Montserrat']"}`}
+          className={`${inputBase} ${type === 'number' || type === 'time' || type === 'datetime-local' ? "font-['JetBrains_Mono']" : 'italic'}`}
           placeholder={placeholder}
           value={formData[field]}
-          onChange={(e) => updateField(field, e.target.value)}
+          onChange={e => updateField(field, e.target.value)}
         />
       )}
     </div>
   );
 
-  const SelectField = ({ label, field, options }) => (
-    <div className="space-y-2">
-      <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">{label}</label>
-      <div className="relative">
-        <select
-          className="w-full px-3 py-2.5 rounded-none border border-slate-800/60 bg-slate-900/40 text-slate-100 text-xs font-semibold focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none cursor-pointer backdrop-blur-sm font-['Montserrat'] italic"
-          value={formData[field]}
-          onChange={(e) => updateField(field, e.target.value)}
-        >
-          {options.map(opt => <option key={opt} value={opt} className="bg-slate-900 font-semibold italic">{opt}</option>)}
-        </select>
-        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none rotate-90" />
+  const SelectField = ({ label, field, options }) => {
+    const hasOther = !options.includes('Other');
+    const allOptions = hasOther ? [...options, 'Other'] : options;
+    const isOther = formData[field] === 'Other' || (!options.includes(formData[field]) && formData[field] !== '');
+    const customField = `${field}_custom`;
+    return (
+      <div className="space-y-2">
+        <label className={labelBase}>{label}</label>
+        <div className="relative">
+          <select
+            className={`${inputBase} appearance-none cursor-pointer italic pr-8`}
+            value={options.includes(formData[field]) ? formData[field] : 'Other'}
+            onChange={e => {
+              if (e.target.value === 'Other') {
+                updateField(field, 'Other');
+              } else {
+                updateField(field, e.target.value);
+              }
+            }}
+          >
+            {allOptions.map(opt => <option key={opt} value={opt} className="bg-[#0e1521] italic">{opt}</option>)}
+          </select>
+          <ChevronRight className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#3d4f6b] pointer-events-none rotate-90" />
+        </div>
+        {formData[field] === 'Other' && (
+          <input
+            type="text"
+            className={`${inputBase} italic`}
+            placeholder={`Specify ${label.toLowerCase()}...`}
+            value={formData[customField] || ''}
+            onChange={e => updateField(customField, e.target.value)}
+          />
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   const ScoreSlider = ({ label, field }) => (
-    <div className="space-y-2.5">
-      <div className="flex justify-between items-center">
-        <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
-        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/20 font-['JetBrains_Mono']">
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <label className={labelBase} style={{marginBottom:0}}>{label}</label>
+        <span className="text-[10px] font-bold px-2 py-0.5 bg-[#1e3a5f]/40 text-[#60a5fa] rounded border border-[#2d5a8e]/40 font-['JetBrains_Mono']">
           {formData[field]}/5
         </span>
       </div>
-      <div className="relative pt-1">
-        <input
-          type="range"
-          min="1"
-          max="5"
-          className="w-full h-1.5 bg-slate-800/50 rounded-none appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-blue-500/50"
-          value={formData[field]}
-          onChange={(e) => updateField(field, parseInt(e.target.value))}
-        />
-        <div className="absolute top-0 left-0 right-0 flex justify-between px-0.5 pointer-events-none">
-          {[1,2,3,4,5].map(i => (
-            <div key={i} className={`w-1 h-1.5 rounded-none transition-colors ${formData[field] >= i ? 'bg-blue-500' : 'bg-slate-700/60'}`} />
-          ))}
-        </div>
-      </div>
+      <input
+        type="range" min="1" max="5"
+        className="w-full h-1.5 bg-[#1e2d42] rounded appearance-none cursor-pointer accent-[#6366f1]"
+        value={formData[field]}
+        onChange={e => updateField(field, parseInt(e.target.value))}
+      />
     </div>
   );
 
   const CheckboxField = ({ label, field }) => (
-    <label className="flex items-center gap-2.5 p-2.5 rounded-none bg-slate-900/30 border border-slate-800/50 cursor-pointer hover:border-rose-500/30 hover:bg-rose-500/5 transition-all group">
+    <label className="flex items-center gap-2.5 p-2.5 rounded-lg bg-[#131c2e] border border-[#2a3347] cursor-pointer hover:border-[#fb7185]/40 hover:bg-[#4c0519]/10 transition-all group">
       <input
         type="checkbox"
         checked={formData[field]}
-        onChange={(e) => updateField(field, e.target.checked)}
-        className="w-4 h-4 rounded border-2 border-slate-700 bg-slate-900 checked:bg-rose-500 checked:border-rose-500 cursor-pointer transition-all"
+        onChange={e => updateField(field, e.target.checked)}
+        className="w-4 h-4 rounded border-2 border-[#2a3347] bg-[#0e1521] checked:bg-[#ef4444] checked:border-[#ef4444] cursor-pointer transition-all"
       />
-      <span className="text-[10px] font-semibold text-slate-300 group-hover:text-slate-200 transition-colors">{label}</span>
+      <span className="text-[11px] font-semibold text-[#94a3b8] group-hover:text-[#cbd5e1] transition-colors">{label}</span>
     </label>
   );
 
+  const InfoCard = ({ icon: Icon, title, description, color = "blue" }) => {
+    const colorMap = {
+      blue:    'border-[#2d5a8e]/30 bg-[#1e3a5f]/15 text-[#60a5fa]',
+      emerald: 'border-[#065f46]/30 bg-[#064e3b]/15 text-[#34d399]',
+      rose:    'border-[#881337]/30 bg-[#4c0519]/15 text-[#fb7185]',
+      violet:  'border-[#4c1d95]/30 bg-[#2d1b69]/15 text-[#c4b5fd]',
+      amber:   'border-[#78350f]/30 bg-[#451a03]/15 text-[#fbbf24]',
+      orange:  'border-[#9a3412]/30 bg-[#431407]/15 text-[#fb923c]',
+    };
+    const cls = colorMap[color] || colorMap.blue;
+    const [borderCls, bgCls, textCls] = cls.split(' ');
+    return (
+      <div className={`flex items-start gap-2 p-2.5 rounded-lg border ${borderCls} ${bgCls}`}>
+        <Icon className={`w-3 h-3 mt-0.5 shrink-0 ${textCls}`} />
+        <div>
+          <p className="text-[8px] font-black uppercase tracking-wider text-[#8896a9] mb-0.5">{title}</p>
+          <p className={`text-[9px] leading-relaxed ${textCls} opacity-80 italic font-medium`}>{description}</p>
+        </div>
+      </div>
+    );
+  };
+
   const NavigationButtons = () => (
-    <div className="flex justify-between items-center pt-6 mt-8 border-t border-slate-800/60">
+    <div className="flex justify-between items-center pt-6 mt-6 border-t border-[#1e2d42]">
       <button
         onClick={prevStep}
-        className={`flex items-center gap-2 px-5 py-2.5 rounded-none font-bold text-[9px] uppercase tracking-wider transition-all font-['Montserrat'] ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800/60'}`}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-[#4b5a6e] hover:text-[#e2e8f0] hover:bg-[#1e2d42]'}`}
       >
         <ChevronLeft className="w-3.5 h-3.5" /> Back
       </button>
-      
+
       {step < 4 ? (
         <button
           onClick={nextStep}
-          className="group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-none font-bold text-[9px] uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all font-['Montserrat']"
+          className="group flex items-center gap-2 px-6 py-2.5 bg-[#6366f1] hover:bg-[#5254cc] text-white rounded-lg font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#6366f1]/30 transition-all"
         >
           Continue <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
         </button>
       ) : (
         <button
-          onClick={() => {
-            console.log('Final Data:', formData);
-            setShowSuccessModal(true);
-          }}
-          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-none font-bold text-[9px] uppercase tracking-wider shadow-lg shadow-emerald-600/25 transition-all font-['Montserrat']"
+          onClick={() => { console.log('Final Data:', formData); setShowSuccessModal(true); }}
+          className="flex items-center gap-2 px-6 py-2.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg font-bold text-xs uppercase tracking-wider shadow-lg shadow-[#10b981]/30 transition-all"
         >
           <Save className="w-3.5 h-3.5" /> Save Entry
         </button>
@@ -347,39 +354,16 @@ const App = () => {
     </div>
   );
 
-  const InfoCard = ({ icon: Icon, title, description, color = "blue" }) => (
-    <div className={`flex items-start gap-2.5 p-3 rounded-none border ${
-      color === 'blue' ? 'bg-blue-500/5 border-blue-500/20' :
-      color === 'emerald' ? 'bg-emerald-500/5 border-emerald-500/20' :
-      color === 'rose' ? 'bg-rose-500/5 border-rose-500/20' :
-      color === 'violet' ? 'bg-violet-500/5 border-violet-500/20' :
-      color === 'amber' ? 'bg-amber-500/5 border-amber-500/20' :
-      'bg-orange-500/5 border-orange-500/20'
-    }`}>
-      <Icon className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
-        color === 'blue' ? 'text-blue-400' :
-        color === 'emerald' ? 'text-emerald-400' :
-        color === 'rose' ? 'text-rose-400' :
-        color === 'violet' ? 'text-violet-400' :
-        color === 'amber' ? 'text-amber-400' :
-        'text-orange-400'
-      }`} />
-      <div className="space-y-0.5">
-        <p className="text-[7px] font-bold uppercase tracking-wider text-slate-300 font-['Montserrat']">{title}</p>
-        <p className="text-[8px] leading-relaxed text-slate-200 font-semibold font-['Montserrat'] italic">{description}</p>
-      </div>
-    </div>
-  );
-
+  // ─── Main Render ────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-black p-4 md:p-8 font-['Poppins']">
-      <div className="max-w-[1600px] mx-auto bg-slate-900/40 backdrop-blur-xl rounded-none border border-slate-800/50 shadow-2xl overflow-hidden flex flex-col md:flex-row h-[calc(100vh-4rem)]">
-        
-        {/* Sidebar */}
-        <div className="md:w-72 bg-slate-950/60 backdrop-blur-sm p-6 border-b md:border-b-0 md:border-r border-slate-800/50 flex flex-col justify-between shrink-0 overflow-y-auto custom-scrollbar">
+    <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#080e19] p-4 md:p-8">
+      <div className="max-w-[1500px] mx-auto bg-[#0e1521] rounded-none border border-[#1e2d42] shadow-2xl overflow-hidden flex flex-col md:flex-row" style={{ height: 'calc(100vh - 4rem)' }}>
+
+        {/* ── Sidebar ─────────────────────────────────────────────────── */}
+        <div className="md:w-64 bg-[#0a1120] p-5 border-b md:border-b-0 md:border-r border-[#1e2d42] flex flex-col justify-between shrink-0 overflow-y-auto">
           <div>
-            {/* Navigation */}
-            <nav className="space-y-2 mb-8">
+            {/* Nav */}
+            <nav className="space-y-1.5 mb-8">
               {[
                 { id: 1, label: 'Decision', icon: Brain, desc: 'Thesis & Logic' },
                 { id: 2, label: 'Execution', icon: Crosshair, desc: 'Core Data' },
@@ -389,85 +373,78 @@ const App = () => {
                 <button
                   key={item.id}
                   onClick={() => setStep(item.id)}
-                  className={`w-full group flex items-center gap-3 px-3.5 py-3 rounded-none text-sm font-semibold transition-all ${
-                    step === item.id 
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20'
-                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
+                  className={`w-full group flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    step === item.id
+                      ? 'bg-[#6366f1] text-white shadow-lg shadow-[#6366f1]/20'
+                      : 'text-[#4b5a6e] hover:text-[#94a3b8] hover:bg-[#1e2d42]/60'
                   }`}
                 >
-                  <div className={`p-1.5 rounded-none transition-colors ${
-                    step === item.id ? 'bg-white/10' : 'bg-slate-900/60 group-hover:bg-slate-800'
-                  }`}>
-                    <item.icon className="w-4 h-4" />
+                  <div className={`p-1 rounded transition-colors ${step === item.id ? 'bg-white/15' : 'bg-[#131c2e]'}`}>
+                    <item.icon className="w-3.5 h-3.5" />
                   </div>
                   <div className="text-left flex-1">
-                    <div className="font-bold tracking-tight text-[10px] font-['Montserrat'] uppercase">{item.label}</div>
-                    <div className={`text-[8px] font-medium uppercase tracking-wide ${
-                      step === item.id ? 'text-white/60' : 'text-slate-600'
-                    }`}>{item.desc}</div>
+                    <div className="font-black text-[10px] uppercase tracking-wider">{item.label}</div>
+                    <div className={`text-[8px] font-semibold uppercase tracking-wide ${step === item.id ? 'text-white/50' : 'text-[#2d3f55]'}`}>{item.desc}</div>
                   </div>
-                  {step === item.id && (
-                    <div className="w-1.5 h-1.5 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                  )}
+                  {step === item.id && <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_6px_rgba(255,255,255,0.9)]" />}
                 </button>
               ))}
             </nav>
 
             {/* Pro Tip */}
-            <div className="p-3.5 bg-amber-500/5 border border-amber-500/20 rounded-none">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-[8px] font-bold text-amber-400 uppercase tracking-widest font-['Montserrat']">Pro Tip</span>
+            <div className="p-3 bg-[#451a03]/20 border border-[#78350f]/30 rounded-none">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3 h-3 text-[#fbbf24]" />
+                <span className="text-[8px] font-black text-[#fbbf24] uppercase tracking-widest">Pro Tip</span>
               </div>
-              <p className="text-[8px] text-amber-200 leading-relaxed font-semibold font-['Montserrat'] italic">
+              <p className="text-[9px] text-[#d97706] leading-relaxed font-medium italic">
                 Complete Decision Architecture before entering trades for maximum discipline.
               </p>
             </div>
           </div>
 
-          {/* Reset Button */}
-          <div className="pt-6 border-t border-slate-800/50 hidden md:block">
+          {/* Reset */}
+          <div className="pt-5 border-t border-[#1e2d42] hidden md:block">
             {showResetConfirm ? (
-              <div className="bg-rose-500/10 border border-rose-500/30 p-3 rounded-none">
-                <p className="text-[9px] text-rose-400 text-center mb-2 font-bold uppercase tracking-wider font-['Montserrat']">Confirm Reset?</p>
+              <div className="bg-[#4c0519]/20 border border-[#881337]/40 p-3 rounded-none">
+                <p className="text-[9px] text-[#fb7185] text-center mb-2 font-black uppercase tracking-wider">Confirm Reset?</p>
                 <div className="flex gap-2">
-                  <button onClick={resetForm} className="flex-1 py-2 bg-rose-600 text-white text-[9px] rounded-none hover:bg-rose-500 transition-all font-bold uppercase font-['Montserrat']">Yes</button>
-                  <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-2 bg-slate-800 text-slate-300 text-[9px] rounded-none hover:bg-slate-700 transition-all font-bold uppercase font-['Montserrat']">No</button>
+                  <button onClick={resetForm} className="flex-1 py-1.5 bg-[#ef4444] text-white text-[9px] rounded-lg hover:bg-[#dc2626] transition-all font-black uppercase">Yes</button>
+                  <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-1.5 bg-[#1e2d42] text-[#94a3b8] text-[9px] rounded-lg hover:bg-[#2a3a52] transition-all font-black uppercase">No</button>
                 </div>
               </div>
             ) : (
-              <button 
+              <button
                 onClick={() => setShowResetConfirm(true)}
-                className="w-full flex items-center justify-center gap-2 p-3 bg-slate-950/80 rounded-none border border-slate-800/60 hover:border-rose-500/40 hover:bg-rose-500/5 transition-all group"
+                className="w-full flex items-center justify-center gap-2 p-2.5 bg-[#0a1120] rounded-none border border-[#1e2d42] hover:border-[#881337]/50 hover:bg-[#4c0519]/10 transition-all group"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-400 transition-colors" />
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider group-hover:text-rose-400 font-['Montserrat']">Reset Form</span>
+                <RotateCcw className="w-3.5 h-3.5 text-[#3d4f6b] group-hover:text-[#fb7185] transition-colors" />
+                <span className="text-[9px] font-black text-[#3d4f6b] uppercase tracking-wider group-hover:text-[#fb7185]">Reset Form</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* ── Main Content ─────────────────────────────────────────────── */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className="p-6 md:p-10 md:pt-6">
-              
-              {/* Header */}
-              <header className="mb-8 flex justify-between items-center">
-                <div className="text-slate-700/60 text-4xl font-black select-none font-['Montserrat']">0{step}</div>
+            <div className="p-6 md:p-10">
+
+              {/* Page Number */}
+              <header className="mb-8">
+                <div className="text-[#1e2d42] text-2xl font-black select-none font-['JetBrains_Mono']">0{step}</div>
               </header>
 
-              {/* STEP 1: DECISION ARCHITECTURE */}
+              {/* ── STEP 1: DECISION ARCHITECTURE ─────────────────────── */}
               {step === 1 && (
                 <div className="space-y-8 pb-6">
-                  
-                  {/* Why This Matters Banner */}
-                  <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-none">
+
+                  <div className="p-4 bg-[#451a03]/20 border border-[#78350f]/40 rounded-none">
                     <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                      <AlertTriangle className="w-4 h-4 text-[#fbbf24] mt-0.5 shrink-0" />
                       <div>
-                        <h4 className="text-[9px] font-bold text-amber-300 uppercase tracking-wide mb-1 font-['Montserrat']">Why This Matters</h4>
-                        <p className="text-[8px] text-amber-200 leading-relaxed font-semibold font-['Montserrat'] italic">
+                        <h4 className="text-[9px] font-black text-[#fbbf24] uppercase tracking-wide mb-1">Why This Matters</h4>
+                        <p className="text-[9px] text-[#d97706] leading-relaxed font-medium italic">
                           Most traders lose because they enter on impulse. This section enforces pre-trade clarity and prevents emotional decisions.
                         </p>
                       </div>
@@ -476,248 +453,96 @@ const App = () => {
 
                   {/* Core Thesis */}
                   <div>
-                    <SectionHeader 
-                      icon={Lightbulb} 
-                      title="Core Thesis" 
-                      color="amber" 
-                      badge="NEW"
-                      subtitle="What's your edge? Be specific and concise."
-                    />
-                    
-                    <div className="grid gap-5">
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <InputField 
-                          label="Trade Thesis" 
-                          field="thesis" 
-                          rows={4}
-                          placeholder="Example: Price broke key resistance at 1.0850 with strong volume, expecting continuation to 1.0920 liquidity zone..."
-                        />
-                        <InfoCard 
-                          icon={Target}
-                          title="Purpose"
-                          description="Forces clarity. If you can't articulate your edge in 2-3 sentences, you don't have one."
-                          color="blue"
-                        />
+                    <SectionHeader icon={Lightbulb} title="Core Thesis" color="amber" badge="NEW" subtitle="What's your edge? Be specific and concise." />
+                    <div className="grid gap-4">
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <InputField label="Trade Thesis" field="thesis" rows={4} placeholder="Example: Price broke key resistance at 1.0850 with strong volume, expecting continuation to 1.0920 liquidity zone..." />
+                        <InfoCard icon={Target} title="Purpose" description="Forces clarity. If you can't articulate your edge in 2-3 sentences, you don't have one." color="blue" />
                       </div>
-
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <InputField 
-                          label="Entry Trigger" 
-                          field="trigger" 
-                          rows={3}
-                          placeholder="Example: 15M engulfing candle close above 1.0850 with RSI break above 60..."
-                        />
-                        <InfoCard 
-                          icon={Zap}
-                          title="Purpose"
-                          description="Defines your edge. Separates systematic entries from random impulse trades."
-                          color="emerald"
-                        />
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <InputField label="Entry Trigger" field="trigger" rows={3} placeholder="Example: 15M engulfing candle close above 1.0850 with RSI break above 60..." />
+                        <InfoCard icon={Zap} title="Purpose" description="Defines your edge. Separates systematic entries from random impulse trades." color="emerald" />
                       </div>
                     </div>
                   </div>
 
                   {/* Risk Framework */}
                   <div>
-                    <SectionHeader 
-                      icon={Shield} 
-                      title="Risk Framework" 
-                      color="amber"
-                      subtitle="Define failure conditions and expected price behavior"
-                    />
-                    
-                    <div className="grid gap-5">
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <InputField 
-                          label="Invalidation Logic" 
-                          field="invalidationLogic" 
-                          rows={3}
-                          placeholder="Example: If price closes below 1.0830 on 15M, thesis invalid. Also invalid if no follow-through within 2 hours..."
-                        />
-                        <InfoCard 
-                          icon={AlertTriangle}
-                          title="Purpose"
-                          description="Rule-based exits. Pre-define failure before emotion kicks in. This is your exit plan."
-                          color="rose"
-                        />
+                    <SectionHeader icon={Shield} title="Risk Framework" color="amber" subtitle="Define failure conditions and expected price behavior" />
+                    <div className="grid gap-4">
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <InputField label="Invalidation Logic" field="invalidationLogic" rows={3} placeholder="Example: If price closes below 1.0830 on 15M, thesis invalid. Also invalid if no follow-through within 2 hours..." />
+                        <InfoCard icon={AlertTriangle} title="Purpose" description="Rule-based exits. Pre-define failure before emotion kicks in. This is your exit plan." color="rose" />
                       </div>
-
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <InputField 
-                          label="Expected Behavior" 
-                          field="expectedBehavior" 
-                          rows={3}
-                          placeholder="Example: Expect immediate bullish momentum, hold above 1.0850, reach 1.0880 within 30min..."
-                        />
-                        <InfoCard 
-                          icon={Eye}
-                          title="Purpose"
-                          description="Early failure detection. Know within minutes if your trade is working or dying."
-                          color="violet"
-                        />
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <InputField label="Expected Behavior" field="expectedBehavior" rows={3} placeholder="Example: Expect immediate bullish momentum, hold above 1.0850, reach 1.0880 within 30min..." />
+                        <InfoCard icon={Eye} title="Purpose" description="Early failure detection. Know within minutes if your trade is working or dying." color="violet" />
                       </div>
                     </div>
                   </div>
 
-                  {/* NEW: Pre-Entry State Check */}
+                  {/* Pre-Entry State */}
                   <div>
-                    <SectionHeader 
-                      icon={Battery} 
-                      title="Pre-Entry State Check" 
-                      color="emerald"
-                      badge="NEW"
-                      subtitle="Capture your physical and mental state at entry"
-                    />
-                    
-                    <div className="grid md:grid-cols-2 gap-5">
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                    <SectionHeader icon={Battery} title="Pre-Entry State Check" color="emerald" badge="NEW" subtitle="Capture your physical and mental state at entry" />
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                         <ScoreSlider label="Energy Level" field="energyLevel" />
                         <ScoreSlider label="Focus Level" field="focusLevel" />
                         <ScoreSlider label="Confidence at Entry" field="confidenceAtEntry" />
-                        <SelectField 
-                          label="External Distraction" 
-                          field="externalDistraction" 
-                          options={['No', 'Yes']}
-                        />
-                        <InfoCard 
-                          icon={Focus}
-                          title="Purpose"
-                          description="State matters. Low energy/focus correlates with poor execution. Track this."
-                          color="emerald"
-                        />
+                        <SelectField label="External Distraction" field="externalDistraction" options={['No', 'Yes']} />
+                        <InfoCard icon={Focus} title="Purpose" description="State matters. Low energy/focus correlates with poor execution. Track this." color="emerald" />
                       </div>
-
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
-                        <InputField 
-                          label="Open Trades Count" 
-                          field="openTradesCount" 
-                          type="number"
-                          placeholder="0"
-                        />
-                        <InputField 
-                          label="Total Risk Open (%)" 
-                          field="totalRiskOpen" 
-                          type="number"
-                          placeholder="2.5"
-                        />
-                        <SelectField 
-                          label="Correlated Exposure" 
-                          field="correlatedExposure" 
-                          options={['No', 'Yes']}
-                        />
-                        <InfoCard 
-                          icon={Briefcase}
-                          title="Purpose"
-                          description="Portfolio awareness prevents over-leverage and correlated blowups."
-                          color="blue"
-                        />
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
+                        <InputField label="Open Trades Count" field="openTradesCount" type="number" placeholder="0" />
+                        <InputField label="Total Risk Open (%)" field="totalRiskOpen" type="number" placeholder="2.5" />
+                        <SelectField label="Correlated Exposure" field="correlatedExposure" options={['No', 'Yes']} />
+                        <InfoCard icon={Briefcase} title="Purpose" description="Portfolio awareness prevents over-leverage and correlated blowups." color="blue" />
                       </div>
                     </div>
                   </div>
 
                   {/* Classification */}
                   <div>
-                    <SectionHeader 
-                      icon={Layers} 
-                      title="Classification & Quality" 
-                      color="amber"
-                      subtitle="Tag your setup and rate pre-entry quality"
-                    />
-                    
-                    <div className="grid md:grid-cols-2 gap-5">
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <SelectField 
-                          label="Setup Tag" 
-                          field="setupTag" 
-                          options={['Breakout', 'Reversal', 'Continuation', 'Range Bound', 'Trend Following', 'Mean Reversion', 'Momentum', 'Pullback', 'Other']}
-                        />
-                        <InfoCard 
-                          icon={LayoutGrid}
-                          title="Purpose"
-                          description="System discipline. Track which setups perform best over time."
-                          color="blue"
-                        />
+                    <SectionHeader icon={Layers} title="Classification & Quality" color="amber" subtitle="Tag your setup and rate pre-entry quality" />
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <InputField label="Strategy Version ID" field="strategyVersionId" placeholder="e.g., v2.1, SMC-A, Breakout-R3" />
+                        <SelectField label="Setup Tag" field="setupTag" options={['Breakout', 'Reversal', 'Continuation', 'Range Bound', 'Trend Following', 'Mean Reversion', 'Momentum', 'Pullback', 'Other']} />
+                        <InfoCard icon={LayoutGrid} title="Purpose" description="System discipline. Track which setups perform best over time." color="blue" />
                       </div>
-
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <SelectField 
-                          label="Trade Grade" 
-                          field="tradeGrade" 
-                          options={['A - Textbook', 'B - Solid', 'C - Acceptable', 'D - Marginal', 'F - Poor']}
-                        />
-                        <InfoCard 
-                          icon={Award}
-                          title="Purpose"
-                          description="Selectivity. Only take A/B setups. Track if you're cherry-picking best opportunities."
-                          color="amber"
-                        />
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <SelectField label="Trade Grade" field="tradeGrade" options={['A - Textbook', 'B - Solid', 'C - Acceptable', 'D - Marginal', 'F - Poor']} />
+                        <InfoCard icon={Award} title="Purpose" description="Selectivity. Only take A/B setups. Track if you're cherry-picking best opportunities." color="amber" />
                       </div>
                     </div>
                   </div>
 
-                  {/* NEW: Rule Governance */}
+                  {/* Rule Governance */}
                   <div>
-                    <SectionHeader 
-                      icon={ShieldCheck} 
-                      title="Rule Governance" 
-                      color="rose"
-                      badge="NEW"
-                      subtitle="Binary flags to make rule-breaking explicit"
-                    />
-                    
-                    <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                    <SectionHeader icon={ShieldCheck} title="Rule Governance" color="rose" badge="NEW" subtitle="Binary flags to make rule-breaking explicit" />
+                    <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
-                        <SelectField 
-                          label="Setup Fully Valid" 
-                          field="setupFullyValid" 
-                          options={['Yes', 'No']}
-                        />
-                        <SelectField 
-                          label="Any Rule Broken?" 
-                          field="anyRuleBroken" 
-                          options={['No', 'Yes']}
-                        />
+                        <SelectField label="Setup Fully Valid" field="setupFullyValid" options={['Yes', 'No']} />
+                        <SelectField label="Any Rule Broken?" field="anyRuleBroken" options={['No', 'Yes']} />
                       </div>
-                      
                       {formData.anyRuleBroken === 'Yes' && (
-                        <InputField 
-                          label="Rule Broken (ID/Name)" 
-                          field="ruleBroken" 
-                          placeholder="e.g., Risk > 2%, Entered during news, No confluence"
-                        />
+                        <InputField label="Rule Broken (ID/Name)" field="ruleBroken" placeholder="e.g., Risk > 2%, Entered during news, No confluence" />
                       )}
-                      
-                      <InfoCard 
-                        icon={AlertTriangle}
-                        title="Purpose"
-                        description="Makes discipline visible. If rules are broken, you can identify patterns in poor execution."
-                        color="rose"
-                      />
+                      <InfoCard icon={AlertTriangle} title="Purpose" description="Makes discipline visible. If rules are broken, you can identify patterns in poor execution." color="rose" />
                     </div>
                   </div>
 
                   {/* Impulse Control */}
                   <div>
-                    <SectionHeader 
-                      icon={Brain} 
-                      title="Impulse Control Check" 
-                      color="amber"
-                      subtitle="These are RED FLAGS - check any that apply"
-                    />
-                    
-                    <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                    <SectionHeader icon={Brain} title="Impulse Control Check" color="amber" subtitle="These are RED FLAGS - check any that apply" />
+                    <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                       <div className="grid md:grid-cols-2 gap-3">
                         <CheckboxField label="Entering due to FOMO (fear of missing out)" field="impulseCheckFOMO" />
                         <CheckboxField label="Revenge trading after a loss" field="impulseCheckRevenge" />
                         <CheckboxField label="Trading out of boredom / need for action" field="impulseCheckBored" />
                         <CheckboxField label="Emotionally compromised (angry, euphoric, anxious)" field="impulseCheckEmotional" />
                       </div>
-                      <InfoCard 
-                        icon={Flame}
-                        title="Purpose"
-                        description="Prevents emotional entries. If ANY box is checked, reconsider the trade. Your psychology matters."
-                        color="orange"
-                      />
+                      <InfoCard icon={Flame} title="Purpose" description="Prevents emotional entries. If ANY box is checked, reconsider the trade. Your psychology matters." color="orange" />
                     </div>
                   </div>
 
@@ -725,39 +550,39 @@ const App = () => {
                 </div>
               )}
 
-              {/* STEP 2: EXECUTION CORE */}
+              {/* ── STEP 2: EXECUTION CORE ─────────────────────────────── */}
               {step === 2 && (
                 <div className="space-y-8 pb-6">
-                  
+
                   {/* Screenshot Upload */}
-                  <div className="col-span-full">
-                    <div className={`relative group overflow-hidden rounded-none border transition-all ${formData.screenshot ? 'border-blue-500/40 bg-slate-900/30' : 'border-dashed border-slate-800/80 bg-slate-950/30 hover:border-blue-500/40'}`}>
+                  <div>
+                    <div className={`relative group overflow-hidden rounded-none border transition-all ${formData.screenshot ? 'border-[#2d5a8e]/50 bg-[#0a1120]' : 'border-dashed border-[#1e2d42] bg-[#0a1120] hover:border-[#6366f1]/40'}`}>
                       <input type="file" className="hidden" id="chart-upload" onChange={handleFileUpload} accept="image/*" />
                       {formData.screenshot ? (
-                        <div className="relative group">
+                        <div className="relative group/img">
                           <img src={formData.screenshot} alt="Trade Evidence" className="w-full h-auto max-h-96 object-contain rounded-none" />
-                          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3">
-                            <label htmlFor="chart-upload" className="p-3 bg-blue-600 rounded-none cursor-pointer hover:bg-blue-500 transition-all shadow-lg">
+                          <div className="absolute inset-0 bg-[#080e19]/80 backdrop-blur-sm opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center gap-3 rounded-none">
+                            <label htmlFor="chart-upload" className="p-3 bg-[#6366f1] rounded-none cursor-pointer hover:bg-[#5254cc] transition-all shadow-lg">
                               <RefreshCcw className="w-5 h-5 text-white" />
                             </label>
-                            <button onClick={() => updateField('screenshot', null)} className="p-3 bg-rose-600 rounded-none hover:bg-rose-500 transition-all shadow-lg">
+                            <button onClick={() => updateField('screenshot', null)} className="p-3 bg-[#ef4444] rounded-none hover:bg-[#dc2626] transition-all shadow-lg">
                               <Trash2 className="w-5 h-5 text-white" />
                             </button>
                           </div>
                         </div>
                       ) : (
                         <label htmlFor="chart-upload" className="flex flex-col items-center justify-center p-12 cursor-pointer">
-                          <div className="w-14 h-14 bg-slate-900/60 rounded-none flex items-center justify-center mb-4 group-hover:scale-105 group-hover:bg-blue-600/10 transition-all border border-slate-800/60">
-                            <Camera className="w-6 h-6 text-slate-500 group-hover:text-blue-400 transition-colors" />
+                          <div className="w-14 h-14 bg-[#131c2e] rounded-none flex items-center justify-center mb-4 group-hover:scale-105 group-hover:bg-[#6366f1]/10 transition-all border border-[#1e2d42]">
+                            <Camera className="w-6 h-6 text-[#3d4f6b] group-hover:text-[#6366f1] transition-colors" />
                           </div>
-                          <span className="text-[10px] font-semibold text-slate-300 mb-1 font-['Montserrat']">upload trade setup screenshot</span>
-                          <span className="text-[9px] text-slate-600 font-bold uppercase tracking-wider font-['Montserrat']">PNG, JPG up to 10MB</span>
+                          <span className="text-xs font-semibold text-[#94a3b8] mb-1">upload trade setup screenshot</span>
+                          <span className="text-[9px] text-[#3d4f6b] font-bold uppercase tracking-wider">PNG, JPG up to 10MB</span>
                         </label>
                       )}
                     </div>
                   </div>
 
-                  {/* Basic Trade Info */}
+                  {/* Position Details */}
                   <div>
                     <SectionHeader icon={Crosshair} title="Position Details" color="blue" />
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -773,30 +598,7 @@ const App = () => {
                       <InputField label="Risk %" field="riskPercent" type="number" />
                       <SelectField label="Order Type" field="orderType" options={['Market', 'Limit', 'Stop', 'Stop-Limit']} />
                       <SelectField label="Outcome" field="outcome" options={['Win', 'Loss', 'BE']} />
-                    </div>
-                  </div>
-
-                  {/* NEW: Exit Causation */}
-                  <div>
-                    <SectionHeader 
-                      icon={DoorOpen} 
-                      title="Exit Causation" 
-                      color="rose"
-                      badge="NEW"
-                      subtitle="Why did the trade end?"
-                    />
-                    <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                      <SelectField 
-                        label="Primary Exit Reason" 
-                        field="primaryExitReason" 
-                        options={['Target Hit', 'Stop Hit', 'Time Exit', 'Structure Change', 'News', 'Emotional Exit']}
-                      />
-                      <InfoCard 
-                        icon={Target}
-                        title="Purpose"
-                        description="Tracks exit discipline. Are you hitting targets or getting stopped out? Taking profits early?"
-                        color="rose"
-                      />
+                      <InputField label="Spread at Entry" field="spreadAtEntry" type="number" placeholder="e.g., 1.2" />
                     </div>
                   </div>
 
@@ -821,41 +623,7 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* Performance */}
-                  <div>
-                    <SectionHeader icon={TrendingUp} title="Performance Data" color="blue" />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <InputField label="Pips Gained/Lost" field="pipsGainedLost" type="number" />
-                      <InputField label="P/L Amount ($)" field="profitLoss" type="number" />
-                      <InputField label="Account Balance" field="accountBalance" type="number" />
-                    </div>
-                  </div>
-
-                  {/* Additional Fields */}
-                  <div>
-                    <SectionHeader icon={Target} title="Planning vs Execution" color="blue" />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <InputField label="Planned Entry" field="plannedEntry" type="number" />
-                      <InputField label="Planned SL" field="plannedSL" type="number" />
-                      <InputField label="Planned TP" field="plannedTP" type="number" />
-                      <InputField label="Actual Entry" field="actualEntry" type="number" />
-                      <InputField label="Actual SL" field="actualSL" type="number" />
-                      <InputField label="Actual TP" field="actualTP" type="number" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <SectionHeader icon={Activity} title="Trade Metrics" color="blue" />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <InputField label="MAE (Max Adverse)" field="mae" placeholder="-15 pips" />
-                      <InputField label="MFE (Max Favorable)" field="mfe" placeholder="+45 pips" />
-                      <InputField label="Monetary Risk" field="monetaryRisk" type="number" />
-                      <InputField label="Potential Reward" field="potentialReward" type="number" />
-                      <InputField label="Planned R:R" field="plannedRR" placeholder="1:2" />
-                      <InputField label="Achieved R:R" field="achievedRR" placeholder="1:1.5" />
-                    </div>
-                  </div>
-
+                  {/* Entry & Management */}
                   <div>
                     <SectionHeader icon={Zap} title="Entry & Management" color="blue" />
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -864,14 +632,14 @@ const App = () => {
                       <SelectField label="Management Type" field="managementType" options={['Rule-based', 'Discretionary', 'Hybrid']} />
                       <SelectField label="Risk Heat" field="riskHeat" options={['Low', 'Medium', 'High']} />
                       <div className="col-span-2">
-                        <label className="flex items-center gap-2.5 p-2.5 rounded-none bg-slate-900/30 border border-slate-800/50 cursor-pointer hover:border-blue-500/30 hover:bg-blue-500/5 transition-all">
+                        <label className="flex items-center gap-2.5 p-2.5 rounded-lg bg-[#0a1120] border border-[#1e2d42] cursor-pointer hover:border-[#6366f1]/40 hover:bg-[#6366f1]/5 transition-all">
                           <input
                             type="checkbox"
                             checked={formData.breakEvenApplied}
-                            onChange={(e) => updateField('breakEvenApplied', e.target.checked)}
-                            className="w-4 h-4 rounded border-2 border-slate-700 bg-slate-900 checked:bg-blue-500 checked:border-blue-500 cursor-pointer transition-all"
+                            onChange={e => updateField('breakEvenApplied', e.target.checked)}
+                            className="w-4 h-4 rounded border-2 border-[#2a3347] bg-[#0e1521] checked:bg-[#6366f1] checked:border-[#6366f1] cursor-pointer transition-all"
                           />
-                          <span className="text-[10px] font-semibold text-slate-300">Break-Even Applied</span>
+                          <span className="text-xs font-semibold text-[#94a3b8]">Break-Even Applied</span>
                         </label>
                       </div>
                     </div>
@@ -881,13 +649,12 @@ const App = () => {
                 </div>
               )}
 
-              {/* STEP 3: MARKET CONTEXT */}
+              {/* ── STEP 3: MARKET CONTEXT ─────────────────────────────── */}
               {step === 3 && (
                 <div className="space-y-8 pb-6">
-                  
                   <div className="grid lg:grid-cols-2 gap-8">
-                    
-                    {/* Left Column */}
+
+                    {/* Left */}
                     <div className="space-y-8">
                       <div>
                         <SectionHeader icon={Boxes} title="Market Environment" color="indigo" />
@@ -898,87 +665,31 @@ const App = () => {
                           <SelectField label="Liquidity" field="liquidity" options={['Low', 'Normal', 'High']} />
                           <SelectField label="News Environment" field="newsEnvironment" options={['Clear', 'Minor', 'Major']} />
                           <SelectField label="Session Phase" field="sessionPhase" options={['Open', 'Mid', 'Close']} />
+                          <InputField label="ATR Value at Entry" field="atrAtEntry" type="number" placeholder="e.g., 0.0045" />
                         </div>
                       </div>
 
-                      {/* NEW: Timeframe Context */}
                       <div>
-                        <SectionHeader 
-                          icon={Layers3} 
-                          title="Timeframe Context" 
-                          color="indigo"
-                          badge="NEW"
-                          subtitle="Simple flags and state descriptions"
-                        />
-                        <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-4">
+                        <SectionHeader icon={Layers3} title="Timeframe Context" color="indigo" badge="NEW" subtitle="Simple flags and state descriptions" />
+                        <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                           <div className="grid grid-cols-2 gap-4">
-                            <SelectField 
-                              label="HTF Bias" 
-                              field="htfBias" 
-                              options={['Bull', 'Bear', 'Range']}
-                            />
-                            <SelectField 
-                              label="HTF Key Level Present" 
-                              field="htfKeyLevelPresent" 
-                              options={['Yes', 'No']}
-                            />
-                            <SelectField 
-                              label="Trend Alignment" 
-                              field="trendAlignment" 
-                              options={['Yes', 'No']}
-                            />
-                            <SelectField 
-                              label="Multitimeframe Alignment" 
-                              field="multitimeframeAlignment" 
-                              options={['Yes', 'No']}
-                            />
+                            <SelectField label="HTF Bias" field="htfBias" options={['Bull', 'Bear', 'Range']} />
+                            <SelectField label="HTF Key Level Present" field="htfKeyLevelPresent" options={['Yes', 'No']} />
+                            <SelectField label="Trend Alignment" field="trendAlignment" options={['Yes', 'No']} />
+                            <SelectField label="Multitimeframe Alignment" field="multitimeframeAlignment" options={['Yes', 'No']} />
                           </div>
-                          
-                          <InputField 
-                            label="Analysis TF Context" 
-                            field="analysisTFContext" 
-                            rows={2}
-                            placeholder="What's happening on analysis timeframe? e.g., Strong uptrend, consolidating near highs"
-                          />
-                          
-                          <InputField 
-                            label="Entry TF Context" 
-                            field="entryTFContext" 
-                            rows={2}
-                            placeholder="What's happening on entry timeframe? e.g., Bullish engulfing at support"
-                          />
-                          
-                          <InputField 
-                            label="Other Confluences" 
-                            field="otherConfluences" 
-                            rows={2}
-                            placeholder="e.g., Interest rate differentials, USD strength, key economic data"
-                          />
-                          
-                          <InfoCard 
-                            icon={Layers3}
-                            title="Purpose"
-                            description="Captures the multi-timeframe story. Are all timeframes aligned or conflicting?"
-                            color="blue"
-                          />
+                          <InputField label="Analysis TF Context" field="analysisTFContext" rows={2} placeholder="What's happening on analysis timeframe? e.g., Strong uptrend, consolidating near highs" />
+                          <InputField label="Entry TF Context" field="entryTFContext" rows={2} placeholder="What's happening on entry timeframe? e.g., Bullish engulfing at support" />
+                          <InputField label="Other Confluences" field="otherConfluences" rows={2} placeholder="e.g., Interest rate differentials, USD strength, key economic data" />
+                          <InfoCard icon={Layers3} title="Purpose" description="Captures the multi-timeframe story. Are all timeframes aligned or conflicting?" color="blue" />
                         </div>
                       </div>
 
-                      <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-3">
-                        <InputField 
-                          label="Liquidity Targets & Bias" 
-                          field="liquidityTargets" 
-                          rows={3}
-                          placeholder="Where are major liquidity pools? Stop hunts? Key psychological levels?"
-                        />
-                        <InfoCard 
-                          icon={Target}
-                          title="Purpose"
-                          description="Identifies where smart money is positioned and key reaction zones."
-                          color="blue"
-                        />
+                      <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                        <InputField label="Liquidity Targets & Bias" field="liquidityTargets" rows={3} placeholder="Where are major liquidity pools? Stop hunts? Key psychological levels?" />
+                        <InfoCard icon={Target} title="Purpose" description="Identifies where smart money is positioned and key reaction zones." color="blue" />
                       </div>
-                      
+
                       <div>
                         <SectionHeader icon={Clock} title="Session Timing" color="indigo" />
                         <div className="grid grid-cols-2 gap-4">
@@ -999,11 +710,11 @@ const App = () => {
                       </div>
                     </div>
 
-                    {/* Right Column */}
+                    {/* Right */}
                     <div className="space-y-8">
                       <div>
                         <SectionHeader icon={Gauge} title="Setup Quality Scores" color="indigo" />
-                        <div className="p-5 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-5">
+                        <div className="p-5 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-5">
                           <ScoreSlider label="Market Alignment" field="marketAlignment" />
                           <ScoreSlider label="Setup Clarity" field="setupClarity" />
                           <ScoreSlider label="Entry Precision" field="entryPrecision" />
@@ -1028,25 +739,56 @@ const App = () => {
                 </div>
               )}
 
-              {/* STEP 4: POST-TRADE REVIEW */}
+              {/* ── STEP 4: POST-TRADE REVIEW ──────────────────────────── */}
               {step === 4 && (
                 <div className="space-y-8 pb-6">
-                  
                   <div className="grid lg:grid-cols-3 gap-8">
-                    
+
                     {/* Left: Metrics */}
                     <div className="lg:col-span-2 space-y-8">
+
+                      {/* Exit Causation */}
                       <div>
-                        <SectionHeader icon={Gauge} title="Execution Metrics" color="violet" />
+                        <SectionHeader icon={DoorOpen} title="Exit Causation" color="rose" badge="NEW" subtitle="Why did the trade end?" />
+                        <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
+                          <SelectField label="Primary Exit Reason" field="primaryExitReason" options={['Target Hit', 'Stop Hit', 'Time Exit', 'Structure Change', 'News', 'Emotional Exit']} />
+                          <InfoCard icon={Target} title="Purpose" description="Tracks exit discipline. Are you hitting targets or getting stopped out? Taking profits early?" color="rose" />
+                        </div>
+                      </div>
+
+                      {/* Performance Data */}
+                      <div>
+                        <SectionHeader icon={TrendingUp} title="Performance Data" color="violet" />
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          <InputField label="Planned R:R" field="plannedRR" placeholder="1:2" />
-                          <InputField label="Achieved R:R" field="achievedRR" placeholder="1:1.5" />
-                          <SelectField label="Risk Heat" field="riskHeat" options={['Low', 'Medium', 'High']} />
-                          <InputField label="MAE" field="mae" placeholder="-15 pips" />
-                          <InputField label="MFE" field="mfe" placeholder="+45 pips" />
+                          <InputField label="Pips Gained/Lost" field="pipsGainedLost" type="number" />
+                          <InputField label="P/L Amount ($)" field="profitLoss" type="number" />
                           <InputField label="Account Balance" field="accountBalance" type="number" />
+                        </div>
+                      </div>
+
+                      {/* Planning vs Execution */}
+                      <div>
+                        <SectionHeader icon={Target} title="Planning vs Execution" color="violet" />
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <InputField label="Planned Entry" field="plannedEntry" type="number" />
+                          <InputField label="Planned SL" field="plannedSL" type="number" />
+                          <InputField label="Planned TP" field="plannedTP" type="number" />
+                          <InputField label="Actual Entry" field="actualEntry" type="number" />
+                          <InputField label="Actual SL" field="actualSL" type="number" />
+                          <InputField label="Actual TP" field="actualTP" type="number" />
+                        </div>
+                      </div>
+
+                      {/* Trade Metrics */}
+                      <div>
+                        <SectionHeader icon={Activity} title="Trade Metrics" color="violet" />
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <InputField label="MAE (Max Adverse)" field="mae" placeholder="-15 pips" />
+                          <InputField label="MFE (Max Favorable)" field="mfe" placeholder="+45 pips" />
                           <InputField label="Monetary Risk" field="monetaryRisk" type="number" />
                           <InputField label="Potential Reward" field="potentialReward" type="number" />
+                          <InputField label="Planned R:R" field="plannedRR" placeholder="1:2" />
+                          <InputField label="Achieved R:R" field="achievedRR" placeholder="1:1.5" />
                         </div>
                       </div>
 
@@ -1063,14 +805,14 @@ const App = () => {
                       <div>
                         <SectionHeader icon={CheckCircle2} title="Trade Assessment" color="violet" />
                         <div className="space-y-4">
-                          <label className="flex items-center gap-2.5 p-3 rounded-none bg-slate-900/30 border border-slate-800/50 cursor-pointer hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all">
+                          <label className="flex items-center gap-2.5 p-3 rounded-lg bg-[#0a1120] border border-[#1e2d42] cursor-pointer hover:border-[#10b981]/30 hover:bg-[#064e3b]/10 transition-all">
                             <input
                               type="checkbox"
                               checked={formData.worthRepeating}
-                              onChange={(e) => updateField('worthRepeating', e.target.checked)}
-                              className="w-4 h-4 rounded border-2 border-slate-700 bg-slate-900 checked:bg-emerald-500 checked:border-emerald-500 cursor-pointer transition-all"
+                              onChange={e => updateField('worthRepeating', e.target.checked)}
+                              className="w-4 h-4 rounded border-2 border-[#2a3347] bg-[#0e1521] checked:bg-[#10b981] checked:border-[#10b981] cursor-pointer transition-all"
                             />
-                            <span className="text-[10px] font-semibold text-slate-300">Worth Repeating This Setup</span>
+                            <span className="text-xs font-semibold text-[#94a3b8]">Worth Repeating This Setup</span>
                           </label>
                           <InputField label="Additional Notes" field="notes" rows={3} placeholder="Any other observations or comments..." />
                         </div>
@@ -1078,39 +820,39 @@ const App = () => {
                     </div>
 
                     {/* Right: Reflections */}
-                    <div className="p-5 bg-slate-950/30 border border-slate-800/60 rounded-none space-y-5">
+                    <div className="p-5 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-5">
                       <SectionHeader icon={Microscope} title="Trade Reflections" color="violet" />
-                      
+
                       <div className="space-y-2">
-                        <label className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider block font-['Montserrat']">What Worked</label>
-                        <textarea 
-                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat'] italic" 
-                          rows="3"
+                        <label className="block text-[9px] font-black text-[#34d399] uppercase tracking-wider mb-1.5">What Worked</label>
+                        <textarea
+                          className={`${inputBase} resize-none italic`}
+                          rows={3}
                           placeholder="What did you execute well?"
                           value={formData.whatWorked}
-                          onChange={(e) => updateField('whatWorked', e.target.value)}
+                          onChange={e => updateField('whatWorked', e.target.value)}
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
-                        <label className="text-[9px] font-bold text-rose-400 uppercase tracking-wider block font-['Montserrat']">What Failed</label>
-                        <textarea 
-                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-rose-500/50 focus:ring-2 focus:ring-rose-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat'] italic" 
-                          rows="3"
+                        <label className="block text-[9px] font-black text-[#fb7185] uppercase tracking-wider mb-1.5">What Failed</label>
+                        <textarea
+                          className={`${inputBase} resize-none italic`}
+                          rows={3}
                           placeholder="What went wrong?"
                           value={formData.whatFailed}
-                          onChange={(e) => updateField('whatFailed', e.target.value)}
+                          onChange={e => updateField('whatFailed', e.target.value)}
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
-                        <label className="text-[9px] font-bold text-blue-400 uppercase tracking-wider block font-['Montserrat']">Future Adjustments</label>
-                        <textarea 
-                          className="w-full p-3 rounded-none bg-slate-900/40 border border-slate-800/60 text-slate-100 text-[10px] font-semibold outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none placeholder:text-slate-700 placeholder:font-normal font-['Montserrat'] italic" 
-                          rows="3"
+                        <label className="block text-[9px] font-black text-[#60a5fa] uppercase tracking-wider mb-1.5">Future Adjustments</label>
+                        <textarea
+                          className={`${inputBase} resize-none italic`}
+                          rows={3}
                           placeholder="What will you change next time?"
                           value={formData.adjustments}
-                          onChange={(e) => updateField('adjustments', e.target.value)}
+                          onChange={e => updateField('adjustments', e.target.value)}
                         />
                       </div>
                     </div>
@@ -1125,24 +867,21 @@ const App = () => {
         </div>
       </div>
 
-      {/* Success Modal */}
+      {/* ── Success Modal ───────────────────────────────────────────────── */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800/60 rounded-none p-8 max-w-md w-full text-center shadow-2xl">
-            <div className="w-16 h-16 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-none flex items-center justify-center mx-auto mb-5 relative">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
-              <div className="absolute inset-0 bg-emerald-500/20 rounded-none animate-ping" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080e19]/90 backdrop-blur-sm">
+          <div className="bg-[#0e1521] backdrop-blur-xl border border-[#1e2d42] rounded-none p-8 max-w-md w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-[#064e3b]/30 border-2 border-[#065f46]/50 rounded-none flex items-center justify-center mx-auto mb-5 relative">
+              <CheckCircle2 className="w-8 h-8 text-[#34d399]" />
+              <div className="absolute inset-0 bg-[#10b981]/10 rounded-none animate-ping" />
             </div>
-            <h3 className="text-sm font-bold text-white mb-2 font-['Montserrat'] uppercase">Trade Logged Successfully</h3>
-            <p className="text-slate-300 text-[9px] mb-6 font-semibold font-['Montserrat']">
+            <h3 className="text-sm font-black text-white mb-2 uppercase tracking-wider">Trade Logged Successfully</h3>
+            <p className="text-[#8896a9] text-xs mb-6 font-medium italic">
               Your complete decision architecture and trade data have been recorded.
             </p>
-            <button 
-              onClick={() => {
-                setShowSuccessModal(false);
-                resetForm();
-              }}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-none font-bold text-[9px] uppercase tracking-wider transition-all shadow-lg font-['Montserrat']"
+            <button
+              onClick={() => { setShowSuccessModal(false); resetForm(); }}
+              className="w-full py-3 bg-[#6366f1] hover:bg-[#5254cc] text-white rounded-none font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#6366f1]/30"
             >
               Continue Trading
             </button>
@@ -1151,30 +890,10 @@ const App = () => {
       )}
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(51, 65, 85, 0.5);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(71, 85, 105, 0.7);
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        .animate-in {
-          animation: fade-in 0.3s ease-out;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2a3a52; }
       `}</style>
     </div>
   );
