@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, PieChart, Diamond, Star, Check, ArrowRight, Menu, X, TrendingUp } from 'lucide-react';
+import { BarChart3, Calendar, PieChart, Diamond, Star, Check, ArrowRight, Menu, X, TrendingUp, Sun, Moon } from 'lucide-react';
 
 export default function FreeTradingJournalLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -11,27 +12,87 @@ export default function FreeTradingJournalLanding() {
     document.head.appendChild(link);
   }, []);
 
+  const t = darkMode ? {
+    pageBg: 'linear-gradient(to bottom, #020817, #0f172a, #020817)',
+    navBg: 'rgba(2,8,23,0.85)',
+    navBorder: '#1e293b',
+    logoWhite: '#ffffff',
+    navLink: '#94a3b8',
+    navLinkHover: '#ffffff',
+    sectionAlt: 'rgba(15,23,42,0.6)',
+    cardBg: '#0f172a',
+    cardBorder: '#1e293b',
+    text: '#ffffff',
+    textMuted: '#94a3b8',
+    textAccent: '#60a5fa',
+    statValue: '#60a5fa',
+    progressBg: '#1e293b',
+    calWin: 'rgba(30,58,138,0.3)',
+    calWinBorder: '#1d4ed8',
+    calLoss: 'rgba(127,29,29,0.3)',
+    calLossBorder: '#b91c1c',
+    calWinText: '#60a5fa',
+    calLossText: '#f87171',
+    dayLabel: '#475569',
+    featureCardBg: 'rgba(30,41,59,0.5)',
+    testimonialBg: 'rgba(30,41,59,0.5)',
+    mobilePhoneBg: 'linear-gradient(145deg, #0f172a, #1e293b)',
+    mobilePhoneBorder: '#334155',
+    mobilePhoneShadow: '0 0 60px rgba(59,130,246,0.15), 0 25px 50px rgba(0,0,0,0.6)',
+    mobileTopBar: 'linear-gradient(to bottom, #0f172a, #1e293b)',
+    mobileTopBorder: '#1e293b',
+    mobileCard: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
+    mobileCardBorder: 'rgba(30,64,175,0.3)',
+    mobileStatValue: '#60a5fa',
+    mobileLabel: '#94a3b8',
+    mobileBarBg: '#1e293b',
+    mobileHomebar: '#334155',
+  } : {
+    pageBg: 'linear-gradient(to bottom, #f8fafc, #f1f5f9, #f8fafc)',
+    navBg: 'rgba(255,255,255,0.92)',
+    navBorder: '#e2e8f0',
+    logoWhite: '#0f172a',
+    navLink: '#475569',
+    navLinkHover: '#0f172a',
+    sectionAlt: 'rgba(241,245,249,0.8)',
+    cardBg: '#ffffff',
+    cardBorder: '#e2e8f0',
+    text: '#0f172a',
+    textMuted: '#64748b',
+    textAccent: '#2563eb',
+    statValue: '#2563eb',
+    progressBg: '#e2e8f0',
+    calWin: 'rgba(219,234,254,0.8)',
+    calWinBorder: '#93c5fd',
+    calLoss: 'rgba(254,226,226,0.8)',
+    calLossBorder: '#fca5a5',
+    calWinText: '#1d4ed8',
+    calLossText: '#dc2626',
+    dayLabel: '#94a3b8',
+    featureCardBg: 'rgba(248,250,252,0.9)',
+    testimonialBg: 'rgba(248,250,252,0.9)',
+    mobilePhoneBg: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
+    mobilePhoneBorder: '#cbd5e1',
+    mobilePhoneShadow: '0 0 60px rgba(59,130,246,0.1), 0 25px 50px rgba(0,0,0,0.12)',
+    mobileTopBar: 'linear-gradient(to bottom, #ffffff, #f8fafc)',
+    mobileTopBorder: '#e2e8f0',
+    mobileCard: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+    mobileCardBorder: 'rgba(147,197,253,0.5)',
+    mobileStatValue: '#1d4ed8',
+    mobileLabel: '#64748b',
+    mobileBarBg: '#e2e8f0',
+    mobileHomebar: '#cbd5e1',
+  };
+
+  const headerFont = { fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: '0.02em' };
+  const navFont = { fontFamily: "'Montserrat', sans-serif", fontWeight: 800 };
+  const montserrat = { fontFamily: "'Montserrat', sans-serif", fontWeight: 800 };
+
   const features = [
-    {
-      icon: <Calendar className="w-6 h-6" />,
-      title: "Stay Organised",
-      description: "Track your trades and review your performance by day, week, or month"
-    },
-    {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: "Analyze Strategies",
-      description: "Easily analyze and compare the success rates of different strategies"
-    },
-    {
-      icon: <Diamond className="w-6 h-6" />,
-      title: "Spot Patterns",
-      description: "Identify patterns in your wins and losses to refine your trading schedule"
-    },
-    {
-      icon: <PieChart className="w-6 h-6" />,
-      title: "Professional Journaling",
-      description: "Journal your trades and thoughts like a pro trader"
-    }
+    { icon: <Calendar className="w-6 h-6" />, title: "Stay Organised", description: "Track your trades and review your performance by day, week, or month" },
+    { icon: <BarChart3 className="w-6 h-6" />, title: "Analyze Strategies", description: "Easily analyze and compare the success rates of different strategies" },
+    { icon: <Diamond className="w-6 h-6" />, title: "Spot Patterns", description: "Identify patterns in your wins and losses to refine your trading schedule" },
+    { icon: <PieChart className="w-6 h-6" />, title: "Professional Journaling", description: "Journal your trades and thoughts like a pro trader" }
   ];
 
   const mobileFeatures = [
@@ -43,91 +104,99 @@ export default function FreeTradingJournalLanding() {
 
   const testimonials = [
     { name: "Alex M.", text: "The dashboard is incredibly customizable and very convenient to use.", rating: 5 },
-    { name: "Jordan K.", text: "I love how FREE TRADING JOURNAL helps me track my performance and improve my strategies.", rating: 5 },
+    { name: "Jordan K.", text: "I love how Free Trading Journal helps me track my performance and improve my strategies.", rating: 5 },
     { name: "Sarah T.", text: "This tool is fantastic, the user interface could be even more intuitive.", rating: 5 },
-    { name: "Michael R.", text: "FREE TRADING JOURNAL has changed the way I analyze my trading operations.", rating: 5 },
+    { name: "Michael R.", text: "Free Trading Journal has changed the way I analyze my trading operations.", rating: 5 },
     { name: "Emily W.", text: "An excellent tool for traders. Easy to use and very comprehensive.", rating: 5 },
-    { name: "David P.", text: "I've tried other journaling platforms, but FREE TRADING JOURNAL is by far the best. The automatic data import from MT5 is a total game changer!", rating: 5 },
+    { name: "David P.", text: "I've tried other journaling platforms, but Free Trading Journal is by far the best. The automatic data import from MT5 is a total game changer!", rating: 5 },
     { name: "Jessica L.", text: "Honestly, wasn't expecting much at first but WOW. The stats dashboard is so detailed and customizable. It's made a huge difference to my trading.", rating: 5 },
     { name: "Chris N.", text: "The community features have helped me connect with other traders and share strategies.", rating: 5 }
   ];
 
   const brokers = ["InstaForex", "LMAX Exchange", "Pepperstone", "TICKMILL", "Admirals", "AXITRADER"];
 
-  const headerFont = { fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: '0.02em' };
-  const navFont = { fontFamily: "'Montserrat', sans-serif", fontWeight: 800 };
-  const montserrat = { fontFamily: "'Montserrat', sans-serif", fontWeight: 800 };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: t.pageBg, color: t.text, transition: 'all 0.4s ease', fontFamily: "'Poppins', sans-serif" }}>
+
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-slate-950/80 backdrop-blur-lg border-b border-slate-800 z-50">
+      <nav style={{ position: 'fixed', top: 0, width: '100%', background: t.navBg, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${t.navBorder}`, zIndex: 50, transition: 'all 0.4s ease' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <span className="text-base tracking-wide" style={headerFont}>
-              <span className="text-white">FREE TRADING </span>
-              <span className="text-blue-400">JOURNAL</span>
+            <span className="text-base tracking-wide" style={{ ...headerFont, color: t.logoWhite }}>
+              Free Trading <span style={{ color: '#3b82f6' }}>Journal</span>
             </span>
 
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-300 hover:text-white transition-colors" style={navFont}>Features</a>
-              <a href="#pricing" className="text-slate-300 hover:text-white transition-colors" style={navFont}>Pricing</a>
-              <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors" style={navFont}>Reviews</a>
-              <a href="#login" className="text-slate-300 hover:text-white transition-colors" style={navFont}>Login</a>
-              <a href="#signup" className="text-slate-300 hover:text-white transition-colors" style={navFont}>Signup</a>
+              {['Features', 'Pricing', 'Reviews', 'Login', 'Signup'].map((item) => (
+                <a key={item} href={`#${item.toLowerCase()}`}
+                  style={{ color: t.navLink, textDecoration: 'none', transition: 'color 0.2s', ...navFont, fontSize: '14px' }}
+                  onMouseEnter={e => e.target.style.color = t.navLinkHover}
+                  onMouseLeave={e => e.target.style.color = t.navLink}
+                >{item}</a>
+              ))}
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '22px', borderRadius: '11px', background: darkMode ? '#1e40af' : '#e2e8f0', border: 'none', cursor: 'pointer', position: 'relative', transition: 'all 0.3s ease', padding: 0 }}
+              >
+                <div style={{ position: 'absolute', left: darkMode ? '20px' : '2px', width: '18px', height: '18px', borderRadius: '50%', background: darkMode ? '#60a5fa' : '#ffffff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {darkMode ? <Moon size={10} color="#0f172a" /> : <Sun size={10} color="#f59e0b" />}
+                </div>
+              </button>
             </div>
 
-            <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ color: t.text, background: 'none', border: 'none', cursor: 'pointer' }}>
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden bg-slate-900 border-t border-slate-800">
+          <div style={{ background: darkMode ? '#0f172a' : '#ffffff', borderTop: `1px solid ${t.navBorder}` }}>
             <div className="px-4 py-4 space-y-3">
-              <a href="#features" className="block text-slate-300 hover:text-white" style={navFont}>Features</a>
-              <a href="#pricing" className="block text-slate-300 hover:text-white" style={navFont}>Pricing</a>
-              <a href="#testimonials" className="block text-slate-300 hover:text-white" style={navFont}>Reviews</a>
-              <a href="#login" className="block text-slate-300 hover:text-white" style={navFont}>Login</a>
-              <a href="#signup" className="block text-slate-300 hover:text-white" style={navFont}>Signup</a>
+              {['Features', 'Pricing', 'Reviews', 'Login', 'Signup'].map(item => (
+                <a key={item} href={`#${item.toLowerCase()}`} className="block" style={{ color: t.navLink, ...navFont, fontSize: '14px', textDecoration: 'none' }}>{item}</a>
+              ))}
+              <button onClick={() => setDarkMode(!darkMode)} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: t.navLink, background: 'none', border: 'none', cursor: 'pointer', ...navFont, fontSize: '14px' }}>
+                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+                {darkMode ? 'Light Mode' : 'Dark Mode'}
+              </button>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight" style={montserrat}>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl mb-6 leading-tight" style={{ ...montserrat, color: t.text }}>
             A Premium Trade Journal,
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600">
+            <span style={{ background: 'linear-gradient(to right, #3b82f6, #2563eb)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Without The Subscription.
             </span>
           </h1>
 
-          <p className="text-xl text-slate-400 mb-8 max-w-3xl mx-auto">
-            The Ultimate Toolkit for Traders Serious About Improving Results.
+          <p className="text-lg mb-3 max-w-2xl mx-auto" style={{ color: t.textMuted, lineHeight: '1.7' }}>
+            A complete execution database and performance analysis system for serious traders.
+          </p>
+          <p className="text-base mb-8 max-w-xl mx-auto" style={{ color: t.textAccent, fontWeight: 500, lineHeight: '1.8' }}>
+            Log trades. Capture decisions. Track psychology.<br />
+            Identify patterns. Refine execution. <span style={{ color: t.text, fontWeight: 700 }}>Build your edge.</span>
           </p>
 
           <div className="flex items-center justify-center space-x-2 mb-12">
             <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-              ))}
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}
             </div>
-            <span className="text-slate-400">Trusted by thousands of traders · See our reviews on Trustpilot</span>
+            <span style={{ color: t.textMuted }}>Trusted by thousands of traders · See our reviews on Trustpilot</span>
           </div>
 
           <div className="flex justify-center">
             <div style={{ padding: '6px', borderRadius: '9999px', border: '2px dashed #3b82f6', display: 'inline-block' }}>
-              <button
-                className="group flex items-center space-x-2 px-8 py-3 text-white font-semibold transition-all transform hover:scale-105"
-                style={{ ...navFont, background: 'linear-gradient(to right, #2563eb, #3b82f6)', borderRadius: '9999px', fontSize: '1rem' }}
-              >
+              <button className="group flex items-center space-x-2 px-8 py-3 text-white font-semibold transition-all transform hover:scale-105"
+                style={{ ...navFont, background: 'linear-gradient(to right, #2563eb, #3b82f6)', borderRadius: '9999px', fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
                 <span>Start Now - It's Free!</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -135,41 +204,32 @@ export default function FreeTradingJournalLanding() {
       </section>
 
       {/* Dashboard Preview */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8" style={{ background: t.sectionAlt, transition: 'all 0.4s ease' }}>
         <div className="max-w-6xl mx-auto">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 shadow-2xl border border-slate-700">
+          <div style={{ background: darkMode ? 'linear-gradient(135deg, #1e293b, #0f172a)' : 'linear-gradient(135deg, #ffffff, #f8fafc)', borderRadius: '16px', padding: '32px', border: `1px solid ${t.cardBorder}`, boxShadow: darkMode ? '0 25px 50px rgba(0,0,0,0.4)' : '0 25px 50px rgba(0,0,0,0.08)', transition: 'all 0.4s ease' }}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <div className="bg-slate-950 rounded-xl p-6">
-                <div className="text-sm text-slate-400 mb-2">Winrate</div>
-                <div className="text-4xl font-bold text-blue-400 mb-4">69.67%</div>
-                <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full w-[69.67%] bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"></div>
+              {[
+                { label: 'Winrate', value: '69.67%', width: '69.67%' },
+                { label: 'Avg Win / Avg Loss', value: '0.89', width: '45%' },
+              ].map((stat, i) => (
+                <div key={i} style={{ background: t.cardBg, borderRadius: '12px', padding: '24px', border: `1px solid ${t.cardBorder}`, transition: 'all 0.4s ease' }}>
+                  <div style={{ fontSize: '14px', color: t.textMuted, marginBottom: '8px' }}>{stat.label}</div>
+                  <div style={{ fontSize: '36px', fontWeight: 700, color: t.statValue, marginBottom: '16px' }}>{stat.value}</div>
+                  <div style={{ width: '100%', height: '12px', background: t.progressBg, borderRadius: '6px', overflow: 'hidden' }}>
+                    <div style={{ width: stat.width, height: '100%', background: 'linear-gradient(to right, #2563eb, #60a5fa)', borderRadius: '6px' }}></div>
+                  </div>
                 </div>
-              </div>
-
-              <div className="bg-slate-950 rounded-xl p-6">
-                <div className="text-sm text-slate-400 mb-2">Avg Win / Avg Loss</div>
-                <div className="text-4xl font-bold text-blue-400 mb-4">0.89</div>
-                <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full w-[45%] bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"></div>
-                </div>
-              </div>
-
-              <div className="bg-slate-950 rounded-xl p-6">
-                <div className="text-sm text-slate-400 mb-2">Trade Count</div>
-                <div className="text-4xl font-bold text-blue-400">1131</div>
-                <div className="mt-4 h-16">
-                  <svg viewBox="0 0 200 40" className="w-full h-full">
-                    <polyline
-                      points="0,30 20,25 40,28 60,20 80,22 100,18 120,15 140,20 160,17 180,15 200,12"
-                      fill="none"
-                      stroke="url(#gradient)"
-                      strokeWidth="2"
-                    />
+              ))}
+              <div style={{ background: t.cardBg, borderRadius: '12px', padding: '24px', border: `1px solid ${t.cardBorder}`, transition: 'all 0.4s ease' }}>
+                <div style={{ fontSize: '14px', color: t.textMuted, marginBottom: '8px' }}>Trade Count</div>
+                <div style={{ fontSize: '36px', fontWeight: 700, color: t.statValue }}>1131</div>
+                <div style={{ marginTop: '16px', height: '64px' }}>
+                  <svg viewBox="0 0 200 40" style={{ width: '100%', height: '100%' }}>
+                    <polyline points="0,30 20,25 40,28 60,20 80,22 100,18 120,15 140,20 160,17 180,15 200,12"
+                      fill="none" stroke="url(#grad1)" strokeWidth="2" />
                     <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#3b82f6" />
-                        <stop offset="100%" stopColor="#60a5fa" />
+                      <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#2563eb" /><stop offset="100%" stopColor="#60a5fa" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -179,24 +239,19 @@ export default function FreeTradingJournalLanding() {
 
             <div className="grid grid-cols-7 gap-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-xs text-slate-500 font-medium">{day}</div>
+                <div key={day} style={{ textAlign: 'center', fontSize: '12px', color: t.dayLabel, fontWeight: 500 }}>{day}</div>
               ))}
               {[...Array(35)].map((_, i) => {
                 const profit = (Math.random() - 0.5) * 1000;
                 const isProfit = profit > 0;
                 return (
-                  <div
-                    key={i}
-                    className={`aspect-square rounded-lg flex items-center justify-center text-xs font-medium ${
-                      profit === 0 ? 'bg-slate-800' :
-                      isProfit ? 'bg-blue-900/30 border border-blue-700' : 'bg-red-900/30 border border-red-700'
-                    }`}
-                  >
-                    {profit !== 0 && (
-                      <span className={isProfit ? 'text-blue-400' : 'text-red-400'}>
-                        {isProfit ? '+' : ''}{profit.toFixed(0)}
-                      </span>
-                    )}
+                  <div key={i} style={{
+                    aspectRatio: '1', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 500,
+                    background: profit === 0 ? t.progressBg : isProfit ? t.calWin : t.calLoss,
+                    border: profit === 0 ? 'none' : `1px solid ${isProfit ? t.calWinBorder : t.calLossBorder}`,
+                    transition: 'all 0.4s ease'
+                  }}>
+                    {profit !== 0 && <span style={{ color: isProfit ? t.calWinText : t.calLossText }}>{isProfit ? '+' : ''}{profit.toFixed(0)}</span>}
                   </div>
                 );
               })}
@@ -208,11 +263,11 @@ export default function FreeTradingJournalLanding() {
       {/* Brokers */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-center text-2xl mb-12 text-slate-300" style={headerFont}>Compatible with Brokers</h3>
+          <h3 className="text-center text-2xl mb-12" style={{ ...headerFont, color: t.textMuted }}>Compatible with Brokers</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
             {brokers.map((broker, i) => (
               <div key={i} className="text-center">
-                <div className="text-slate-400 font-semibold text-sm">{broker}</div>
+                <div style={{ color: t.textMuted, fontWeight: 600, fontSize: '14px' }}>{broker}</div>
               </div>
             ))}
           </div>
@@ -220,22 +275,21 @@ export default function FreeTradingJournalLanding() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8" style={{ background: t.sectionAlt, transition: 'all 0.4s ease' }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl text-center mb-4" style={headerFont}>Unlock Powerful Insights</h2>
-          <p className="text-xl text-slate-400 text-center mb-16 max-w-3xl mx-auto">
+          <h2 className="text-4xl text-center mb-4" style={{ ...headerFont, color: t.text }}>Unlock Powerful Insights</h2>
+          <p className="text-xl text-center mb-16 max-w-3xl mx-auto" style={{ color: t.textMuted }}>
             The most comprehensive analytics dashboard that can be customised to your needs
           </p>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {features.map((feature, i) => (
-              <div key={i} className="flex items-start space-x-4 p-6 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors border border-slate-700">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-500 p-3 rounded-lg flex-shrink-0">
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '24px', borderRadius: '12px', background: t.featureCardBg, border: `1px solid ${t.cardBorder}`, transition: 'all 0.4s ease' }}>
+                <div style={{ background: 'linear-gradient(135deg, #2563eb, #3b82f6)', padding: '12px', borderRadius: '10px', flexShrink: 0, color: 'white' }}>
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="text-xl mb-2" style={headerFont}>{feature.title}</h3>
-                  <p className="text-slate-400">{feature.description}</p>
+                  <h3 className="text-xl mb-2" style={{ ...headerFont, color: t.text }}>{feature.title}</h3>
+                  <p style={{ color: t.textMuted }}>{feature.description}</p>
                 </div>
               </div>
             ))}
@@ -246,150 +300,75 @@ export default function FreeTradingJournalLanding() {
       {/* Mobile Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-          {/* Enhanced Phone Mockup */}
           <div className="flex justify-center">
-            <div style={{
-              width: '260px',
-              background: 'linear-gradient(145deg, #0f172a, #1e293b)',
-              borderRadius: '40px',
-              border: '2px solid #334155',
-              boxShadow: '0 0 60px rgba(59,130,246,0.15), 0 25px 50px rgba(0,0,0,0.6)',
-              overflow: 'hidden',
-              padding: '0'
-            }}>
-              {/* Phone top bar */}
-              <div style={{
-                background: 'linear-gradient(to bottom, #0f172a, #1e293b)',
-                padding: '16px 20px 12px',
-                borderBottom: '1px solid #1e293b',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
+            <div style={{ width: '260px', background: t.mobilePhoneBg, borderRadius: '40px', border: `2px solid ${t.mobilePhoneBorder}`, boxShadow: t.mobilePhoneShadow, overflow: 'hidden', transition: 'all 0.4s ease' }}>
+              <div style={{ background: t.mobileTopBar, padding: '16px 20px 12px', borderBottom: `1px solid ${t.mobileTopBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.4s ease' }}>
                 <span style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em' }}>
-                  <span style={{ color: '#fff' }}>FREE TRADING </span>
-                  <span style={{ color: '#60a5fa' }}>JOURNAL</span>
+                  <span style={{ color: t.text }}>Free Trading </span>
+                  <span style={{ color: '#3b82f6' }}>Journal</span>
                 </span>
-                <div style={{
-                  width: '28px', height: '28px',
-                  background: 'linear-gradient(135deg, #2563eb, #60a5fa)',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 0 10px rgba(59,130,246,0.5)'
-                }}>
+                <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #2563eb, #60a5fa)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(59,130,246,0.5)' }}>
                   <TrendingUp size={13} color="white" />
                 </div>
               </div>
 
-              {/* Phone body */}
               <div style={{ padding: '16px' }}>
-
-                {/* Winrate + Daily Winrate row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
-                    borderRadius: '14px',
-                    padding: '14px 12px',
-                    border: '1px solid #1e40af33'
-                  }}>
-                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#60a5fa', lineHeight: 1.1 }}>67.92%</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>Winrate</div>
-                    <div style={{ marginTop: '8px', height: '3px', background: '#1e293b', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ width: '68%', height: '100%', background: 'linear-gradient(to right, #2563eb, #60a5fa)', borderRadius: '2px' }}></div>
+                  {[{ value: '67.92%', label: 'Winrate', w: '68%' }, { value: '97.46%', label: 'Daily Winrate', w: '97%' }].map((s, i) => (
+                    <div key={i} style={{ background: t.mobileCard, borderRadius: '14px', padding: '14px 12px', border: `1px solid ${t.mobileCardBorder}`, transition: 'all 0.4s ease' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: t.mobileStatValue, lineHeight: 1.1 }}>{s.value}</div>
+                      <div style={{ fontSize: '10px', color: t.mobileLabel, marginTop: '4px' }}>{s.label}</div>
+                      <div style={{ marginTop: '8px', height: '3px', background: t.mobileBarBg, borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: s.w, height: '100%', background: 'linear-gradient(to right, #2563eb, #60a5fa)', borderRadius: '2px' }}></div>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
-                    borderRadius: '14px',
-                    padding: '14px 12px',
-                    border: '1px solid #1e40af33'
-                  }}>
-                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#60a5fa', lineHeight: 1.1 }}>97.46%</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>Daily Winrate</div>
-                    <div style={{ marginTop: '8px', height: '3px', background: '#1e293b', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ width: '97%', height: '100%', background: 'linear-gradient(to right, #2563eb, #60a5fa)', borderRadius: '2px' }}></div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Profit */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
-                  borderRadius: '14px',
-                  padding: '16px',
-                  border: '1px solid #1e40af33',
-                  marginBottom: '10px'
-                }}>
-                  <div style={{ fontSize: '22px', fontWeight: 700, color: '#60a5fa' }}>€19,800.72</div>
-                  <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>Total Profit</div>
-                  <div style={{ marginTop: '10px' }}>
-                    <svg viewBox="0 0 180 30" style={{ width: '100%', height: '30px' }}>
-                      <defs>
-                        <linearGradient id="chartGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#2563eb" />
-                          <stop offset="100%" stopColor="#60a5fa" />
-                        </linearGradient>
-                      </defs>
-                      <polyline
-                        points="0,25 20,20 40,22 60,15 80,17 100,12 120,10 140,13 160,9 180,6"
-                        fill="none"
-                        stroke="url(#chartGrad)"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                <div style={{ background: t.mobileCard, borderRadius: '14px', padding: '16px', border: `1px solid ${t.mobileCardBorder}`, marginBottom: '10px', transition: 'all 0.4s ease' }}>
+                  <div style={{ fontSize: '22px', fontWeight: 700, color: t.mobileStatValue }}>€19,800.72</div>
+                  <div style={{ fontSize: '10px', color: t.mobileLabel, marginTop: '4px' }}>Total Profit</div>
+                  <svg viewBox="0 0 180 30" style={{ width: '100%', height: '30px', marginTop: '10px' }}>
+                    <defs>
+                      <linearGradient id="chartGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#2563eb" /><stop offset="100%" stopColor="#60a5fa" />
+                      </linearGradient>
+                    </defs>
+                    <polyline points="0,25 20,20 40,22 60,15 80,17 100,12 120,10 140,13 160,9 180,6"
+                      fill="none" stroke="url(#chartGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
 
-                {/* Trade count */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
-                    borderRadius: '14px',
-                    padding: '14px 12px',
-                    border: '1px solid #1e40af33'
-                  }}>
-                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#60a5fa' }}>1,131</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>Trades</div>
-                  </div>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
-                    borderRadius: '14px',
-                    padding: '14px 12px',
-                    border: '1px solid #1e40af33'
-                  }}>
-                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#60a5fa' }}>0.89</div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>Avg Win/Loss</div>
-                  </div>
+                  {[{ value: '1,131', label: 'Trades' }, { value: '0.89', label: 'Avg Win/Loss' }].map((s, i) => (
+                    <div key={i} style={{ background: t.mobileCard, borderRadius: '14px', padding: '14px 12px', border: `1px solid ${t.mobileCardBorder}`, transition: 'all 0.4s ease' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: t.mobileStatValue }}>{s.value}</div>
+                      <div style={{ fontSize: '10px', color: t.mobileLabel, marginTop: '4px' }}>{s.label}</div>
+                    </div>
+                  ))}
                 </div>
-
               </div>
 
-              {/* Phone bottom bar */}
               <div style={{ padding: '12px 20px 20px', display: 'flex', justifyContent: 'center' }}>
-                <div style={{ width: '40px', height: '4px', background: '#334155', borderRadius: '2px' }}></div>
+                <div style={{ width: '40px', height: '4px', background: t.mobileHomebar, borderRadius: '2px' }}></div>
               </div>
             </div>
           </div>
 
-          {/* Right side text */}
           <div>
-            <h2 className="text-4xl mb-4" style={headerFont}>
+            <h2 className="text-4xl mb-4" style={{ ...headerFont, color: t.text }}>
               Realtime Statistics Keep You Updated Anywhere In The World
             </h2>
-            <p className="text-xl text-slate-400 mb-8">
+            <p className="text-xl mb-8" style={{ color: t.textMuted }}>
               Automatic import from your MT5 account makes tracking your performance easier than ever
             </p>
-
             <div className="space-y-4">
               {mobileFeatures.map((feature, i) => (
-                <div key={i} className="flex items-center space-x-3">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-500 p-2 rounded-lg flex-shrink-0">
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ background: 'linear-gradient(135deg, #2563eb, #3b82f6)', padding: '8px', borderRadius: '8px', flexShrink: 0, color: 'white' }}>
                     {feature.icon}
                   </div>
-                  <span className="text-lg">{feature.title}</span>
+                  <span style={{ fontSize: '18px', color: t.text }}>{feature.title}</span>
                 </div>
               ))}
             </div>
@@ -398,22 +377,19 @@ export default function FreeTradingJournalLanding() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
+      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8" style={{ background: t.sectionAlt, transition: 'all 0.4s ease' }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl text-center mb-16" style={headerFont}>
-            Join 10,000+ Traders Who Chose FREE TRADING JOURNAL
+          <h2 className="text-4xl text-center mb-16" style={{ ...headerFont, color: t.text }}>
+            Join 10,000+ Traders Who Chose Free Trading Journal
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {testimonials.map((testimonial, i) => (
-              <div key={i} className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:bg-slate-800 transition-colors">
+              <div key={i} style={{ background: t.testimonialBg, border: `1px solid ${t.cardBorder}`, borderRadius: '12px', padding: '24px', transition: 'all 0.4s ease' }}>
                 <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
+                  {[...Array(testimonial.rating)].map((_, j) => <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
                 </div>
-                <p className="text-slate-300 mb-4 text-sm italic">"{testimonial.text}"</p>
-                <div className="font-semibold text-sm">{testimonial.name}</div>
+                <p style={{ color: t.textMuted, marginBottom: '16px', fontSize: '14px', fontStyle: 'italic' }}>"{testimonial.text}"</p>
+                <div style={{ fontWeight: 600, fontSize: '14px', color: t.text }}>{testimonial.name}</div>
               </div>
             ))}
           </div>
@@ -421,12 +397,10 @@ export default function FreeTradingJournalLanding() {
           <div className="text-center mt-12">
             <div className="flex justify-center">
               <div style={{ padding: '6px', borderRadius: '9999px', border: '2px dashed #3b82f6', display: 'inline-block' }}>
-                <button
-                  className="group flex items-center space-x-2 px-8 py-3 text-white font-semibold transition-all transform hover:scale-105"
-                  style={{ ...navFont, background: 'linear-gradient(to right, #2563eb, #3b82f6)', borderRadius: '9999px', fontSize: '1rem' }}
-                >
+                <button className="group flex items-center space-x-2 px-8 py-3 text-white font-semibold transition-all transform hover:scale-105"
+                  style={{ ...navFont, background: 'linear-gradient(to right, #2563eb, #3b82f6)', borderRadius: '9999px', fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
                   <span>Join us now</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
