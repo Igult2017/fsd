@@ -1,0 +1,884 @@
+import React, { useState } from 'react';
+import {
+  TrendingUp, TrendingDown, Activity, Layers, BarChart3,
+  ChevronDown, AlertTriangle, CheckCircle2, XCircle,
+  AlertCircle, Lightbulb, Info, Zap, Target, Sparkles,
+  ArrowUp, ArrowDown, BarChart2, Filter, Crosshair, Eye
+} from 'lucide-react';
+
+// ─── ALL TFS + CONFLUENCE + INDICATOR + CANDLE PATTERN DATA ──────────────────
+const TFS = {
+
+  // ── Individual TF Performance ─────────────────────────────────────────────
+  htf: [
+    { tf: 'Weekly (W1)',  trades: 14, wins: 12, wr: 86, avgR: 4.2, netPL: 1480, pl_per: '+$106/trade', bias: 'Best for directional bias context — highest WR of all HTFs' },
+    { tf: 'Daily (D1)',   trades: 28, wins: 20, wr: 71, avgR: 3.1, netPL: 1200, pl_per: '+$43/trade',  bias: 'Primary HTF — strong edge when used as context layer' },
+    { tf: 'H4',          trades: 18, wins: 10, wr: 56, avgR: 1.8, netPL: 480,  pl_per: '+$27/trade',  bias: 'Weaker as HTF — too close to entry noise. Better as ATF.' },
+  ],
+
+  atf: [
+    { tf: 'H4',           trades: 22, wins: 17, wr: 77, avgR: 3.4, netPL: 1180, pl_per: '+$54/trade', bias: 'Best analysis TF — ideal structure/context layer' },
+    { tf: 'H1',           trades: 20, wins: 14, wr: 70, avgR: 2.9, netPL: 920,  pl_per: '+$46/trade', bias: 'Strong ATF — clean structure, good signal-to-noise ratio' },
+    { tf: '30M',          trades: 12, wins: 7,  wr: 58, avgR: 2.1, netPL: 380,  pl_per: '+$32/trade', bias: 'Below threshold — too close to entry TF, losing ATF clarity' },
+    { tf: '15M',          trades: 8,  wins: 4,  wr: 50, avgR: 1.4, netPL: 120,  pl_per: '+$15/trade', bias: 'Weak as ATF — noise overwhelms structure on this TF' },
+  ],
+
+  etf: [
+    { tf: 'M5',           trades: 18, wins: 14, wr: 78, avgR: 3.2, netPL: 1060, pl_per: '+$59/trade', bias: 'Best entry TF — precise, clean triggers with low slippage' },
+    { tf: 'M15',          trades: 16, wins: 11, wr: 69, avgR: 2.8, netPL: 780,  pl_per: '+$49/trade', bias: 'Solid ETF — slightly wider stops, fewer false triggers' },
+    { tf: 'M1',           trades: 12, wins: 7,  wr: 58, avgR: 1.8, netPL: 380,  pl_per: '+$32/trade', bias: 'High noise — more false entries, needs very precise conditions' },
+    { tf: 'M3',           trades: 8,  wins: 4,  wr: 50, avgR: 1.4, netPL: 120,  pl_per: '+$15/trade', bias: 'Underperforms — few clean setups on M3 specifically' },
+  ],
+
+  // ── MTF Alignment Performance ──────────────────────────────────────────────
+  alignment: [
+    { label: 'All 3 Aligned (HTF+ATF+ETF)', trades: 22, wins: 19, wr: 86, avgR: 4.1, netPL: 1620, strength: true  },
+    { label: 'HTF + ATF Aligned only',       trades: 12, wins: 8,  wr: 67, avgR: 2.6, netPL: 580,  strength: true  },
+    { label: 'HTF + ETF Aligned only',        trades: 6,  wins: 3,  wr: 50, avgR: 1.2, netPL: 120,  strength: false },
+    { label: 'ATF + ETF Aligned only',        trades: 4,  wins: 2,  wr: 50, avgR: 1.0, netPL: 80,   strength: false },
+    { label: 'HTF Only Aligned',              trades: 4,  wins: 2,  wr: 50, avgR: 0.9, netPL: 60,   strength: false },
+    { label: 'No Alignment (1 TF or none)',   trades: 8,  wins: 2,  wr: 25, avgR: 0.2, netPL: -380, strength: false },
+  ],
+
+  // ── Best MTF Combinations ─────────────────────────────────────────────────
+  combos: [
+    { combo: 'W1 → H4 → M5',  trades: 14, wins: 13, wr: 93, avgR: 4.8, netPL: 1240, rank: 1 },
+    { combo: 'D1 → H4 → M5',  trades: 18, wins: 15, wr: 83, avgR: 4.0, netPL: 1180, rank: 2 },
+    { combo: 'D1 → H1 → M5',  trades: 16, wins: 12, wr: 75, avgR: 3.3, netPL: 840,  rank: 3 },
+    { combo: 'D1 → H4 → M15', trades: 12, wins: 9,  wr: 75, avgR: 3.1, netPL: 680,  rank: 4 },
+    { combo: 'D1 → H1 → M15', trades: 10, wins: 7,  wr: 70, avgR: 2.8, netPL: 520,  rank: 5 },
+    { combo: 'H4 → H1 → M5',  trades: 10, wins: 6,  wr: 60, avgR: 2.2, netPL: 340,  rank: 6 },
+    { combo: 'D1 → 30M → M5', trades: 8,  wins: 4,  wr: 50, avgR: 1.4, netPL: 120,  rank: 7 },
+    { combo: 'H4 → 30M → M1', trades: 6,  wins: 2,  wr: 33, avgR: 0.4, netPL: -160, rank: 8 },
+  ],
+
+  // ── Confluence Performance ────────────────────────────────────────────────
+  confluences: [
+    // Individual confluences
+    { name: 'HTF Key Level Respect',         trades: 26, wins: 21, wr: 81, avgR: 3.6, netPL: 1360, category: 'Structure' },
+    { name: 'MTF Full Alignment',            trades: 22, wins: 19, wr: 86, avgR: 4.1, netPL: 1620, category: 'Structure' },
+    { name: 'Trend Aligned (All TFs)',        trades: 24, wins: 18, wr: 75, avgR: 3.3, netPL: 1080, category: 'Structure' },
+    { name: 'Support/Resistance Level',       trades: 22, wins: 16, wr: 73, avgR: 3.0, netPL: 920,  category: 'Structure' },
+    { name: 'Fibonacci Level (0.618/0.5)',    trades: 14, wins: 11, wr: 79, avgR: 3.4, netPL: 780,  category: 'Structure' },
+    { name: 'Liquidity Pool Targeted',        trades: 16, wins: 13, wr: 81, avgR: 3.7, netPL: 920,  category: 'Liquidity' },
+    { name: 'Order Block Present (HTF)',      trades: 18, wins: 14, wr: 78, avgR: 3.5, netPL: 980,  category: 'Liquidity' },
+    { name: 'Fair Value Gap (FVG)',           trades: 14, wins: 10, wr: 71, avgR: 2.9, netPL: 640,  category: 'Liquidity' },
+    { name: 'Breaker Block',                  trades: 10, wins: 8,  wr: 80, avgR: 3.6, netPL: 560,  category: 'Liquidity' },
+    { name: 'Volume Spike at Entry',          trades: 16, wins: 12, wr: 75, avgR: 3.2, netPL: 780,  category: 'Momentum' },
+    { name: 'RSI Divergence',                 trades: 12, wins: 8,  wr: 67, avgR: 2.6, netPL: 480,  category: 'Momentum' },
+    { name: 'MACD Cross (ETF)',               trades: 14, wins: 9,  wr: 64, avgR: 2.4, netPL: 420,  category: 'Momentum' },
+    { name: 'Session Open Momentum',          trades: 18, wins: 14, wr: 78, avgR: 3.4, netPL: 920,  category: 'Session' },
+    { name: 'News-Free Window',               trades: 28, wins: 21, wr: 75, avgR: 3.1, netPL: 1240, category: 'Session' },
+    { name: 'Candle Close Confirmation',      trades: 20, wins: 16, wr: 80, avgR: 3.5, netPL: 1060, category: 'Entry' },
+    { name: 'Engulfing at Key Level',         trades: 12, wins: 10, wr: 83, avgR: 3.8, netPL: 720,  category: 'Entry' },
+    { name: 'No Confluences (<2)',            trades: 10, wins: 2,  wr: 20, avgR: 0.1, netPL: -520, category: 'None' },
+  ],
+
+  // ── Confluence Count vs Performance ───────────────────────────────────────
+  confluenceCount: [
+    { label: '5+ Confluences',  trades: 14, wins: 13, wr: 93, avgR: 4.6, netPL: 980  },
+    { label: '4 Confluences',   trades: 16, wins: 13, wr: 81, avgR: 3.8, netPL: 840  },
+    { label: '3 Confluences',   trades: 14, wins: 10, wr: 71, avgR: 2.9, netPL: 580  },
+    { label: '2 Confluences',   trades: 10, wins: 5,  wr: 50, avgR: 1.4, netPL: 180  },
+    { label: '1 Confluence',    trades: 6,  wins: 2,  wr: 33, avgR: 0.4, netPL: -180 },
+    { label: '0 Confluences',   trades: 4,  wins: 0,  wr: 0,  avgR:-0.9, netPL: -340 },
+  ],
+
+  // ── Confluence Combos Performance ─────────────────────────────────────────
+  confluenceCombos: [
+    { combo: 'HTF Level + MTF Align + Liquidity Target',       trades: 16, wins: 14, wr: 88, avgR: 4.4, netPL: 1080 },
+    { combo: 'Key Level + Order Block + Volume Spike',         trades: 14, wins: 12, wr: 86, avgR: 4.1, netPL: 920  },
+    { combo: 'Fib 0.618 + FVG + Session Open',                trades: 10, wins: 8,  wr: 80, avgR: 3.6, netPL: 560  },
+    { combo: 'Trend Align + Breaker Block + Engulfing',        trades: 10, wins: 8,  wr: 80, avgR: 3.6, netPL: 560  },
+    { combo: 'MTF Align + Candle Confirm + News-Free',         trades: 12, wins: 9,  wr: 75, avgR: 3.2, netPL: 600  },
+    { combo: 'RSI Divergence + Key Level only',                trades: 8,  wins: 4,  wr: 50, avgR: 1.4, netPL: 120  },
+    { combo: 'MACD Cross only (no structure)',                 trades: 6,  wins: 2,  wr: 33, avgR: 0.4, netPL: -120 },
+    { combo: 'Indicator only (no key level, no MTF)',          trades: 6,  wins: 1,  wr: 17, avgR:-0.4, netPL: -360 },
+  ],
+
+  // ── Indicator Performance ──────────────────────────────────────────────────
+  indicators: [
+    // By indicator + state
+    { name: 'RSI < 30 (Oversold)',         trades: 14, wins: 11, wr: 79, avgR: 3.4, netPL: 740, tf: 'ETF', direction: 'Long' },
+    { name: 'RSI > 70 (Overbought)',       trades: 12, wins: 9,  wr: 75, avgR: 3.0, netPL: 560, tf: 'ETF', direction: 'Short' },
+    { name: 'RSI Divergence (Bullish)',    trades: 10, wins: 8,  wr: 80, avgR: 3.5, netPL: 560, tf: 'ATF', direction: 'Long' },
+    { name: 'RSI Divergence (Bearish)',    trades: 8,  wins: 6,  wr: 75, avgR: 3.1, netPL: 400, tf: 'ATF', direction: 'Short' },
+    { name: 'MACD Bullish Cross (ETF)',    trades: 14, wins: 10, wr: 71, avgR: 2.8, netPL: 580, tf: 'ETF', direction: 'Long' },
+    { name: 'MACD Bearish Cross (ETF)',    trades: 10, wins: 6,  wr: 60, avgR: 2.2, netPL: 340, tf: 'ETF', direction: 'Short' },
+    { name: 'MACD Cross (ATF aligned)',    trades: 12, wins: 10, wr: 83, avgR: 3.8, netPL: 720, tf: 'ATF', direction: 'Both' },
+    { name: 'Volume > 2× Average',         trades: 16, wins: 13, wr: 81, avgR: 3.6, netPL: 860, tf: 'ETF', direction: 'Both' },
+    { name: 'Volume Surge + Key Level',    trades: 12, wins: 11, wr: 92, avgR: 4.4, netPL: 840, tf: 'ETF', direction: 'Both' },
+    { name: 'EMA 20 Cross (ETF)',          trades: 12, wins: 7,  wr: 58, avgR: 2.0, netPL: 360, tf: 'ETF', direction: 'Both' },
+    { name: 'EMA Slope Alignment (ATF)',   trades: 14, wins: 10, wr: 71, avgR: 2.8, netPL: 580, tf: 'ATF', direction: 'Both' },
+    { name: 'ATR Expansion at Entry',      trades: 10, wins: 7,  wr: 70, avgR: 2.6, netPL: 400, tf: 'ETF', direction: 'Both' },
+    { name: 'BB Squeeze Breakout',         trades: 8,  wins: 6,  wr: 75, avgR: 3.2, netPL: 400, tf: 'ETF', direction: 'Both' },
+    { name: 'Stoch Oversold + Key Level',  trades: 8,  wins: 7,  wr: 88, avgR: 4.0, netPL: 520, tf: 'ETF', direction: 'Long' },
+    { name: 'Indicator Signal No S/R',     trades: 8,  wins: 2,  wr: 25, avgR: 0.2, netPL: -380, tf: 'ETF', direction: 'Both' },
+  ],
+
+  // ── Candle Patterns by TF ──────────────────────────────────────────────────
+  candles: [
+    // ETF Patterns
+    { pattern: 'Engulfing (Bullish)',     tf: 'M5',  trades: 16, wins: 13, wr: 81, avgR: 3.6, netPL: 860  },
+    { pattern: 'Engulfing (Bearish)',     tf: 'M5',  trades: 12, wins: 9,  wr: 75, avgR: 3.1, netPL: 580  },
+    { pattern: 'Pin Bar (Bullish)',       tf: 'M5',  trades: 14, wins: 11, wr: 79, avgR: 3.3, netPL: 720  },
+    { pattern: 'Pin Bar (Bearish)',       tf: 'M5',  trades: 10, wins: 7,  wr: 70, avgR: 2.8, netPL: 440  },
+    { pattern: 'Inside Bar Breakout',     tf: 'M5',  trades: 10, wins: 7,  wr: 70, avgR: 2.7, netPL: 420  },
+    { pattern: 'FVG Fill + Rejection',   tf: 'M5',  trades: 12, wins: 10, wr: 83, avgR: 3.8, netPL: 720  },
+    { pattern: 'Doji at Key Level',       tf: 'M5',  trades: 8,  wins: 4,  wr: 50, avgR: 1.4, netPL: 120  },
+    { pattern: 'Engulfing (Bullish)',     tf: 'M15', trades: 14, wins: 12, wr: 86, avgR: 3.9, netPL: 860  },
+    { pattern: 'Engulfing (Bearish)',     tf: 'M15', trades: 10, wins: 7,  wr: 70, avgR: 2.8, netPL: 440  },
+    { pattern: 'Pin Bar (Bullish)',       tf: 'M15', trades: 12, wins: 9,  wr: 75, avgR: 3.2, netPL: 600  },
+    { pattern: 'FVG Fill + Rejection',   tf: 'M15', trades: 8,  wins: 7,  wr: 88, avgR: 4.1, netPL: 560  },
+    { pattern: 'Doji at Key Level',       tf: 'M15', trades: 6,  wins: 3,  wr: 50, avgR: 1.2, netPL: 80   },
+    { pattern: 'Engulfing (Bullish)',     tf: 'M1',  trades: 12, wins: 6,  wr: 50, avgR: 1.6, netPL: 240  },
+    { pattern: 'Pin Bar',                tf: 'M1',  trades: 10, wins: 5,  wr: 50, avgR: 1.4, netPL: 160  },
+    // ATF Patterns
+    { pattern: 'Engulfing (Bullish)',     tf: 'H1',  trades: 14, wins: 11, wr: 79, avgR: 3.4, netPL: 740  },
+    { pattern: 'Pin Bar (Bullish)',       tf: 'H1',  trades: 12, wins: 9,  wr: 75, avgR: 3.1, netPL: 580  },
+    { pattern: 'Inside Bar Break',        tf: 'H1',  trades: 8,  wins: 5,  wr: 63, avgR: 2.3, netPL: 300  },
+    { pattern: 'Engulfing (Bullish)',     tf: 'H4',  trades: 16, wins: 14, wr: 88, avgR: 4.2, netPL: 1060 },
+    { pattern: 'Pin Bar (Bullish)',       tf: 'H4',  trades: 12, wins: 10, wr: 83, avgR: 3.8, netPL: 720  },
+    { pattern: 'Bearish Rejection',       tf: 'H4',  trades: 10, wins: 7,  wr: 70, avgR: 3.0, netPL: 480  },
+    // HTF Patterns
+    { pattern: 'Engulfing (Bullish)',     tf: 'D1',  trades: 14, wins: 12, wr: 86, avgR: 4.2, netPL: 980  },
+    { pattern: 'Pin Bar (Bearish)',       tf: 'D1',  trades: 10, wins: 8,  wr: 80, avgR: 3.7, netPL: 600  },
+    { pattern: 'Inside Bar',              tf: 'D1',  trades: 8,  wins: 5,  wr: 63, avgR: 2.6, netPL: 320  },
+    { pattern: 'Doji (Indecision)',       tf: 'D1',  trades: 6,  wins: 2,  wr: 33, avgR: 0.8, netPL: -120 },
+  ],
+
+  // ── Candle Pattern × TF Matrix ────────────────────────────────────────────
+  candleMatrix: {
+    patterns: ['Engulfing Bull', 'Engulfing Bear', 'Pin Bar Bull', 'Pin Bar Bear', 'FVG Rejection', 'Inside Bar', 'Doji (Key Lvl)'],
+    tfs: ['M1', 'M5', 'M15', 'H1', 'H4', 'D1'],
+    data: [
+      // Engulfing Bull
+      [{wr:50,r:1.6,t:12},{wr:81,r:3.6,t:16},{wr:86,r:3.9,t:14},{wr:79,r:3.4,t:14},{wr:88,r:4.2,t:16},{wr:86,r:4.2,t:14}],
+      // Engulfing Bear
+      [{wr:42,r:1.2,t:8}, {wr:75,r:3.1,t:12},{wr:70,r:2.8,t:10},{wr:70,r:2.8,t:10},{wr:75,r:3.2,t:8}, {wr:72,r:3.0,t:8}],
+      // Pin Bar Bull
+      [{wr:45,r:1.3,t:10},{wr:79,r:3.3,t:14},{wr:75,r:3.2,t:12},{wr:75,r:3.1,t:12},{wr:83,r:3.8,t:12},{wr:80,r:3.7,t:10}],
+      // Pin Bar Bear
+      [{wr:40,r:1.0,t:8}, {wr:70,r:2.8,t:10},{wr:65,r:2.5,t:8}, {wr:68,r:2.6,t:8}, {wr:72,r:3.0,t:8}, {wr:80,r:3.7,t:10}],
+      // FVG Rejection
+      [{wr:55,r:1.8,t:8}, {wr:83,r:3.8,t:12},{wr:88,r:4.1,t:8}, {wr:75,r:3.2,t:8}, {wr:80,r:3.6,t:6}, {wr:70,r:3.0,t:4}],
+      // Inside Bar
+      [{wr:38,r:0.9,t:8}, {wr:70,r:2.7,t:10},{wr:65,r:2.4,t:8}, {wr:63,r:2.3,t:8}, {wr:68,r:2.8,t:6}, {wr:63,r:2.6,t:8}],
+      // Doji
+      [{wr:30,r:0.4,t:6}, {wr:50,r:1.4,t:8}, {wr:50,r:1.2,t:6}, {wr:45,r:1.0,t:6}, {wr:55,r:1.6,t:6}, {wr:33,r:0.8,t:6}],
+    ]
+  },
+};
+
+// ─── Shared Components ────────────────────────────────────────────────────────
+
+const InsightBadge = ({ text, type = 'warning' }) => {
+  const s = {
+    warning: 'bg-amber-500/10 border-amber-500/30 text-amber-200',
+    danger:  'bg-rose-500/10  border-rose-500/30  text-rose-200',
+    success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200',
+    info:    'bg-blue-500/10  border-blue-500/30  text-blue-200',
+  };
+  const icons = { warning: AlertTriangle, danger: XCircle, success: CheckCircle2, info: Lightbulb };
+  const Icon = icons[type];
+  return (
+    <div className={`flex items-start gap-2 p-3 border ${s[type]} mt-3 rounded-sm`}>
+      <Icon className="w-3 h-3 shrink-0 mt-0.5 opacity-80" />
+      <p className="text-[10px] leading-relaxed font-semibold italic">{text}</p>
+    </div>
+  );
+};
+
+const PerfRow = ({ label, trades, wr, avgR, netPL, highlight = false, sub }) => {
+  const wrCol = wr >= 75 ? 'text-emerald-400' : wr >= 58 ? 'text-amber-400' : 'text-rose-400';
+  const barCol = wr >= 75 ? 'bg-emerald-500' : wr >= 58 ? 'bg-amber-500' : 'bg-rose-500';
+  const plCol = netPL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+  return (
+    <div className={`px-4 py-3 border-b border-white/[0.035] last:border-0 hover:bg-white/[0.02] transition-colors ${highlight ? 'bg-emerald-950/20' : netPL < 0 ? 'bg-rose-950/20' : ''}`}>
+      <div className="flex items-center gap-3 mb-1.5">
+        <span className="text-[10px] font-bold text-slate-300 w-52 shrink-0 uppercase tracking-tight">{label}</span>
+        <div className="flex-1">
+          <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
+            <div className={`h-full ${barCol} rounded-full`} style={{ width: `${wr}%` }} />
+          </div>
+        </div>
+        <span className={`text-xs font-black mono w-10 text-right ${wrCol}`}>{wr}%</span>
+        <span className={`text-[10px] font-bold mono w-12 text-right ${avgR >= 2 ? 'text-blue-400' : avgR >= 0 ? 'text-slate-500' : 'text-rose-500'}`}>{avgR > 0 ? '+' : ''}{avgR.toFixed(1)}R</span>
+        <span className={`text-[10px] font-bold mono w-16 text-right ${plCol}`}>{netPL >= 0 ? '+' : ''}${netPL.toLocaleString()}</span>
+        <span className="text-[9px] text-slate-700 mono w-12 text-right">{trades}tr</span>
+      </div>
+      {sub && <p className="text-[9px] text-slate-600 italic pl-0 mt-0.5">{sub}</p>}
+    </div>
+  );
+};
+
+const SectionHead = ({ icon: Icon, title, color = 'blue', badge }) => {
+  const cols = {
+    blue:   'text-blue-400   bg-blue-950/30   border-blue-900/50',
+    emerald:'text-emerald-400 bg-emerald-950/30 border-emerald-900/50',
+    amber:  'text-amber-400  bg-amber-950/30  border-amber-900/50',
+    rose:   'text-rose-400   bg-rose-950/30   border-rose-900/50',
+    violet: 'text-violet-400 bg-violet-950/30 border-violet-900/50',
+    cyan:   'text-cyan-400   bg-cyan-950/30   border-cyan-900/50',
+    indigo: 'text-indigo-400 bg-indigo-950/30 border-indigo-900/50',
+  };
+  const c = cols[color] || cols.blue;
+  const [textC, bgC, borderC] = c.split(' ');
+  return (
+    <div className={`flex items-center gap-2.5 px-4 py-3 ${bgC} border-b ${borderC}`}>
+      <Icon className={`w-3.5 h-3.5 ${textC} shrink-0`} />
+      <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${textC}`}>{title}</h3>
+      {badge && <span className={`ml-2 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border rounded-sm ${bgC} ${borderC} ${textC}`}>{badge}</span>}
+    </div>
+  );
+};
+
+const ColHeaders = ({ wide = 52 }) => (
+  <div className={`flex items-center gap-3 px-4 py-1.5 border-b border-white/[0.03]`}>
+    <span className={`text-[8px] font-black text-slate-700 uppercase tracking-widest`} style={{ width: wide * 4, flexShrink: 0 }}>Condition</span>
+    <div className="flex-1"><span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">WR Bar</span></div>
+    <span className="text-[8px] font-black text-slate-700 uppercase w-10 text-right tracking-widest">WR%</span>
+    <span className="text-[8px] font-black text-slate-700 uppercase w-12 text-right tracking-widest">Avg R</span>
+    <span className="text-[8px] font-black text-slate-700 uppercase w-16 text-right tracking-widest">Net P/L</span>
+    <span className="text-[8px] font-black text-slate-700 uppercase w-12 text-right tracking-widest">Trades</span>
+  </div>
+);
+
+const scrollStyle = { maxHeight: 320, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#1a2d45 transparent' };
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function TFSDashboard() {
+  const [tab, setTab] = useState('tfs');
+  const [candleTF, setCandleTF] = useState('ALL');
+  const [confCat, setConfCat] = useState('ALL');
+
+  const tabs = [
+    { id: 'tfs',         label: 'TF Individual',      icon: Layers },
+    { id: 'alignment',   label: 'MTF Alignment',      icon: Activity },
+    { id: 'combos',      label: 'MTF Combinations',   icon: Filter },
+    { id: 'confluences', label: 'Confluences',         icon: Sparkles },
+    { id: 'indicators',  label: 'Indicators',          icon: Zap },
+    { id: 'candles',     label: 'Candle Patterns',     icon: BarChart2 },
+    { id: 'matrix',      label: 'Pattern × TF Matrix', icon: Target },
+  ];
+
+  const tfOptions = ['ALL', 'M1', 'M5', 'M15', 'H1', 'H4', 'D1'];
+  const confCategories = ['ALL', 'Structure', 'Liquidity', 'Momentum', 'Session', 'Entry', 'None'];
+
+  const filteredCandles = candleTF === 'ALL' ? TFS.candles : TFS.candles.filter(c => c.tf === candleTF);
+  const filteredConf = confCat === 'ALL' ? TFS.confluences : TFS.confluences.filter(c => c.category === confCat);
+
+  return (
+    <div className="min-h-screen bg-[#050b14] text-slate-200" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .fade-in { animation: fi 0.22s ease; }
+        @keyframes fi { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+        .matrix-cell { transition: all 0.15s ease; }
+        .matrix-cell:hover { transform: scale(1.05); z-index: 10; }
+        table { border-collapse: collapse; }
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar-thumb { background: #1a2d45; border-radius: 4px; }
+      `}</style>
+
+      {/* ── Nav ─────────────────────────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-[#050b14]/97 backdrop-blur border-b border-[#0c1828]">
+        <div className="max-w-[1600px] mx-auto flex items-center px-6">
+          <div className="mr-6 py-3.5 border-r border-[#0c1828] pr-6 shrink-0">
+            <div className="text-xs font-black text-white uppercase tracking-widest">TFS Analytics</div>
+            <div className="text-[8px] text-slate-600 uppercase tracking-widest mt-0.5">Timeframe · Confluences · Patterns</div>
+          </div>
+          <div className="flex items-center gap-0 overflow-x-auto flex-1">
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-3.5 text-[9px] font-bold uppercase tracking-widest border-b-2 whitespace-nowrap transition-all ${tab === t.id ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5' : 'border-transparent text-slate-600 hover:text-slate-400 hover:bg-white/[0.015]'}`}>
+                <t.icon className="w-3 h-3" />{t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      <div className="p-6 max-w-[1600px] mx-auto fade-in" key={tab}>
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            TF INDIVIDUAL PERFORMANCE
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'tfs' && (
+          <div className="space-y-6">
+
+            {/* Top insight */}
+            <div className="bg-[#0a0d1f] border border-indigo-900/50 p-4 flex items-start gap-3">
+              <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                This section measures how each individual timeframe performs as an <span className="text-indigo-300 font-bold">HTF (context layer)</span>, <span className="text-cyan-300 font-bold">ATF (analysis/structure layer)</span>, and <span className="text-emerald-300 font-bold">ETF (entry trigger layer)</span> — ranked by Win Rate, Avg R, and Net P/L.
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-4">
+
+              {/* HTF */}
+              <div className="bg-[#080d18] border border-violet-900/50 overflow-hidden">
+                <SectionHead icon={TrendingUp} title="Higher Timeframe (HTF) — Context Layer" color="violet" badge="Bias Source" />
+                <ColHeaders />
+                <div style={scrollStyle}>
+                  {[...TFS.htf].sort((a,b) => b.wr - a.wr).map((item, i) => (
+                    <PerfRow key={i} label={item.tf} trades={item.trades} wr={item.wr} avgR={item.avgR} netPL={item.netPL} highlight={i === 0} sub={item.bias} />
+                  ))}
+                </div>
+                <InsightBadge text="W1 as HTF produces 86% WR — significantly higher than D1 (71%) and H4 (56%). Using H4 as HTF blurs context and entry-level analysis, costing ~15% WR. Primary HTF should be D1 minimum; W1 preferred." type="success" />
+              </div>
+
+              {/* ATF */}
+              <div className="bg-[#080d18] border border-cyan-900/50 overflow-hidden">
+                <SectionHead icon={Layers} title="Analysis Timeframe (ATF) — Structure Layer" color="cyan" badge="Setup Builder" />
+                <ColHeaders />
+                <div style={scrollStyle}>
+                  {[...TFS.atf].sort((a,b) => b.wr - a.wr).map((item, i) => (
+                    <PerfRow key={i} label={item.tf} trades={item.trades} wr={item.wr} avgR={item.avgR} netPL={item.netPL} highlight={i === 0} sub={item.bias} />
+                  ))}
+                </div>
+                <InsightBadge text="H4 as ATF produces 77% WR — 7% above H1 and 19% above 30M. The 15M ATF is borderline noise at 50% WR. Best structure reading comes from H4; H1 is acceptable. Avoid 30M and 15M as ATF." type="success" />
+              </div>
+
+              {/* ETF */}
+              <div className="bg-[#080d18] border border-emerald-900/50 overflow-hidden">
+                <SectionHead icon={Crosshair} title="Entry Timeframe (ETF) — Trigger Layer" color="emerald" badge="Precision Entry" />
+                <ColHeaders />
+                <div style={scrollStyle}>
+                  {[...TFS.etf].sort((a,b) => b.wr - a.wr).map((item, i) => (
+                    <PerfRow key={i} label={item.tf} trades={item.trades} wr={item.wr} avgR={item.avgR} netPL={item.netPL} highlight={i === 0} sub={item.bias} />
+                  ))}
+                </div>
+                <InsightBadge text="M5 is your best entry TF at 78% WR and +3.2R avg — M15 is solid second at 69%. M1 drops to 58% WR due to noise — tighter triggers but more false entries. M3 has no meaningful edge. Default ETF: M5, backup: M15." type="success" />
+              </div>
+            </div>
+
+            {/* TF Role Summary */}
+            <div className="bg-[#080d18] border border-[#0c1828] p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Optimal TF Role Assignment — Data-Backed</h3>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { role: 'HTF (Context / Bias)', best: 'W1 → D1', avoid: 'H4 or below', wr: '86% → 71%', reason: 'W1 provides cleanest directional bias. H4 as HTF collapses WR to 56% — too much noise in the context layer.' },
+                  { role: 'ATF (Structure / Setup)', best: 'H4 → H1', avoid: '30M or below', wr: '77% → 70%', reason: 'H4 gives the clearest structure. 30M as ATF loses 19% WR vs H4 — structure becomes ambiguous at that level.' },
+                  { role: 'ETF (Entry Trigger)', best: 'M5 → M15', avoid: 'M1 or M3', wr: '78% → 69%', reason: 'M5 gives best precision/noise ratio. M1 false entries reduce WR by 20%. M3 has no statistically meaningful edge.' },
+                ].map((x, i) => (
+                  <div key={i} className="bg-[#0a1020] border border-[#0c1828] p-4">
+                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">{x.role}</div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                      <span className="text-xs font-black text-emerald-300 mono">{x.best}</span>
+                      <span className="text-[9px] text-emerald-700 mono">{x.wr}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <XCircle className="w-2.5 h-2.5 text-rose-500 shrink-0" />
+                      <span className="text-xs font-bold text-rose-400 mono">Avoid: {x.avoid}</span>
+                    </div>
+                    <p className="text-[9px] text-slate-600 italic leading-relaxed">{x.reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            MTF ALIGNMENT PERFORMANCE
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'alignment' && (
+          <div className="space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+
+              {/* Alignment Levels */}
+              <div className="bg-[#080d18] border border-indigo-900/50 overflow-hidden">
+                <SectionHead icon={Activity} title="MTF Alignment Level → Performance" color="indigo" />
+                <ColHeaders />
+                <div style={scrollStyle}>
+                  {TFS.alignment.map((item, i) => (
+                    <PerfRow key={i} label={item.label} trades={item.trades} wr={item.wr} avgR={item.avgR} netPL={item.netPL} highlight={item.strength && i === 0} />
+                  ))}
+                </div>
+                <InsightBadge text="Full 3-TF alignment (86% WR, +4.1R avg) vs no alignment (25% WR, +0.2R avg) = a 61% WR gap. This is your single most powerful filter. Never enter without at least HTF+ATF aligned." type="danger" />
+              </div>
+
+              {/* Alignment visual diagram */}
+              <div className="bg-[#080d18] border border-[#0c1828] p-5 space-y-4">
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">WR by Alignment Level — Visual</div>
+                {TFS.alignment.map((item, i) => {
+                  const col = item.wr >= 75 ? { bar: 'bg-emerald-500', text: 'text-emerald-400', bg: 'bg-emerald-950/20 border-emerald-900/30' }
+                    : item.wr >= 55 ? { bar: 'bg-amber-500', text: 'text-amber-400', bg: 'bg-amber-950/20 border-amber-900/30' }
+                    : { bar: 'bg-rose-500', text: 'text-rose-400', bg: 'bg-rose-950/20 border-rose-900/30' };
+                  return (
+                    <div key={i} className={`p-3 border rounded-sm ${col.bg}`}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] font-bold text-slate-300">{item.label}</span>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm font-black mono ${col.text}`}>{item.wr}%</span>
+                          <span className={`text-[10px] mono ${item.avgR >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>+{item.avgR}R</span>
+                          <span className={`text-[10px] mono ${item.netPL >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{item.netPL >= 0 ? '+' : ''}${item.netPL}</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-[#0a1020] h-2 rounded-full">
+                        <div className={`h-full ${col.bar} rounded-full transition-all`} style={{ width: `${item.wr}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* What happens at each alignment step */}
+            <div className="bg-[#080d18] border border-[#0c1828] p-5">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">What Each Alignment Layer Adds to WR</div>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { layer: 'Adding HTF Alignment', before: '25% WR (no align)', after: '50–67% WR', gain: '+25–42%', desc: 'HTF bias alone lifts WR from coin-flip to acceptable. It filters out the most obvious wrong-direction trades.' },
+                  { layer: 'Adding ATF Confirmation', before: '50–67% WR (HTF only)', after: '67–77% WR', gain: '+12–17%', desc: 'ATF structure confirmation adds the setup quality layer. You now have bias + structure — meaningful edge.' },
+                  { layer: 'Adding ETF Precision', before: '67–77% WR', after: '83–93% WR', gain: '+16–16%', desc: 'ETF entry precision captures the exact trigger. Full TFS alignment converts analysis into execution with maximum precision.' },
+                ].map((x, i) => (
+                  <div key={i} className="bg-[#0a1020] border border-[#0c1828] p-4">
+                    <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-3">{x.layer}</div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] text-slate-600">Before:</span>
+                      <span className="text-[10px] font-bold text-rose-400 mono">{x.before}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] text-slate-600">After:</span>
+                      <span className="text-[10px] font-bold text-emerald-400 mono">{x.after}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] text-slate-600">WR Gain:</span>
+                      <span className="text-sm font-black text-white mono">{x.gain}</span>
+                    </div>
+                    <p className="text-[9px] text-slate-600 italic leading-relaxed">{x.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            MTF COMBINATIONS PERFORMANCE
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'combos' && (
+          <div className="space-y-6">
+
+            <div className="bg-[#080d18] border border-[#0c1828] overflow-hidden">
+              <SectionHead icon={Filter} title="MTF Combination Performance — HTF → ATF → ETF" color="indigo" badge="Ranked by WR" />
+              <div className="px-4 py-2 border-b border-white/[0.03] flex items-center gap-3">
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-8">Rank</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-52 shrink-0">HTF → ATF → ETF</span>
+                <div className="flex-1"><span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">WR Bar</span></div>
+                <span className="text-[8px] font-black text-slate-700 uppercase w-10 text-right">WR%</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase w-12 text-right">Avg R</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase w-16 text-right">Net P/L</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase w-12 text-right">Trades</span>
+              </div>
+              <div style={{ ...scrollStyle, maxHeight: 480 }}>
+                {TFS.combos.map((item, i) => {
+                  const wrCol = item.wr >= 80 ? 'text-emerald-400' : item.wr >= 65 ? 'text-amber-400' : 'text-rose-400';
+                  const barCol = item.wr >= 80 ? 'bg-emerald-500' : item.wr >= 65 ? 'bg-amber-500' : 'bg-rose-500';
+                  const plCol = item.netPL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  return (
+                    <div key={i} className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.035] last:border-0 hover:bg-white/[0.02] ${i < 3 ? 'bg-emerald-950/10' : item.netPL < 0 ? 'bg-rose-950/20' : ''}`}>
+                      <span className={`text-[10px] font-black mono w-8 shrink-0 ${i < 3 ? 'text-emerald-400' : 'text-slate-700'}`}>#{item.rank}</span>
+                      <span className="text-[10px] font-bold text-slate-200 mono w-52 shrink-0">{item.combo}</span>
+                      <div className="flex-1">
+                        <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
+                          <div className={`h-full ${barCol} rounded-full`} style={{ width: `${item.wr}%` }} />
+                        </div>
+                      </div>
+                      <span className={`text-xs font-black mono w-10 text-right ${wrCol}`}>{item.wr}%</span>
+                      <span className={`text-[10px] font-bold mono w-12 text-right ${item.avgR >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>{item.avgR > 0 ? '+' : ''}{item.avgR.toFixed(1)}R</span>
+                      <span className={`text-[10px] font-bold mono w-16 text-right ${plCol}`}>{item.netPL >= 0 ? '+' : ''}${item.netPL.toLocaleString()}</span>
+                      <span className="text-[9px] text-slate-700 mono w-12 text-right">{item.trades}tr</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="px-4 pb-4 space-y-2">
+                <InsightBadge text="W1→H4→M5 is your highest-edge combination at 93% WR and +4.8R avg. D1→H4→M5 is a close second at 83% WR — both practical and repeatable. H4→30M→M1 is your worst combo at 33% WR (-$160 net). Eliminate it." type="success" />
+                <InsightBadge text="The M5 entry TF outperforms M15 in all matching combos. Every combo using H4 as ATF outperforms equivalent combos using H1 or 30M. Pattern is consistent: higher ATF = better performance." type="info" />
+              </div>
+            </div>
+
+            {/* Best vs Worst Combo Breakdown */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-[#030f08] border border-emerald-900/50 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Top 3 Combinations — Deploy These</h3>
+                </div>
+                {TFS.combos.slice(0, 3).map((c, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-emerald-950/30 border border-emerald-900/30 mb-2">
+                    <div>
+                      <span className="text-[8px] text-emerald-700 uppercase tracking-widest mr-2">#{c.rank}</span>
+                      <span className="text-xs font-black text-emerald-200 mono">{c.combo}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-black text-emerald-400 mono">{c.wr}%</span>
+                      <span className="text-[10px] text-emerald-700 mono ml-2">+{c.avgR}R</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-[#0f0408] border border-rose-900/50 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <XCircle className="w-4 h-4 text-rose-400" />
+                  <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Bottom Combinations — Eliminate These</h3>
+                </div>
+                {TFS.combos.slice(-3).map((c, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-rose-950/30 border border-rose-900/30 mb-2">
+                    <div>
+                      <span className="text-[8px] text-rose-700 uppercase tracking-widest mr-2">#{c.rank}</span>
+                      <span className="text-xs font-black text-rose-200 mono">{c.combo}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-black text-rose-400 mono">{c.wr}%</span>
+                      <span className="text-[10px] text-rose-700 mono ml-2">{c.avgR > 0 ? '+' : ''}{c.avgR}R</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            CONFLUENCE PERFORMANCE
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'confluences' && (
+          <div className="space-y-6">
+
+            {/* Confluence Count */}
+            <div className="bg-[#080d18] border border-violet-900/50 overflow-hidden">
+              <SectionHead icon={Sparkles} title="Confluence Count → Performance (How Many Confluences)" color="violet" />
+              <ColHeaders />
+              <div>
+                {TFS.confluenceCount.map((item, i) => (
+                  <PerfRow key={i} label={item.label} trades={item.trades} wr={item.wr} avgR={item.avgR} netPL={item.netPL} highlight={i === 0} />
+                ))}
+              </div>
+              <InsightBadge
+                text="5+ confluences = 93% WR. 0 confluences = 0% WR (-$340 net). Every confluence added improves WR by ~18%. Hard minimum: 3 confluences before entry. Preferred: 4+. This is not a soft guideline — it's a binary gate."
+                type="danger" />
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-6">
+
+              {/* Individual Confluence Performance */}
+              <div className="bg-[#080d18] border border-cyan-900/50 overflow-hidden">
+                <div className="flex items-center justify-between pr-3">
+                  <SectionHead icon={Filter} title="Individual Confluence Performance" color="cyan" />
+                  <select value={confCat} onChange={e => setConfCat(e.target.value)}
+                    className="appearance-none bg-[#0a1020] border border-[#162236] text-slate-300 px-3 py-1.5 text-[9px] font-bold tracking-wider cursor-pointer outline-none uppercase mono">
+                    {confCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="px-4 py-2 border-b border-white/[0.03] flex items-center gap-3">
+                  <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-52 shrink-0">Confluence</span>
+                  <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-16 shrink-0">Category</span>
+                  <div className="flex-1"><span className="text-[8px] text-slate-700 uppercase">WR</span></div>
+                  <span className="text-[8px] text-slate-700 uppercase w-10 text-right">WR%</span>
+                  <span className="text-[8px] text-slate-700 uppercase w-12 text-right">Avg R</span>
+                  <span className="text-[8px] text-slate-700 uppercase w-14 text-right">Net P/L</span>
+                </div>
+                <div style={scrollStyle}>
+                  {[...filteredConf].sort((a,b) => b.wr - a.wr).map((item, i) => {
+                    const wrCol = item.wr >= 80 ? 'text-emerald-400' : item.wr >= 65 ? 'text-amber-400' : 'text-rose-400';
+                    const barCol = item.wr >= 80 ? 'bg-emerald-500' : item.wr >= 65 ? 'bg-amber-500' : 'bg-rose-500';
+                    const plCol = item.netPL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                    const catCol = { Structure: 'text-blue-500', Liquidity: 'text-violet-500', Momentum: 'text-amber-500', Session: 'text-cyan-500', Entry: 'text-emerald-500', None: 'text-rose-500' };
+                    return (
+                      <div key={i} className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.035] last:border-0 hover:bg-white/[0.02] ${item.netPL < 0 ? 'bg-rose-950/20' : item.wr >= 80 ? 'bg-emerald-950/10' : ''}`}>
+                        <span className="text-[10px] font-bold text-slate-300 w-52 shrink-0">{item.name}</span>
+                        <span className={`text-[8px] font-black uppercase w-16 shrink-0 ${catCol[item.category] || 'text-slate-600'}`}>{item.category}</span>
+                        <div className="flex-1">
+                          <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
+                            <div className={`h-full ${barCol} rounded-full`} style={{ width: `${item.wr}%` }} />
+                          </div>
+                        </div>
+                        <span className={`text-xs font-black mono w-10 text-right ${wrCol}`}>{item.wr}%</span>
+                        <span className={`text-[10px] font-bold mono w-12 text-right ${item.avgR >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>{item.avgR > 0 ? '+' : ''}{item.avgR.toFixed(1)}R</span>
+                        <span className={`text-[10px] font-bold mono w-14 text-right ${plCol}`}>{item.netPL >= 0 ? '+' : ''}${item.netPL.toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <InsightBadge text="Volume Surge + Key Level combo (92% WR) and MTF Full Alignment (86% WR) are your highest-signal individual confluences. 'No Confluences' at 20% WR and -$520 net proves the floor." type="success" />
+              </div>
+
+              {/* Confluence Combination Performance */}
+              <div className="bg-[#080d18] border border-amber-900/50 overflow-hidden">
+                <SectionHead icon={Sparkles} title="Confluence Combinations — What Works Together" color="amber" />
+                <ColHeaders />
+                <div style={scrollStyle}>
+                  {[...TFS.confluenceCombos].sort((a,b) => b.wr - a.wr).map((item, i) => (
+                    <PerfRow key={i} label={item.combo} trades={item.trades} wr={item.wr} avgR={item.avgR} netPL={item.netPL} highlight={i === 0} />
+                  ))}
+                </div>
+                <InsightBadge text="'HTF Level + MTF Align + Liquidity Target' = 88% WR, your best 3-way combo. Indicator-only signals with no structure context drop to 17% WR (-$360 net). Structure must anchor every trade." type="danger" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            INDICATOR PERFORMANCE
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'indicators' && (
+          <div className="space-y-6">
+            <div className="bg-[#080d18] border border-amber-900/50 overflow-hidden">
+              <SectionHead icon={Zap} title="Indicator State → Strategy Performance" color="amber" badge="All Indicators" />
+              <div className="px-4 py-2 border-b border-white/[0.03] flex items-center gap-3">
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-52 shrink-0">Indicator + State</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-12 shrink-0">TF Role</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-14 shrink-0">Direction</span>
+                <div className="flex-1"><span className="text-[8px] text-slate-700 uppercase">WR</span></div>
+                <span className="text-[8px] text-slate-700 uppercase w-10 text-right">WR%</span>
+                <span className="text-[8px] text-slate-700 uppercase w-12 text-right">Avg R</span>
+                <span className="text-[8px] text-slate-700 uppercase w-14 text-right">Net P/L</span>
+                <span className="text-[8px] text-slate-700 uppercase w-10 text-right">Trades</span>
+              </div>
+              <div style={{ ...scrollStyle, maxHeight: 480 }}>
+                {[...TFS.indicators].sort((a,b) => b.wr - a.wr).map((item, i) => {
+                  const wrCol = item.wr >= 80 ? 'text-emerald-400' : item.wr >= 65 ? 'text-amber-400' : 'text-rose-400';
+                  const barCol = item.wr >= 80 ? 'bg-emerald-500' : item.wr >= 65 ? 'bg-amber-500' : 'bg-rose-500';
+                  const plCol = item.netPL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  const tfCol = item.tf === 'ETF' ? 'text-emerald-600' : 'text-cyan-600';
+                  return (
+                    <div key={i} className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.035] last:border-0 hover:bg-white/[0.02] ${item.netPL < 0 ? 'bg-rose-950/20' : item.wr >= 80 ? 'bg-emerald-950/10' : ''}`}>
+                      <span className="text-[10px] font-bold text-slate-300 w-52 shrink-0">{item.name}</span>
+                      <span className={`text-[8px] font-black w-12 shrink-0 uppercase mono ${tfCol}`}>{item.tf}</span>
+                      <span className="text-[8px] text-slate-600 w-14 shrink-0 uppercase mono">{item.direction}</span>
+                      <div className="flex-1">
+                        <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
+                          <div className={`h-full ${barCol} rounded-full`} style={{ width: `${item.wr}%` }} />
+                        </div>
+                      </div>
+                      <span className={`text-xs font-black mono w-10 text-right ${wrCol}`}>{item.wr}%</span>
+                      <span className={`text-[10px] font-bold mono w-12 text-right ${item.avgR >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>{item.avgR > 0 ? '+' : ''}{item.avgR.toFixed(1)}R</span>
+                      <span className={`text-[10px] font-bold mono w-14 text-right ${plCol}`}>{item.netPL >= 0 ? '+' : ''}${item.netPL.toLocaleString()}</span>
+                      <span className="text-[9px] text-slate-700 mono w-10 text-right">{item.trades}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="px-4 pb-4 space-y-2">
+                <InsightBadge text="'Volume Surge + Key Level' is your #1 indicator signal at 92% WR (+4.4R). Stochastic Oversold + Key Level at 88% WR. Any indicator without a structural anchor (key level / order block) drops below 30% WR." type="success" />
+                <InsightBadge text="Indicators used on the ATF (analysis TF) outperform ETF-only signals by 10–15% WR when a structural confluence is present. MACD on ATF = 83% WR vs MACD on ETF alone = 60–71% WR." type="info" />
+              </div>
+            </div>
+
+            {/* Indicator Ranking Summary */}
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                { tier: 'A-Tier Indicators', col: 'emerald', items: ['Volume Surge + Key Level — 92% WR', 'Stochastic Oversold + Key Level — 88% WR', 'RSI Divergence (ATF) — 75–80% WR', 'MACD Cross (ATF aligned) — 83% WR'] },
+                { tier: 'B-Tier Indicators', col: 'amber', items: ['RSI < 30 Oversold (ETF) — 79% WR', 'RSI > 70 Overbought (ETF) — 75% WR', 'BB Squeeze Breakout — 75% WR', 'Volume > 2× Average — 81% WR', 'ATR Expansion at Entry — 70% WR'] },
+                { tier: 'C-Tier / Avoid',    col: 'rose',   items: ['EMA 20 Cross (ETF only) — 58% WR', 'MACD Cross ETF only (no ATF) — 60–64% WR', 'Indicator Signal with no S/R — 25% WR, -$380 net'] },
+              ].map((g, gi) => (
+                <div key={gi} className={`bg-[#080d18] border border-${g.col}-900/40 p-4`}>
+                  <div className={`text-[9px] font-black text-${g.col}-500 uppercase tracking-widest mb-3`}>{g.tier}</div>
+                  {g.items.map((item, i) => (
+                    <div key={i} className={`flex items-start gap-2 py-2 border-b border-white/[0.03] last:border-0`}>
+                      <div className={`w-1 h-1 mt-1.5 bg-${g.col}-500 rounded-full shrink-0`} />
+                      <span className="text-[10px] text-slate-300 leading-relaxed">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            CANDLE PATTERNS BY TF
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'candles' && (
+          <div className="space-y-6">
+            <div className="bg-[#080d18] border border-blue-900/50 overflow-hidden">
+              <div className="flex items-center justify-between pr-3">
+                <SectionHead icon={BarChart2} title="Candle Pattern × Timeframe — Performance" color="blue" />
+                <select value={candleTF} onChange={e => setCandleTF(e.target.value)}
+                  className="appearance-none bg-[#0a1020] border border-[#162236] text-slate-300 px-3 py-1.5 text-[9px] font-bold tracking-wider cursor-pointer outline-none uppercase mono">
+                  {tfOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="px-4 py-2 border-b border-white/[0.03] flex items-center gap-3">
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-44 shrink-0">Pattern</span>
+                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-12 shrink-0">TF</span>
+                <div className="flex-1"><span className="text-[8px] text-slate-700 uppercase">WR</span></div>
+                <span className="text-[8px] text-slate-700 uppercase w-10 text-right">WR%</span>
+                <span className="text-[8px] text-slate-700 uppercase w-12 text-right">Avg R</span>
+                <span className="text-[8px] text-slate-700 uppercase w-14 text-right">Net P/L</span>
+                <span className="text-[8px] text-slate-700 uppercase w-10 text-right">Trades</span>
+              </div>
+              <div style={{ ...scrollStyle, maxHeight: 520 }}>
+                {[...filteredCandles].sort((a,b) => b.wr - a.wr).map((item, i) => {
+                  const wrCol = item.wr >= 80 ? 'text-emerald-400' : item.wr >= 65 ? 'text-amber-400' : 'text-rose-400';
+                  const barCol = item.wr >= 80 ? 'bg-emerald-500' : item.wr >= 65 ? 'bg-amber-500' : 'bg-rose-500';
+                  const plCol = item.netPL >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  const tfCols = { M1:'text-rose-600', M3:'text-rose-500', M5:'text-emerald-500', M15:'text-blue-400', H1:'text-cyan-500', H4:'text-violet-400', D1:'text-amber-400' };
+                  return (
+                    <div key={i} className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.035] last:border-0 hover:bg-white/[0.02] ${item.wr >= 83 ? 'bg-emerald-950/10' : item.wr < 55 ? 'bg-rose-950/20' : ''}`}>
+                      <span className="text-[10px] font-bold text-slate-300 w-44 shrink-0">{item.pattern}</span>
+                      <span className={`text-[9px] font-black mono w-12 shrink-0 ${tfCols[item.tf] || 'text-slate-500'}`}>{item.tf}</span>
+                      <div className="flex-1">
+                        <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
+                          <div className={`h-full ${barCol} rounded-full`} style={{ width: `${item.wr}%` }} />
+                        </div>
+                      </div>
+                      <span className={`text-xs font-black mono w-10 text-right ${wrCol}`}>{item.wr}%</span>
+                      <span className={`text-[10px] font-bold mono w-12 text-right ${item.avgR >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>{item.avgR > 0 ? '+' : ''}{item.avgR.toFixed(1)}R</span>
+                      <span className={`text-[10px] font-bold mono w-14 text-right ${plCol}`}>{item.netPL >= 0 ? '+' : ''}${item.netPL.toLocaleString()}</span>
+                      <span className="text-[9px] text-slate-700 mono w-10 text-right">{item.trades}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="px-4 pb-4 space-y-2">
+                <InsightBadge text="FVG Fill + Rejection on M15 is your highest-signal candle pattern at 88% WR (+4.1R). H4 Engulfing Bullish at 88% WR. M1 patterns across the board drop below 55% WR — M1 candle signals are unreliable in your system." type="success" />
+                <InsightBadge text="The same pattern on a higher TF consistently outperforms lower TF versions: Engulfing on H4 = 88% WR vs M5 = 81% vs M1 = 50%. Pattern quality is multiplied by timeframe height." type="info" />
+              </div>
+            </div>
+
+            {/* Pattern Performance Summary by TF Group */}
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                { group: 'ETF Patterns (M5/M15)', col: 'emerald', items: ['FVG Fill + Rejection M15: 88% WR', 'Engulfing Bull M15: 86% WR', 'Engulfing Bull M5: 81% WR', 'Pin Bar Bull M5: 79% WR', 'Doji M5: 50% WR (weak)'] },
+                { group: 'ATF Patterns (H1/H4)', col: 'cyan', items: ['Engulfing Bull H4: 88% WR', 'Pin Bar Bull H4: 83% WR', 'Bearish Rejection H4: 70% WR', 'Engulfing Bull H1: 79% WR', 'Inside Bar Break H1: 63% WR'] },
+                { group: 'HTF Patterns (D1)', col: 'violet', items: ['Engulfing Bull D1: 86% WR', 'Pin Bar Bear D1: 80% WR', 'Inside Bar D1: 63% WR', 'Doji D1: 33% WR — avoid'] },
+              ].map((g, gi) => (
+                <div key={gi} className={`bg-[#080d18] border border-${g.col}-900/40 p-4`}>
+                  <div className={`text-[9px] font-black text-${g.col}-500 uppercase tracking-widest mb-3`}>{g.group}</div>
+                  {g.items.map((item, i) => {
+                    const isGood = item.includes('8') || item.includes('7');
+                    return (
+                      <div key={i} className="flex items-start gap-2 py-2 border-b border-white/[0.03] last:border-0">
+                        <div className={`w-1 h-1 mt-1.5 rounded-full shrink-0 ${isGood ? `bg-${g.col}-500` : 'bg-rose-500'}`} />
+                        <span className="text-[10px] text-slate-300 leading-relaxed">{item}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            CANDLE PATTERN × TF MATRIX
+        ══════════════════════════════════════════════════════════════════════ */}
+        {tab === 'matrix' && (
+          <div className="space-y-6">
+            <div className="bg-[#080d18] border border-[#0c1828] p-4 flex items-start gap-3">
+              <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Each cell shows <span className="text-white font-bold">WR%</span> and <span className="text-slate-400 font-bold">Avg R</span> for that candle pattern traded on that timeframe.
+                <span className="text-emerald-400 font-bold"> Green ≥ 80%</span> · <span className="text-amber-400 font-bold">Amber 60–79%</span> · <span className="text-rose-400 font-bold">Red &lt; 60%</span>.
+                Cell size indicates trade count.
+              </p>
+            </div>
+
+            <div className="bg-[#080d18] border border-[#0c1828] overflow-x-auto">
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest p-4 pb-0">Candle Pattern × Timeframe Performance Matrix</div>
+              <table className="w-full min-w-[700px] mt-4">
+                <thead>
+                  <tr className="bg-[#0a1220]">
+                    <th className="text-left px-4 py-3 text-[9px] font-black text-slate-600 uppercase tracking-widest border border-[#0c1828] w-40">Pattern</th>
+                    {TFS.candleMatrix.tfs.map(tf => {
+                      const tfCols = { M1:'text-rose-500', M5:'text-emerald-500', M15:'text-blue-400', H1:'text-cyan-500', H4:'text-violet-400', D1:'text-amber-400' };
+                      return (
+                        <th key={tf} className={`text-center px-4 py-3 text-[10px] font-black border border-[#0c1828] min-w-[100px] ${tfCols[tf] || 'text-slate-500'}`}>{tf}</th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {TFS.candleMatrix.patterns.map((pattern, pi) => (
+                    <tr key={pi} className="hover:bg-white/[0.01]">
+                      <td className="px-4 py-2 text-[10px] font-bold text-slate-300 border border-[#0c1828] bg-[#080d18]">{pattern}</td>
+                      {TFS.candleMatrix.data[pi].map((cell, ci) => {
+                        const bg = cell.wr >= 80 ? 'bg-emerald-500/[0.12] text-emerald-300 border-emerald-900/40'
+                          : cell.wr >= 70 ? 'bg-blue-500/[0.08] text-blue-300 border-blue-900/30'
+                          : cell.wr >= 60 ? 'bg-amber-500/[0.08] text-amber-300 border-amber-900/30'
+                          : 'bg-rose-500/[0.1] text-rose-300 border-rose-900/40';
+                        const rC = cell.r >= 3 ? 'text-emerald-600' : cell.r >= 2 ? 'text-blue-600' : cell.r >= 0 ? 'text-slate-700' : 'text-rose-600';
+                        return (
+                          <td key={ci} className={`px-3 py-3 text-center border ${bg} matrix-cell`}>
+                            <div className="text-sm font-black mono">{cell.wr}%</div>
+                            <div className={`text-[9px] font-bold mono ${rC}`}>{cell.r > 0 ? '+' : ''}{cell.r}R</div>
+                            <div className="text-[8px] text-slate-700 mono mt-0.5">{cell.t}tr</div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Best Cells */}
+              <div className="bg-[#030f08] border border-emerald-900/50 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Highest-Performing Pattern × TF Combos</h3>
+                </div>
+                {[
+                  { combo: 'FVG Rejection × M15',    wr: '88%', r: '+4.1R' },
+                  { combo: 'Engulfing Bull × H4',    wr: '88%', r: '+4.2R' },
+                  { combo: 'Engulfing Bull × D1',    wr: '86%', r: '+4.2R' },
+                  { combo: 'Engulfing Bull × M15',   wr: '86%', r: '+3.9R' },
+                  { combo: 'Pin Bar Bull × H4',      wr: '83%', r: '+3.8R' },
+                  { combo: 'Engulfing Bull × M5',    wr: '81%', r: '+3.6R' },
+                ].map((x, i) => (
+                  <div key={i} className="flex justify-between items-center py-2 px-3 bg-emerald-950/30 border border-emerald-900/30 mb-1">
+                    <span className="text-[10px] font-bold text-emerald-200">{x.combo}</span>
+                    <div className="flex gap-3">
+                      <span className="text-xs font-black text-emerald-400 mono">{x.wr}</span>
+                      <span className="text-[10px] text-emerald-700 mono">{x.r}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Worst Cells */}
+              <div className="bg-[#0f0408] border border-rose-900/50 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <XCircle className="w-4 h-4 text-rose-400" />
+                  <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Weakest Pattern × TF Combos — Avoid</h3>
+                </div>
+                {[
+                  { combo: 'Doji × M1',            wr: '30%', r: '+0.4R' },
+                  { combo: 'Inside Bar × M1',       wr: '38%', r: '+0.9R' },
+                  { combo: 'Pin Bar Bear × M1',     wr: '40%', r: '+1.0R' },
+                  { combo: 'Engulfing Bear × M1',   wr: '42%', r: '+1.2R' },
+                  { combo: 'Doji × D1',             wr: '33%', r: '+0.8R' },
+                  { combo: 'Any Pattern × M1',      wr: '38–50%', r: '<1.6R avg' },
+                ].map((x, i) => (
+                  <div key={i} className="flex justify-between items-center py-2 px-3 bg-rose-950/30 border border-rose-900/30 mb-1">
+                    <span className="text-[10px] font-bold text-rose-200">{x.combo}</span>
+                    <div className="flex gap-3">
+                      <span className="text-xs font-black text-rose-400 mono">{x.wr}</span>
+                      <span className="text-[10px] text-rose-700 mono">{x.r}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <InsightBadge text="The matrix reveals a universal rule: pattern quality × timeframe height = edge. The same pattern always performs better on higher TFs. M1 is consistently your worst entry TF regardless of pattern. H4+D1 candle signals provide the cleanest, most reliable confluences." type="info" />
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
