@@ -1,896 +1,571 @@
-import React, { useState } from 'react';
-import {
-  TrendingUp, TrendingDown, Zap, Sparkles, Brain, ChevronRight,
-  BarChart3, Filter, Clock, Activity, Globe, ArrowUpRight,
-  ChevronDown, Target, AlertTriangle, Shield, ShieldCheck, Flame,
-  Battery, Layers, DoorOpen, Award, Eye, Crosshair,
-  CheckCircle2, XCircle, BarChart2, RefreshCcw, Calendar, Timer,
-  Percent, ArrowUp, ArrowDown, BookOpen, Gauge,
-  AlertCircle, Lightbulb, Info
-} from 'lucide-react';
+import { useState, useEffect } from "react";
 
-const DATA = {
-  kpis: {
-    totalTrades: 42, wins: 28, losses: 14, winRate: 66.7,
-    expectancy: 2.83, profitFactor: 8.0, netPL: 2100,
-    avgWin: 1050, avgLoss: 300, avgPlannedRR: '1:2.8',
-    avgAchievedRR: '1:2.5', rulesAdherence: 94,
-    currentBalance: 102100, startBalance: 100000,
+const C = {
+  bg:     '#030810', surface: '#060d1c', panel: '#080f1e',
+  border: 'rgba(255,255,255,0.045)', sep: 'rgba(255,255,255,0.09)',
+  htf:    '#a78bfa', atf: '#22d3ee', etf: '#34d399',
+  ind:    '#fb923c', ctx: '#94a3b8', perf: '#fbbf24',
+  win:    '#10b981', loss: '#f43f5e', warn: '#f59e0b',
+  dim:    '#1e3650', sub: '#475569', muted: '#64748b',
+  text:   '#94a3b8', strong: '#cbd5e1', bright: '#f1f5f9',
+};
+const wrC  = w => w >= 80 ? C.win  : w >= 62 ? C.warn : C.loss;
+const wrBg = w => w >= 80 ? 'rgba(16,185,129,0.07)' : w >= 62 ? 'rgba(245,158,11,0.06)' : 'rgba(244,63,94,0.07)';
+const RJ   = "'Barlow Condensed', sans-serif";
+
+const ROWS = [
+  {
+    id:1, htf:'W1', atf:'H4', etf:'M5',
+    tf1:{ candle:'Bullish Engulfing',              pa:'Close above major resistance. Macro HH/HL structure intact. Institutional buying visible.' },
+    tf2:{ candle:'Pin Bar — Order Block Respected', pa:'H4 pulled back into OB. Rejection wick confirms OB holding. Bullish structure preserved.' },
+    tf3:{ candle:'Bullish Engulfing + BOS',          pa:'M5 breaks structure after OB tap. FVG left behind. Entry on M5 candle close.' },
+    indicators:'RSI < 35 ATF (oversold)\nMACD Bullish Cross H4\nVolume 2×+ surge at entry\nEMA slope up H4',
+    session:'London Open · 08:00–10:00 GMT', condition:'Strong Uptrend', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'ATR Expanding · Continuation', wr:96, avgR:5.2, trades:8, netPL:1480,
   },
-  winProfile: [
-    { factor: 'Session Phase',       winVal: 'Open (78% WR)',    lossVal: 'Close (50% WR)',    insight: 'Wins cluster at Open. Stop trading Close sessions.' },
-    { factor: 'HTF Bias',            winVal: 'Aligned (88% WR)', lossVal: 'Counter (31% WR)',  insight: 'Trading against HTF bias is your #1 loss driver.' },
-    { factor: 'Emotional State',     winVal: 'Calm (82% WR)',    lossVal: 'Anxious (25% WR)',  insight: 'Anxious state = near-guaranteed loss. Rule: no trade if anxious.' },
-    { factor: 'Trade Grade',         winVal: 'A/B (85% WR)',     lossVal: 'C/D/F (27% WR)',    insight: 'C-grade trades drag expectancy. Raise minimum to B.' },
-    { factor: 'Confluence Score',    winVal: '>3.5 (79% WR)',    lossVal: '<2.5 (19% WR)',     insight: 'Low confluence is strongly predictive of losses.' },
-    { factor: 'MTF Alignment',       winVal: 'Yes (82% WR)',     lossVal: 'No (28% WR)',       insight: 'Skipping MTF check is always punished.' },
-    { factor: 'Rules Followed',      winVal: '95–100% (84% WR)', lossVal: '<80% (18% WR)',     insight: 'Rule breaks correlate directly with losses. No exceptions.' },
-    { factor: 'Setup Tag',           winVal: 'Breakout (83% WR)',lossVal: 'Reversal (33% WR)', insight: 'Reversal setups underperform — reduce size or avoid entirely.' },
-    { factor: 'Energy Level',        winVal: '>3.5 (76% WR)',    lossVal: '<2.5 (24% WR)',     insight: 'Low energy predicts poor execution. Rest > trade.' },
-    { factor: 'Impulse Flag',        winVal: 'None (79% WR)',    lossVal: 'Any flag (11% WR)', insight: 'Any impulse flag active = abandon trade immediately.' },
-    { factor: 'Any Rule Broken',     winVal: 'No (81% WR)',      lossVal: 'Yes (15% WR)',      insight: 'Broken rules nearly guarantee losses — not coincidence.' },
-    { factor: 'News Environment',    winVal: 'Clean (77% WR)',   lossVal: 'Major (18% WR)',    insight: 'Avoid trading within 30min of major news releases.' },
-    { factor: 'Day of Week',         winVal: 'Tue/Wed (80% WR)', lossVal: 'Friday (32% WR)',   insight: 'Friday performance is poor — consider a no-trade Friday rule.' },
-    { factor: 'Confidence at Entry', winVal: 'High (79% WR)',    lossVal: 'Low (31% WR)',      insight: 'Low confidence at entry is a self-fulfilling signal to skip.' },
-  ],
-  conditions: {
-    marketRegime: [
-      { label: 'Trending',  trades: 28, wins: 20, wr: 71, avgR: 3.1, netPL: 1450, strength: true },
-      { label: 'Ranging',   trades: 8,  wins: 4,  wr: 50, avgR: 1.2, netPL: 180,  strength: false },
-      { label: 'Volatile',  trades: 6,  wins: 2,  wr: 33, avgR: 0.8, netPL: -180, strength: false },
-    ],
-    volatilityState: [
-      { label: 'Low',    trades: 10, wins: 8,  wr: 80, avgR: 2.8, netPL: 620,  strength: true },
-      { label: 'Normal', trades: 22, wins: 15, wr: 68, avgR: 2.9, netPL: 1100, strength: true },
-      { label: 'High',   trades: 10, wins: 5,  wr: 50, avgR: 1.4, netPL: 380,  strength: false },
-    ],
-    sessionName: [
-      { label: 'London',   trades: 20, wins: 15, wr: 75, avgR: 3.2, netPL: 1100, strength: true },
-      { label: 'New York', trades: 12, wins: 7,  wr: 58, avgR: 2.1, netPL: 560,  strength: false },
-      { label: 'Overlap',  trades: 6,  wins: 4,  wr: 67, avgR: 2.6, netPL: 360,  strength: true },
-      { label: 'Tokyo',    trades: 4,  wins: 2,  wr: 50, avgR: 1.2, netPL: 80,   strength: false },
-    ],
-    sessionPhase: [
-      { label: 'Open',  trades: 22, wins: 17, wr: 77, avgR: 3.4, netPL: 1250, strength: true },
-      { label: 'Mid',   trades: 12, wins: 7,  wr: 58, avgR: 2.0, netPL: 580,  strength: false },
-      { label: 'Close', trades: 8,  wins: 4,  wr: 50, avgR: 1.1, netPL: 270,  strength: false },
-    ],
-    direction: [
-      { label: 'Long',  trades: 28, wins: 20, wr: 71, avgR: 3.0, netPL: 1480, strength: true },
-      { label: 'Short', trades: 14, wins: 8,  wr: 57, avgR: 2.1, netPL: 620,  strength: false },
-    ],
-    htfBias: [
-      { label: 'Bullish — Aligned',   trades: 18, wins: 15, wr: 83, avgR: 3.5, netPL: 1200, strength: true },
-      { label: 'Bearish — Aligned',   trades: 10, wins: 7,  wr: 70, avgR: 2.8, netPL: 600,  strength: true },
-      { label: 'Counter-HTF (Long)',  trades: 8,  wins: 3,  wr: 38, avgR: 0.9, netPL: -180, strength: false },
-      { label: 'Counter-HTF (Short)', trades: 6,  wins: 3,  wr: 50, avgR: 1.1, netPL: 80,   strength: false },
-    ],
-    setupTag: [
-      { label: 'Breakout',       trades: 10, wins: 8, wr: 80, avgR: 3.8, netPL: 780,  strength: true },
-      { label: 'Continuation',   trades: 8,  wins: 6, wr: 75, avgR: 3.1, netPL: 620,  strength: true },
-      { label: 'Pullback',       trades: 8,  wins: 5, wr: 63, avgR: 2.4, netPL: 440,  strength: false },
-      { label: 'Momentum',       trades: 6,  wins: 4, wr: 67, avgR: 2.8, netPL: 360,  strength: true },
-      { label: 'Mean Reversion', trades: 4,  wins: 3, wr: 75, avgR: 2.2, netPL: 200,  strength: true },
-      { label: 'Reversal',       trades: 6,  wins: 2, wr: 33, avgR: 0.7, netPL: -280, strength: false },
-    ],
-    tradeGrade: [
-      { label: 'A — Textbook',   trades: 10, wins: 9, wr: 90, avgR: 4.2, netPL: 920,  strength: true },
-      { label: 'B — Solid',      trades: 14, wins: 10, wr: 71, avgR: 3.0, netPL: 760, strength: true },
-      { label: 'C — Acceptable', trades: 10, wins: 6,  wr: 60, avgR: 1.8, netPL: 280, strength: false },
-      { label: 'D — Marginal',   trades: 6,  wins: 2,  wr: 33, avgR: 0.6, netPL: -280,strength: false },
-      { label: 'F — Poor',       trades: 2,  wins: 1,  wr: 50, avgR: 0.4, netPL: -180,strength: false },
-    ],
-    emotionalState: [
-      { label: 'Calm',      trades: 22, wins: 18, wr: 82, avgR: 3.4, netPL: 1480, strength: true },
-      { label: 'Confident', trades: 8,  wins: 5,  wr: 63, avgR: 2.6, netPL: 440,  strength: false },
-      { label: 'Neutral',   trades: 6,  wins: 4,  wr: 67, avgR: 2.2, netPL: 320,  strength: true },
-      { label: 'Anxious',   trades: 4,  wins: 1,  wr: 25, avgR: 0.4, netPL: -380, strength: false },
-      { label: 'FOMO',      trades: 2,  wins: 0,  wr: 0,  avgR:-1.0, netPL: -260, strength: false },
-    ],
-    rulesBroken: [
-      { label: 'No Rules Broken', trades: 30, wins: 24, wr: 80, avgR: 3.5, netPL: 1900, strength: true },
-      { label: '1 Rule Broken',   trades: 8,  wins: 3,  wr: 38, avgR: 0.8, netPL: -320, strength: false },
-      { label: '2+ Rules Broken', trades: 4,  wins: 1,  wr: 25, avgR: 0.2, netPL: -480, strength: false },
-    ],
-    impulseFlags: [
-      { label: 'No Impulse Flags', trades: 34, wins: 26, wr: 76, avgR: 3.2, netPL: 2400, strength: true },
-      { label: 'FOMO Active',      trades: 4,  wins: 1,  wr: 25, avgR: 0.3, netPL: -420, strength: false },
-      { label: 'Revenge Trade',    trades: 2,  wins: 0,  wr: 0,  avgR:-1.2, netPL: -380, strength: false },
-      { label: 'Boredom Trade',    trades: 2,  wins: 1,  wr: 50, avgR: 0.8, netPL: -100, strength: false },
-    ],
-    confluenceScore: [
-      { label: '4.5 – 5.0', trades: 10, wins: 9,  wr: 90, avgR: 4.1, netPL: 920,  strength: true },
-      { label: '3.5 – 4.4', trades: 14, wins: 11, wr: 79, avgR: 3.2, netPL: 840,  strength: true },
-      { label: '2.5 – 3.4', trades: 10, wins: 6,  wr: 60, avgR: 1.9, netPL: 280,  strength: false },
-      { label: '< 2.5',     trades: 8,  wins: 2,  wr: 25, avgR: 0.3, netPL: -440, strength: false },
-    ],
-    dayOfWeek: [
-      { label: 'Monday',    trades: 8,  wins: 5,  wr: 63, avgR: 2.4, netPL: 420,  strength: false },
-      { label: 'Tuesday',   trades: 10, wins: 8,  wr: 80, avgR: 3.6, netPL: 780,  strength: true },
-      { label: 'Wednesday', trades: 10, wins: 8,  wr: 80, avgR: 3.4, netPL: 720,  strength: true },
-      { label: 'Thursday',  trades: 8,  wins: 5,  wr: 63, avgR: 2.8, netPL: 380,  strength: false },
-      { label: 'Friday',    trades: 6,  wins: 2,  wr: 33, avgR: 0.6, netPL: -200, strength: false },
-    ],
-    exitReason: [
-      { label: 'Target Hit',       trades: 20, wins: 20, wr: 100, avgR: 3.8, netPL: 1800, strength: true },
-      { label: 'Stop Hit',         trades: 14, wins: 0,  wr: 0,   avgR:-1.0, netPL: -900, strength: false },
-      { label: 'Emotional Exit',   trades: 5,  wins: 2,  wr: 40,  avgR: 0.4, netPL: -180, strength: false },
-      { label: 'Structure Change', trades: 3,  wins: 3,  wr: 100, avgR: 2.1, netPL: 280,  strength: true },
-    ],
-    newsEnv: [
-      { label: 'Clean',        trades: 28, wins: 21, wr: 75, avgR: 3.1, netPL: 1680, strength: true },
-      { label: 'Minor Impact', trades: 10, wins: 5,  wr: 50, avgR: 1.8, netPL: 280,  strength: false },
-      { label: 'Major Impact', trades: 4,  wins: 2,  wr: 50, avgR: 0.9, netPL: -80,  strength: false },
-    ],
+  {
+    id:2, htf:'W1', atf:'H4', etf:'M5',
+    tf1:{ candle:'Bearish Pin Bar',                  pa:'W1 rejecting macro resistance. Large upper wick = institutional selling. LL/LH structure forming.' },
+    tf2:{ candle:'Bearish Engulfing — Breaker Block', pa:'H4 rally failed at breaker block. Bearish engulfing closes below it. Short bias confirmed.' },
+    tf3:{ candle:'Rejection Candle — Liquidity Grab', pa:'M5 sweeps HOD liquidity then rejects hard. BOS to downside. Short entry on M5 close.' },
+    indicators:'RSI > 68 ATF (overbought)\nMACD Bearish Cross H4\nVolume spike at rejection\nEMA slope down H4',
+    session:'NY Open · 13:00–15:00 GMT', condition:'Strong Downtrend', bias:'🔴 Bearish', news:'✅ News-Free',
+    momentum:'ATR Expanding · Strong sell-off', wr:91, avgR:4.7, trades:10, netPL:1260,
   },
-  strategyMatrix: [
-    { strategy: 'SMC Breaker',   bullish:{wr:88,r:4.1}, bearish:{wr:55,r:1.8}, ranging:{wr:30,r:0.4}, volatile:{wr:25,r:-0.2}, openPhase:{wr:90,r:4.5}, closePhase:{wr:40,r:0.8}, calm:{wr:88,r:4.2}, anxious:{wr:20,r:-0.8}, noRule:{wr:92,r:4.6}, ruleBroken:{wr:22,r:-0.6}, netPL:900 },
-    { strategy: 'Silver Bullet', bullish:{wr:75,r:3.2}, bearish:{wr:60,r:2.4}, ranging:{wr:50,r:1.2}, volatile:{wr:35,r:0.6},  openPhase:{wr:80,r:3.8}, closePhase:{wr:45,r:0.9}, calm:{wr:78,r:3.5}, anxious:{wr:30,r:-0.4}, noRule:{wr:82,r:3.8}, ruleBroken:{wr:28,r:-0.2}, netPL:1200 },
-    { strategy: 'London Open',   bullish:{wr:90,r:4.8}, bearish:{wr:40,r:0.8}, ranging:{wr:20,r:-0.4},volatile:{wr:15,r:-0.8}, openPhase:{wr:92,r:5.1}, closePhase:{wr:20,r:-0.6},calm:{wr:90,r:5.0}, anxious:{wr:10,r:-1.2}, noRule:{wr:95,r:5.2}, ruleBroken:{wr:15,r:-1.0}, netPL:0 },
-  ],
+  {
+    id:3, htf:'D1', atf:'H4', etf:'M5',
+    tf1:{ candle:'Bullish Engulfing',           pa:'D1 closed above key S/R level. HH/HL trend intact. OB just below acts as new support.' },
+    tf2:{ candle:'Inside Bar Breakout + FVG',   pa:'H4 compression at FVG. Inside bar broke upward with momentum. FVG created on breakout candle.' },
+    tf3:{ candle:'Bullish Engulfing + CHoCH',   pa:'M5 change of character after OB tap. Break of M5 structure confirms long. Entry on close.' },
+    indicators:'RSI 45→55 bullish crossover\nMACD Cross up M5\nVolume surge at M5 entry\nEMA 20 cross up M5',
+    session:'London Open · 08:00–10:00 GMT', condition:'Strong Uptrend', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'ATR Expanding · Trend continuation', wr:92, avgR:4.6, trades:14, netPL:1820,
+  },
+  {
+    id:4, htf:'D1', atf:'H4', etf:'M5',
+    tf1:{ candle:'Doji — At Resistance',        pa:'D1 indecision at major resistance. No clear close bias yet. Waiting for confirmation.' },
+    tf2:{ candle:'Bearish Engulfing — OB Zone', pa:'H4 bearish engulfing at resistance OB confirms short. H4 fills the D1 indecision gap.' },
+    tf3:{ candle:'Pin Bar Rejection',            pa:'M5 forms lower high at H4 OB projection. Pin bar. Short entry on M5 candle close.' },
+    indicators:'RSI Bearish Divergence ATF\nMACD Bearish Histogram H4\nVolume > 2× at rejection\nEMA cross down H4',
+    session:'NY Open · 13:00–15:00 GMT', condition:'Ranging → Reversal', bias:'🔴 Bearish', news:'✅ News-Free',
+    momentum:'Divergence · Price HH, momentum LH', wr:87, avgR:4.2, trades:16, netPL:1560,
+  },
+  {
+    id:5, htf:'D1', atf:'H4', etf:'M5',
+    tf1:{ candle:'Inside Bar — At Support',           pa:'D1 compression at support. Inside bar = pending directional move. Support level holding.' },
+    tf2:{ candle:'Double Bottom — Institution Candle', pa:'H4 double bottom at liquidity pool. Large bullish institution candle on second touch. Accumulation signal.' },
+    tf3:{ candle:'FVG Fill + Rejection Candle',        pa:'M5 fills FVG below price then rejects with strong bullish close. Entry confirmed.' },
+    indicators:'RSI < 32 ATF oversold\nMACD Bullish Divergence ATF\nVolume spike (institutional)\nStoch Oversold + key level',
+    session:'London Open · 08:00–10:00 GMT', condition:'Ranging → Breakout', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'Low → Expanding · BB Squeeze', wr:84, avgR:4.0, trades:12, netPL:1080,
+  },
+  {
+    id:6, htf:'D1', atf:'H4', etf:'M15',
+    tf1:{ candle:'Bullish Pin Bar — Fib 0.618',      pa:'D1 tapped 0.618 Fibonacci at OB zone. Bullish pin bar rejection = premium buy zone confirmed.' },
+    tf2:{ candle:'Pin Bar — FVG + OB Overlap',       pa:'H4 confirms: FVG and OB confluence at 0.618. Pin bar rejects cleanly. Pull-back complete.' },
+    tf3:{ candle:'FVG Fill + Rejection Candle',       pa:'M15 fills FVG gap, rejection candle closes above it. Precise entry with tight stop.' },
+    indicators:'Stoch Oversold ATF\nRSI Bullish Divergence M15\nVolume at FVG touch\nATR expansion at trigger',
+    session:'London Open · 08:00–10:00 GMT', condition:'Strong Uptrend', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'Contracting → Expand · Low ATR spring', wr:85, avgR:4.0, trades:12, netPL:1020,
+  },
+  {
+    id:7, htf:'D1', atf:'H1', etf:'M5',
+    tf1:{ candle:'Strong Bullish Trend Candle',          pa:'D1 strong close. S/R below flipped to support. HH/HL structure unbroken. Long only bias.' },
+    tf2:{ candle:'Engulfing — Institution Candle (H1)',   pa:'H1 large body institution candle at flipped S/R level. Minimal wick. Continuation confirmed.' },
+    tf3:{ candle:'Pin Bar — Micro OB',                    pa:'M5 pin bar at micro order block. BOS confirmed below it. Entry on M5 candle close.' },
+    indicators:'RSI > 50 trending H1\nMACD Bullish H1 confirmed\nVolume surge at breakout\nEMA 20/50 aligned up H1',
+    session:'NY Open · 13:00–15:00 GMT', condition:'Strong Uptrend', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'ATR Expanding · All TFs aligned', wr:82, avgR:3.8, trades:14, netPL:900,
+  },
+  {
+    id:8, htf:'D1', atf:'H1', etf:'M5',
+    tf1:{ candle:'Bearish Pin Bar — D1 Resistance',    pa:'D1 extended move up. Major historical resistance. Pin bar = D1 reversal zone. Short bias.' },
+    tf2:{ candle:'Double Top — Bearish Engulfing (H1)', pa:'H1 double top at D1 resistance. Bearish engulfing on second top. Institutional selling.' },
+    tf3:{ candle:'FVG Fill + Rejection (Short)',         pa:'M5 fills FVG above HOD (liquidity grab) then reverses. Rejection candle. Short on close.' },
+    indicators:'RSI Bearish Divergence H1\nMACD Cross Down H1\nVolume spike on reversal\nEMA flatten + cross down H1',
+    session:'London Close · 15:00–17:00 GMT', condition:'Ranging → Reversal', bias:'🔴 Bearish', news:'✅ News-Free',
+    momentum:'Divergence · Price HH, momentum LH', wr:80, avgR:3.6, trades:12, netPL:780,
+  },
+  {
+    id:9, htf:'D1', atf:'H1', etf:'M15',
+    tf1:{ candle:'Bullish Close — OB at Fib 0.5',  pa:'D1 retraced to OB at 50% Fibonacci. Bullish close = premium buy area confirmed. HTF buy zone.' },
+    tf2:{ candle:'Liquidity Sweep + Reversal (H1)', pa:'H1 sweeps lows below range (stop hunt). Strong recovery candle closes back above structure.' },
+    tf3:{ candle:'Bullish Engulfing Post-Sweep',    pa:'M15 change of character after H1 liquidity sweep. Engulfing candle confirms long. Entry on close.' },
+    indicators:'RSI oversold H1 then recovery\nMACD Bullish Cross M15\nStoch oversold + bounce\nBB Squeeze expanding up',
+    session:'London Open · 08:00–10:00 GMT', condition:'Uptrend Pull-back', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'Contracting → Expand · Sweep reload', wr:78, avgR:3.4, trades:10, netPL:680,
+  },
+  {
+    id:10, htf:'H4', atf:'H1', etf:'M5',
+    tf1:{ candle:'Bullish Engulfing — OB (H4)', pa:'H4 OB formed below. Trend direction up on H4 only. No macro context beyond intraday. Weaker HTF.' },
+    tf2:{ candle:'Pin Bar — H4 OB Projection',  pa:'H1 pin bar at H4 OB level projection. Setup signal present. Acceptable but limited structure.' },
+    tf3:{ candle:'Bullish Engulfing + BOS',      pa:'M5 BOS after H1 pin. Entry trigger aligned. Note: H4 HTF limits context depth.' },
+    indicators:'RSI trending H4\nMACD Cross H1\nVolume average (not surge)\nEMA aligned H4+H1',
+    session:'NY Open · 13:00–15:00 GMT', condition:'Trending (Intraday only)', bias:'🟢 Bullish', news:'✅ News-Free',
+    momentum:'Moderate · No macro confirmation', wr:68, avgR:2.6, trades:10, netPL:420,
+  },
+  {
+    id:11, htf:'D1', atf:'H4', etf:'M5',
+    tf1:{ candle:'D1 Trend Candle (valid)',        pa:'D1 trend intact. Context clean. However post-news spike has distorted H4 — must wait to trade.' },
+    tf2:{ candle:'H4 FVG — Created by News Spike', pa:'News created large H4 FVG. H4 candle wicked through levels. Wait for structure to reform.' },
+    tf3:{ candle:'M5 FVG Fill + Rejection (Post)', pa:'After 20–30 min: M5 fills the news-spike FVG at H4 level. Rejection candle = entry.' },
+    indicators:'RSI extreme post-news\nMACD: wait to settle\nVolume spike then normalize\nATR spiked — widen stop',
+    session:'NY Open · 13:00–15:00 GMT', condition:'Post-News Spike', bias:'🟢 Bullish', news:'📰 Post-News (20–30m wait)',
+    momentum:'Spike → Normalize · Trade after only', wr:74, avgR:3.1, trades:10, netPL:560,
+  },
+  {
+    id:12, htf:'D1', atf:'30M', etf:'M5',
+    tf1:{ candle:'D1 Bullish Trend (valid)',   pa:'D1 context clean. Trend intact. However 30M as ATF severely degrades setup quality.' },
+    tf2:{ candle:'30M Mixed / Noisy Patterns', pa:'30M structure ambiguous. False pin bars. S/R levels broken frequently. ATF clarity is gone.' },
+    tf3:{ candle:'M5 Entry Conflicted',         pa:'ETF entries distorted by poor ATF. False BOS signals. Stop hunts from 30M noise bleed through.' },
+    indicators:'RSI erratic 30M noise\nMACD false crosses 30M\nVolume unreliable 30M\nEMA flat / mixed 30M',
+    session:'London/NY Overlap · 15:00–17:00 GMT', condition:'Ranging', bias:'🟡 Mixed', news:'✅ News-Free',
+    momentum:'Weak · 30M ATF degrades signal', wr:50, avgR:1.4, trades:8, netPL:120,
+  },
+  {
+    id:13, htf:'D1', atf:'H4', etf:'M5',
+    tf1:{ candle:'D1 Trend — Distorted by News', pa:'D1 structure technically valid. BUT: during active news all TF structure is invalidated. Do not trade.' },
+    tf2:{ candle:'H4 Massive News Wick',          pa:'H4 candle shows extreme spike wick. Levels breached and recovered. Structure unreadable.' },
+    tf3:{ candle:'M5 Chaotic — No Pattern',       pa:'M5 is stop-running noise during news. No candle pattern is meaningful. Spread widens 5–10×.' },
+    indicators:'All indicators: meaningless\nMACD: whipsaw during news\nVolume: extreme, no edge\nRSI: ignore entirely',
+    session:'NY Open · During News Release', condition:'During Active News', bias:'🟡 Unknown', news:'🚫 ACTIVE NEWS — DO NOT TRADE',
+    momentum:'Unpredictable · Zero edge', wr:28, avgR:-0.6, trades:4, netPL:-280,
+  },
+  {
+    id:14, htf:'D1', atf:'H4', etf:'M15',
+    tf1:{ candle:'D1 At Range Boundary (No Trend)', pa:'D1 in range. No trend bias. Price at HTF support boundary. Range fade setup only.' },
+    tf2:{ candle:'H4 OB — Range Edge Compression',  pa:'H4 confirms OB at range boundary. Compression / inside bar. Range boundary holding.' },
+    tf3:{ candle:'M15 Pin Bar — Range Extreme',      pa:'M15 pin bar at range low. Rejection candle. Range fade entry. Target: opposite boundary.' },
+    indicators:'Stoch oversold at range low\nBB at extreme (range)\nRSI extreme at boundary\nEMA flat (ranging)',
+    session:'Asian Session · 00:00–07:00 GMT', condition:'Ranging', bias:'🟡 Neutral', news:'✅ News-Free',
+    momentum:'Low ATR · Range trade only', wr:68, avgR:2.4, trades:10, netPL:420,
+  },
+  {
+    id:15, htf:'H4', atf:'30M', etf:'M1',
+    tf1:{ candle:'H4 Engulfing (Weak HTF)',       pa:'H4 as HTF = no macro context. Bias shifts intraday. No institutional backing at this level.' },
+    tf2:{ candle:'30M False Patterns — No Edge',  pa:'30M patterns: 42–50% WR alone. Coin-flip ATF. No reliable structure. Avoid.' },
+    tf3:{ candle:'M1 Noise Candles — No Pattern', pa:'M1 dominated by spread noise. No institutional footprint. Every candle is effectively random.' },
+    indicators:'RSI: false signals M1\nMACD: whipsaw M1\nVolume: unreliable M1\nEMA: lagging, useless M1',
+    session:'Asian / Dead Zone · 20:00–23:00 GMT', condition:'Choppy / Volatile', bias:'🔴 Bearish', news:'📰 Near News',
+    momentum:'Erratic · No predictability', wr:33, avgR:0.4, trades:6, netPL:-160,
+  },
+];
+
+// ─── DESKTOP TABLE CELLS ──────────────────────────────────────────────────────
+const TFCell = ({ data, color }) => (
+  <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:220, width:220 }}>
+    <div style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color, lineHeight:1.3, marginBottom:5, letterSpacing:'0.06em', textTransform:'uppercase' }}>{data.candle}</div>
+    <div style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:C.text, lineHeight:1.55 }}>{data.pa}</div>
+  </td>
+);
+
+const IndCell = ({ value }) => (
+  <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:190, width:190, borderLeft:`2px solid ${C.sep}` }}>
+    {value.split('\n').map((line, i) => (
+      <div key={i} style={{ fontFamily:RJ, fontSize:11, lineHeight:1.5, marginBottom:3, color: i===0 ? C.strong : C.text, fontWeight: i===0 ? 700 : 500, letterSpacing: i===0 ? '0.05em':'0.02em' }}>{line}</div>
+    ))}
+  </td>
+);
+
+const CtxCell = ({ value, id, w }) => {
+  const lines = (value||'—').split(' · ');
+  const l0 = lines[0];
+  let col = C.strong;
+  if (id==='bia') col = l0.includes('🟢') ? C.win : l0.includes('🔴') ? C.loss : C.warn;
+  if (id==='nws') col = l0.includes('🚫') ? C.loss : l0.includes('📰') ? C.warn : C.win;
+  if (id==='cnd') col = l0.includes('Uptrend')||l0.includes('Breakout') ? C.win : l0.includes('Downtrend')||l0.includes('News')||l0.includes('Chop') ? C.loss : C.warn;
+  return (
+    <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:w, width:w, maxWidth:w }}>
+      <div style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color:col, lineHeight:1.45, marginBottom:lines[1]?4:0, wordBreak:'break-word', whiteSpace:'normal', letterSpacing:'0.05em' }}>{l0}</div>
+      {lines[1] && <div style={{ fontFamily:RJ, fontSize:10, fontWeight:400, color:C.sub, lineHeight:1.5, wordBreak:'break-word', whiteSpace:'normal' }}>{lines[1]}</div>}
+    </td>
+  );
 };
 
-// ─── Shared Components ─────────────────────────────────────────────────────────
-
-const InsightBadge = ({ text, type = 'warning' }) => {
-  const s = {
-    warning: 'bg-amber-500/10 border-amber-500/30 text-amber-200',
-    danger:  'bg-rose-500/10  border-rose-500/30  text-rose-200',
-    success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200',
-    info:    'bg-blue-500/10  border-blue-500/30  text-blue-200',
-  };
-  const icons = { warning: AlertTriangle, danger: XCircle, success: CheckCircle2, info: Lightbulb };
-  const Icon = icons[type];
+const MomCell = ({ value }) => {
+  const [main, sub] = value.split(' · ');
   return (
-    <div className={`flex items-start gap-2 p-3 border ${s[type]} mt-3`}>
-      <Icon className="w-3 h-3 shrink-0 mt-0.5 opacity-80" />
-      <p className="text-[10px] leading-relaxed font-semibold italic">{text}</p>
+    <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:160, width:160, maxWidth:160 }}>
+      <div style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color:C.strong, lineHeight:1.45, marginBottom:sub?4:0, wordBreak:'break-word', whiteSpace:'normal', letterSpacing:'0.05em' }}>{main}</div>
+      {sub && <div style={{ fontFamily:RJ, fontSize:10, fontWeight:400, color:C.sub, lineHeight:1.5, wordBreak:'break-word', whiteSpace:'normal' }}>{sub}</div>}
+    </td>
+  );
+};
+
+const SampleSizeCell = ({ trades, wr }) => {
+  const wins   = Math.round(trades * wr / 100);
+  const losses = trades - wins;
+  return (
+    <td style={{ padding:'10px 12px', verticalAlign:'middle', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:120, width:120, textAlign:'center' }}>
+      <div style={{ fontFamily:RJ, fontSize:22, fontWeight:700, color:C.strong, lineHeight:1, marginBottom:6, letterSpacing:'0.02em' }}>{trades}</div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:4, marginBottom:4 }}>
+        <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:C.win, letterSpacing:'0.04em' }}>{wins}W</span>
+        <span style={{ fontFamily:RJ, fontSize:10, fontWeight:400, color:C.sub }}>/</span>
+        <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:C.loss, letterSpacing:'0.04em' }}>{losses}L</span>
+      </div>
+      <div style={{ height:3, borderRadius:99, background:'rgba(255,255,255,0.06)', overflow:'hidden' }}>
+        <div style={{ width:`${wr}%`, height:'100%', background:C.win, borderRadius:99 }} />
+      </div>
+    </td>
+  );
+};
+
+const PerfCell = ({ row }) => (
+  <td style={{ padding:'12px 14px', verticalAlign:'middle', borderBottom:`1px solid ${C.border}`, background:wrBg(row.wr), borderLeft:`2px solid ${wrC(row.wr)}35`, minWidth:150, width:150 }}>
+    <div style={{ fontFamily:RJ, fontSize:28, fontWeight:700, color:wrC(row.wr), lineHeight:1, marginBottom:7, letterSpacing:'0.02em' }}>{row.wr}%</div>
+    <div style={{ height:3, borderRadius:99, background:'rgba(255,255,255,0.06)', overflow:'hidden', marginBottom:8 }}>
+      <div style={{ width:`${row.wr}%`, height:'100%', background:wrC(row.wr), borderRadius:99 }} />
+    </div>
+    <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:5 }}>
+      <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', flexShrink:0 }}>Avg R</span>
+      <span style={{ fontFamily:RJ, fontSize:13, fontWeight:700, color:row.avgR>=3?'#60a5fa':C.muted }}>{row.avgR>0?'+':''}{row.avgR}R</span>
+    </div>
+    <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:7 }}>
+      <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', flexShrink:0 }}>P/L</span>
+      <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:row.netPL>=0?C.win:C.loss }}>{row.netPL>=0?'+':''}${row.netPL.toLocaleString()}</span>
+    </div>
+  </td>
+);
+
+const MatrixRow = ({ row }) => {
+  const roleC = { W1:C.htf, D1:C.htf, H4:C.atf, H1:C.atf, '30M':C.warn, M5:C.etf, M15:C.etf, M1:C.loss };
+  const isElite = row.wr >= 85;
+  const isWeak  = row.wr < 50;
+  return (
+    <tr>
+      <td style={{ minWidth:148, width:148, padding:'10px 12px', background:isElite?'#071520':isWeak?'#0e050e':C.surface, borderRight:`2px solid ${C.sep}`, borderBottom:`1px solid ${C.border}`, verticalAlign:'middle' }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+          {[row.htf, row.atf, row.etf].map((tf, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:5 }}>
+              <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:roleC[tf]||C.sub, background:(roleC[tf]||C.sub)+'18', border:`1px solid ${(roleC[tf]||C.sub)}28`, padding:'2px 8px', borderRadius:3, letterSpacing:'0.1em' }}>{tf}</span>
+              <span style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em' }}>{i===0?'HTF':i===1?'ATF':'ETF'}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop:6, fontFamily:RJ, fontSize:8, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:isElite?C.win:isWeak?C.loss:C.dim, borderTop:`1px solid ${isElite?C.win+'22':isWeak?C.loss+'22':C.border}`, paddingTop:5 }}>
+          {isElite?'★ ELITE':isWeak?'✗ AVOID':''}
+        </div>
+      </td>
+      <TFCell data={row.tf1} color={C.htf} />
+      <TFCell data={row.tf2} color={C.atf} />
+      <TFCell data={row.tf3} color={C.etf} />
+      <IndCell value={row.indicators} />
+      <CtxCell value={row.session}   id="ses" w={145} />
+      <CtxCell value={row.condition} id="cnd" w={170} />
+      <CtxCell value={row.bias}      id="bia" w={110} />
+      <CtxCell value={row.news}      id="nws" w={195} />
+      <MomCell value={row.momentum} />
+      <SampleSizeCell trades={row.trades} wr={row.wr} />
+      <PerfCell row={row} />
+    </tr>
+  );
+};
+
+// ─── MOBILE CARD ──────────────────────────────────────────────────────────────
+const MobileCard = ({ row }) => {
+  const [expanded, setExpanded] = useState(false);
+  const roleC = { W1:C.htf, D1:C.htf, H4:C.atf, H1:C.atf, '30M':C.warn, M5:C.etf, M15:C.etf, M1:C.loss };
+  const isElite = row.wr >= 85;
+  const isWeak  = row.wr < 50;
+
+  const biasL0  = (row.bias||'').split(' · ')[0];
+  const newsL0  = (row.news||'').split(' · ')[0];
+  const condL0  = (row.condition||'').split(' · ')[0];
+  const [momMain, momSub] = row.momentum.split(' · ');
+
+  const biasCol = biasL0.includes('🟢') ? C.win : biasL0.includes('🔴') ? C.loss : C.warn;
+  const newsCol = newsL0.includes('🚫') ? C.loss : newsL0.includes('📰') ? C.warn : C.win;
+  const condCol = condL0.includes('Uptrend')||condL0.includes('Breakout') ? C.win
+                : condL0.includes('Downtrend')||condL0.includes('News')||condL0.includes('Chop') ? C.loss : C.warn;
+
+  return (
+    <div style={{
+      margin:'0 12px 10px',
+      background: isElite ? '#071520' : isWeak ? '#0c040c' : C.surface,
+      border:`1px solid ${isElite?C.win+'33':isWeak?C.loss+'33':C.border}`,
+      borderRadius:8, overflow:'hidden',
+    }}>
+      {/* HEADER — always visible */}
+      <div onClick={() => setExpanded(e => !e)} style={{ padding:'14px', cursor:'pointer', userSelect:'none' }}>
+
+        {/* Row 1: TF badges + WR */}
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:10 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap', flex:1, marginRight:12 }}>
+            {[{tf:row.htf,role:'HTF'},{tf:row.atf,role:'ATF'},{tf:row.etf,role:'ETF'}].map(({tf,role}) => (
+              <div key={role} style={{ display:'flex', alignItems:'center', gap:3 }}>
+                <span style={{ fontFamily:RJ, fontSize:13, fontWeight:700, color:roleC[tf]||C.sub, background:(roleC[tf]||C.sub)+'18', border:`1px solid ${(roleC[tf]||C.sub)}28`, padding:'2px 7px', borderRadius:3, letterSpacing:'0.1em' }}>{tf}</span>
+                <span style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.08em' }}>{role}</span>
+              </div>
+            ))}
+            {(isElite||isWeak) && (
+              <span style={{ fontFamily:RJ, fontSize:8, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:isElite?C.win:C.loss, background:isElite?C.win+'15':C.loss+'15', border:`1px solid ${isElite?C.win:C.loss}30`, padding:'2px 7px', borderRadius:3 }}>
+                {isElite?'★ ELITE':'✗ AVOID'}
+              </span>
+            )}
+          </div>
+          {/* WR% */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4, flexShrink:0 }}>
+            <span style={{ fontFamily:RJ, fontSize:24, fontWeight:700, color:wrC(row.wr), lineHeight:1 }}>{row.wr}%</span>
+            <div style={{ width:56, height:3, borderRadius:99, background:'rgba(255,255,255,0.07)', overflow:'hidden' }}>
+              <div style={{ width:`${row.wr}%`, height:'100%', background:wrC(row.wr), borderRadius:99 }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Stats */}
+        <div style={{ display:'flex', gap:20, marginBottom:10 }}>
+          {[
+            { label:'Avg R',       value: `${row.avgR>0?'+':''}${row.avgR}R`, color: row.avgR>=3?'#60a5fa':C.muted },
+            { label:'Net P/L',     value: `${row.netPL>=0?'+':''}$${row.netPL.toLocaleString()}`, color: row.netPL>=0?C.win:C.loss },
+            { label:'Sample Size', value: (() => { const w = Math.round(row.trades * row.wr / 100); return `${row.trades} · ${w}W/${row.trades-w}L`; })(), color: C.strong },
+          ].map(({label,value,color}) => (
+            <div key={label}>
+              <div style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:2 }}>{label}</div>
+              <div style={{ fontFamily:RJ, fontSize:15, fontWeight:700, color }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Row 3: Pills */}
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
+          {[
+            { text:biasL0, color:biasCol },
+            { text:condL0, color:condCol },
+            { text:newsL0, color:newsCol },
+          ].map(({text,color}) => (
+            <span key={text} style={{ fontFamily:RJ, fontSize:10, fontWeight:600, color, background:color+'15', border:`1px solid ${color}30`, padding:'3px 9px', borderRadius:20 }}>{text}</span>
+          ))}
+        </div>
+
+        {/* Row 4: Session + toggle */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <span style={{ fontFamily:RJ, fontSize:10, fontWeight:500, color:C.muted }}>{row.session}</span>
+          <span style={{ fontFamily:RJ, fontSize:10, fontWeight:700, color:'#6366f1', letterSpacing:'0.08em' }}>{expanded?'▲ LESS':'▼ MORE'}</span>
+        </div>
+      </div>
+
+      {/* EXPANDED BODY */}
+      {expanded && (
+        <div style={{ borderTop:`1px solid ${C.sep}` }}>
+
+          {/* TF rows */}
+          {[
+            { label:'HTF', tf:row.htf, color:C.htf, data:row.tf1 },
+            { label:'ATF', tf:row.atf, color:C.atf, data:row.tf2 },
+            { label:'ETF', tf:row.etf, color:C.etf, data:row.tf3 },
+          ].map(({ label, tf, color, data }) => (
+            <div key={label} style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:5 }}>
+                <span style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color, background:color+'18', border:`1px solid ${color}28`, padding:'1px 6px', borderRadius:3, letterSpacing:'0.08em' }}>{tf}</span>
+                <span style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em' }}>{label}</span>
+                <span style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color, letterSpacing:'0.04em', textTransform:'uppercase' }}>{data.candle}</span>
+              </div>
+              <p style={{ fontFamily:RJ, fontSize:12, fontWeight:500, color:C.text, lineHeight:1.6, margin:0 }}>{data.pa}</p>
+            </div>
+          ))}
+
+          {/* Indicators */}
+          <div style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.ind, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>● Indicators</div>
+            {row.indicators.split('\n').map((line, i) => (
+              <div key={i} style={{ fontFamily:RJ, fontSize:12, fontWeight:i===0?700:500, color:i===0?C.strong:C.text, lineHeight:1.5, marginBottom:2 }}>{line}</div>
+            ))}
+          </div>
+
+          {/* Momentum */}
+          <div style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.ctx, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>● Momentum</div>
+            <div style={{ fontFamily:RJ, fontSize:13, fontWeight:700, color:C.strong }}>{momMain}</div>
+            {momSub && <div style={{ fontFamily:RJ, fontSize:11, fontWeight:400, color:C.sub, marginTop:2 }}>{momSub}</div>}
+          </div>
+
+          {/* Full context */}
+          <div style={{ padding:'12px 14px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px' }}>
+            <div>
+              <div style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:3 }}>Session</div>
+              <div style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:C.muted, lineHeight:1.5 }}>{row.session.replace(' · ', '\n')}</div>
+            </div>
+            <div>
+              <div style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:3 }}>Condition</div>
+              <div style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:condCol, lineHeight:1.5 }}>{condL0}</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const ConditionRow = ({ item }) => {
-  const wrColor = item.wr >= 70 ? 'text-emerald-400' : item.wr >= 55 ? 'text-amber-400' : 'text-rose-400';
-  const barColor = item.wr >= 70 ? 'bg-emerald-500' : item.wr >= 55 ? 'bg-amber-500' : 'bg-rose-500';
-  const plColor = item.netPL >= 0 ? 'text-emerald-400' : 'text-rose-400';
-  return (
-    <div className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors ${!item.strength ? 'bg-rose-950/20' : ''}`}>
-      <div className="w-36 shrink-0">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{item.label}</span>
-        {!item.strength && <span className="ml-2 text-[8px] text-rose-500 font-black uppercase">WEAK</span>}
+// ─── INSIGHTS PANEL ───────────────────────────────────────────────────────────
+const InsightsPanel = ({ isMobile }) => (
+  <div style={{ padding: isMobile ? '0 12px 28px' : '0 20px 28px', display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap:12 }}>
+    {[
+      { color:C.win,  title:'★ Highest Probability Pattern',
+        lines:['HTF: Engulfing or Pin Bar closing at/above key S/R level','ATF: Double Bottom / OB Respected / FVG / Institution Candle','ETF: BOS or FVG Fill + Rejection Candle on M5 or M15','Indicators: Volume surge + RSI extreme confirming ATF','London or NY Open · No news · ATR Expanding'] },
+      { color:C.atf,  title:'📐 TF-by-TF Alignment Rule',
+        lines:['HTF: must show clear directional bias at a key level','ATF: must confirm that bias with structure (OB/FVG/double)','ETF: must show precise trigger candle in the same direction','All three TFs must tell the same story — or skip','One contradicting TF = reduce size or wait'] },
+      { color:C.warn, title:'⚠ What Destroys Win Rate',
+        lines:['30M as ATF: structure becomes noise, WR drops ~20%','M1 as ETF: no institutional footprint, coin-flip entries','During news: all patterns and levels completely invalidated','Dead zone session: spread destroys every edge','H4 as HTF: no macro context, bias shifts too frequently'] },
+    ].map((c, i) => (
+      <div key={i} style={{ background:c.color+'07', border:`1px solid ${c.color}20`, borderRadius:6, padding:'14px 16px' }}>
+        <div style={{ fontFamily:RJ, fontSize:10, fontWeight:700, color:c.color, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:10 }}>{c.title}</div>
+        {c.lines.map((line, j) => (
+          <div key={j} style={{ display:'flex', gap:7, marginBottom:6 }}>
+            <span style={{ color:c.color, fontWeight:700, fontSize:10, flexShrink:0, marginTop:1 }}>→</span>
+            <span style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:C.muted, lineHeight:1.45 }}>{line}</span>
+          </div>
+        ))}
       </div>
-      <div className="flex-1">
-        <div className="w-full bg-[#0a1020] h-1.5 rounded-full overflow-hidden">
-          <div className={`h-full ${barColor} rounded-full transition-all duration-700`} style={{ width: `${item.wr}%` }} />
-        </div>
-      </div>
-      <span className={`text-xs font-black w-10 text-right mono ${wrColor}`}>{item.wr}%</span>
-      <span className={`text-[10px] font-bold w-12 text-right mono ${item.avgR >= 2 ? 'text-blue-400' : item.avgR >= 0 ? 'text-slate-500' : 'text-rose-500'}`}>{item.avgR > 0 ? '+' : ''}{item.avgR.toFixed(1)}R</span>
-      <span className={`text-[10px] font-bold w-16 text-right mono ${plColor}`}>{item.netPL >= 0 ? '+' : ''}${item.netPL.toLocaleString()}</span>
-      <span className="text-[9px] text-slate-700 w-14 text-right mono">{item.trades} trades</span>
-    </div>
-  );
-};
+    ))}
+  </div>
+);
 
-const ConditionBlock = ({ title, icon: Icon, color, data, insight, insightType = 'warning' }) => {
-  const colorMap = {
-    blue:   { t: 'text-blue-400',   b: 'border-blue-900/40',   bg: 'bg-blue-950/20' },
-    emerald:{ t: 'text-emerald-400',b: 'border-emerald-900/40',bg: 'bg-emerald-950/20' },
-    amber:  { t: 'text-amber-400',  b: 'border-amber-900/40',  bg: 'bg-amber-950/20' },
-    rose:   { t: 'text-rose-400',   b: 'border-rose-900/40',   bg: 'bg-rose-950/20' },
-    violet: { t: 'text-violet-400', b: 'border-violet-900/40', bg: 'bg-violet-950/20' },
-    cyan:   { t: 'text-cyan-400',   b: 'border-cyan-900/40',   bg: 'bg-cyan-950/20' },
-    indigo: { t: 'text-indigo-400', b: 'border-indigo-900/40', bg: 'bg-indigo-950/20' },
-  };
-  const c = colorMap[color] || colorMap.blue;
-  return (
-    <div className={`bg-[#080d18] border ${c.b} overflow-hidden`}>
-      <div className={`px-4 py-3 ${c.bg} border-b ${c.b} flex items-center justify-between`}>
-        <div className="flex items-center gap-2.5">
-          <Icon className={`w-3.5 h-3.5 ${c.t} shrink-0`} />
-          <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${c.t}`}>{title}</h3>
-        </div>
-        <div className="flex items-center gap-6 pr-2">
-          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-10 text-right">WR%</span>
-          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-12 text-right">Avg R</span>
-          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-16 text-right">Net P/L</span>
-          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest w-14 text-right">Trades</span>
-        </div>
-      </div>
-      <div className="max-h-72 overflow-y-auto" style={{scrollbarWidth:'thin',scrollbarColor:'#1a2d45 transparent'}}>
-        {data.map((item, i) => <ConditionRow key={i} item={item} />)}
-      </div>
-      {insight && <div className="px-4 pb-4"><InsightBadge text={insight} type={insightType} /></div>}
-    </div>
-  );
-};
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
+export default function TFSMatrix() {
+  const [page, setPage]       = useState(1);
+  const [isMobile, setMobile] = useState(false);
 
-// ─── Main ──────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const check = () => setMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-export default function TradingDashboard() {
-  const [tab, setTab] = useState('overview');
-  const [strategy, setStrategy] = useState('ALL STRATEGIES');
+  const rows = page === 1 ? ROWS : [...ROWS].filter(r => r.wr >= 78).sort((a, b) => b.wr - a.wr);
 
-  const strategies = ['ALL STRATEGIES', 'SMC BREAKER', 'SILVER BULLET', 'LONDON OPEN'];
-  const tabs = [
-    { id: 'overview',   label: 'Overview',          icon: BarChart3 },
-    { id: 'conditions', label: 'Condition Analysis', icon: Filter },
-    { id: 'profiles',   label: 'Win / Loss Profile', icon: Crosshair },
-    { id: 'psychology', label: 'Psychology',          icon: Brain },
-    { id: 'matrix',     label: 'Strategy Matrix',    icon: Layers },
-    { id: 'equity',     label: 'Equity & Risk',       icon: TrendingUp },
+  const GROUPS = [
+    { label:'HTF',         sub:'Candle Pattern · Price Action', color:C.htf, leftBorder:false },
+    { label:'ATF',         sub:'Candle Pattern · Price Action', color:C.atf, leftBorder:false },
+    { label:'ETF',         sub:'Candle Pattern · Price Action', color:C.etf, leftBorder:false },
+    { label:'Indicators',  sub:'State at entry moment',         color:C.ind, leftBorder:true  },
+    { label:'Session',     sub:'Time window',                   color:C.ctx, leftBorder:false },
+    { label:'Condition',   sub:'Trend · Range · Volatile',      color:C.ctx, leftBorder:false },
+    { label:'Bias',        sub:'Direction',                     color:C.ctx, leftBorder:false },
+    { label:'News',        sub:'Event status',                  color:C.ctx, leftBorder:false },
+    { label:'Momentum',    sub:'ATR · Expansion',               color:C.ctx, leftBorder:false },
+    { label:'Sample Size', sub:'Trades in dataset',             color:C.sub, leftBorder:false },
+    { label:'Performance', sub:'WR · Avg R · Net P/L',          color:C.perf,leftBorder:true  },
   ];
 
-  const kpi = DATA.kpis;
-  const d = DATA;
-
-  const matrixRows = strategy === 'ALL STRATEGIES'
-    ? d.strategyMatrix
-    : d.strategyMatrix.filter(s => s.strategy.toUpperCase().includes(strategy.replace('ALL STRATEGIES', '')));
-
   return (
-    <div className="min-h-screen bg-[#050b14] text-slate-200" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ minHeight:'100vh', background:C.bg, color:C.text }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #0a1428; }
-        @media(max-width: 900px){ .grid-2col { grid-template-columns: 1fr; } }
-        .tab-content { animation: fadeUp 0.25s ease; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&display=swap');
+        *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Barlow Condensed', sans-serif; background:#030810; }
+        ::-webkit-scrollbar { width:4px; height:6px; }
+        ::-webkit-scrollbar-track { background:#050c1a; }
+        ::-webkit-scrollbar-thumb { background:#1a334f; border-radius:4px; }
+        .fadein { animation:fi .2s ease; }
+        @keyframes fi { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
+        tbody tr:hover td { background:rgba(255,255,255,0.01) !important; }
+        td, th { font-family:'Barlow Condensed', sans-serif; }
       `}</style>
 
-      {/* ── Nav ──────────────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-[#050b14]/96 backdrop-blur border-b border-[#0c1828]">
-        <div className="max-w-[1600px] mx-auto flex items-center px-6">
-          <div className="mr-8 py-3.5 border-r border-[#0c1828] pr-8">
-            <div className="text-xs font-black text-white uppercase tracking-widest">Trade Journal</div>
-            <div className="text-[8px] text-slate-600 uppercase tracking-widest mt-0.5">Analytics · Strategy Intelligence</div>
-          </div>
-          <div className="flex items-center gap-0 flex-1 overflow-x-auto">
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex items-center gap-2 px-4 py-3.5 text-[10px] font-bold uppercase tracking-widest border-b-2 whitespace-nowrap transition-all ${tab === t.id ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent text-slate-600 hover:text-slate-400 hover:bg-white/[0.015]'}`}>
-                <t.icon className="w-3 h-3" />{t.label}
-              </button>
-            ))}
-          </div>
-          <div className="relative ml-4 shrink-0">
-            <select value={strategy} onChange={e => setStrategy(e.target.value)}
-              className="appearance-none bg-[#0c1828] border border-[#162236] text-white px-4 py-2 pr-8 text-[10px] font-bold tracking-wider cursor-pointer outline-none hover:bg-[#0f1f35] transition-colors uppercase mono">
-              {strategies.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-600 pointer-events-none" />
-          </div>
+      {/* ── NAV ── */}
+      <div style={{
+        position:'sticky', top:0, zIndex:100,
+        background:'rgba(3,8,16,0.97)', backdropFilter:'blur(20px)',
+        borderBottom:`1px solid ${C.border}`,
+        display:'flex', alignItems:'stretch',
+        padding: isMobile ? '0 12px' : '0 20px',
+        minHeight: isMobile ? 52 : 'auto',
+      }}>
+        <div style={{ display:'flex', flexDirection:'column', justifyContent:'center', paddingRight: isMobile ? 12 : 24, borderRight:`1px solid ${C.border}`, marginRight:8 }}>
+          <span style={{ fontFamily:RJ, fontSize: isMobile ? 13 : 14, fontWeight:700, color:C.bright, letterSpacing:'0.2em', textTransform:'uppercase' }}>TFS MATRIX</span>
+          {!isMobile && (
+            <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, marginTop:1, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              Y: MTF Combo · X: HTF · ATF · ETF · Indicators · Context · Performance
+            </span>
+          )}
         </div>
-      </nav>
-
-      <div className="p-6 max-w-[1600px] mx-auto space-y-6 tab-content" key={tab}>
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            OVERVIEW
-        ══════════════════════════════════════════════════════════════════════ */}
-        {tab === 'overview' && (<>
-
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
-            {[
-              { l: 'Net Profit',      v: `$${kpi.netPL.toLocaleString()}`,  c: 'text-emerald-400' },
-              { l: 'Win Rate',        v: `${kpi.winRate}%`,                  c: 'text-emerald-400' },
-              { l: 'Expectancy',      v: `${kpi.expectancy}R`,               c: 'text-blue-400' },
-              { l: 'Profit Factor',   v: kpi.profitFactor,                    c: 'text-blue-400' },
-              { l: 'Avg Win',         v: `$${kpi.avgWin}`,                   c: 'text-emerald-400' },
-              { l: 'Avg Loss',        v: `$${kpi.avgLoss}`,                  c: 'text-rose-400' },
-              { l: 'Rules Adherence', v: `${kpi.rulesAdherence}%`,           c: 'text-amber-400' },
-              { l: 'Total Trades',    v: kpi.totalTrades,                     c: 'text-slate-300' },
-            ].map((k, i) => (
-              <div key={i} className="bg-[#080d18] border border-[#0c1828] p-4">
-                <div className="text-[8px] font-bold text-slate-600 uppercase tracking-widest mb-2 leading-tight">{k.l}</div>
-                <div className={`text-xl font-black mono ${k.c}`}>{k.v}</div>
+        {[
+          { n:1, e:'⊞', label: isMobile ? 'All'  : 'Full Matrix',     sub:`${ROWS.length} scenarios` },
+          { n:2, e:'★', label: isMobile ? 'Best' : 'Best Performers', sub:'WR ≥ 78%' },
+        ].map(p => (
+          <button key={p.n} onClick={() => setPage(p.n)} style={{
+            display:'flex', flexDirection:'column', justifyContent:'center', gap:1,
+            padding: isMobile ? '0 10px' : '0 20px',
+            background: page===p.n ? 'rgba(99,102,241,0.07)' : 'transparent',
+            borderBottom: page===p.n ? '2px solid #6366f1' : '2px solid transparent',
+            borderTop:'none', borderLeft:'none', borderRight:'none',
+            cursor:'pointer', transition:'all .14s',
+          }}>
+            <span style={{ fontFamily:RJ, fontSize: isMobile ? 10 : 11, fontWeight:700, color:page===p.n?'#a5b4fc':C.sub, letterSpacing:'0.1em', textTransform:'uppercase' }}>{p.e} {p.label}</span>
+            {!isMobile && <span style={{ fontFamily:RJ, fontSize:9, fontWeight:500, color:page===p.n?'#6366f1':C.dim }}>{p.sub}</span>}
+          </button>
+        ))}
+        {!isMobile && (
+          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:12 }}>
+            {[{dot:C.htf,l:'HTF col'},{dot:C.atf,l:'ATF col'},{dot:C.etf,l:'ETF col'},{dot:C.win,l:'≥80%'},{dot:C.warn,l:'62–79%'},{dot:C.loss,l:'<62%'}].map(x => (
+              <div key={x.l} style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <div style={{ width:6, height:6, borderRadius:2, background:x.dot }} />
+                <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim }}>{x.l}</span>
               </div>
             ))}
           </div>
-
-          {/* Weakness + Strength Banners */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-[#0f0308] border border-rose-900/50 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Critical Weaknesses — Action Required</h3>
-              </div>
-              <div className="space-y-2">
-                {[
-                  { title: 'Reversal Setups',   stat: '33% WR / -$280 net', desc: 'Actively destroying P/L. Remove from playbook or paper-trade only.' },
-                  { title: 'Friday Trading',     stat: '33% WR / -$200 net', desc: 'Statistically no edge. Implement a hard no-trade Friday rule.' },
-                  { title: 'FOMO / Revenge',     stat: '0–25% WR / -$800',  desc: 'These have never been net profitable. Zero exceptions.' },
-                  { title: 'Counter-HTF Trades', stat: '38% WR / -$180 net', desc: 'Trading against the trend is your #1 structural leak.' },
-                  { title: 'Anxious State',      stat: '25% WR / -$380 net', desc: 'Psychological state predicts outcome better than technicals.' },
-                ].map((w, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 bg-rose-500/5 border border-rose-900/30">
-                    <XCircle className="w-3 h-3 text-rose-500 mt-0.5 shrink-0" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-rose-300">{w.title}</span>
-                        <span className="text-[9px] mono text-rose-600 font-bold">{w.stat}</span>
-                      </div>
-                      <p className="text-[9px] text-rose-400/60 italic mt-0.5">{w.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-[#030f08] border border-emerald-900/50 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Confirmed Strengths — Lean Into These</h3>
-              </div>
-              <div className="space-y-2">
-                {[
-                  { title: 'London Open Phase',    stat: '77% WR / +3.4R avg',  desc: 'Your clearest session edge. Concentrate effort here.' },
-                  { title: 'Breakout Setups',      stat: '80% WR / +3.8R avg',  desc: 'Highest performing tag. Prioritise these above all others.' },
-                  { title: 'Rules-Based Execution',stat: '80% WR when clean',   desc: 'Discipline is your alpha. Rules exist because they work.' },
-                  { title: 'Tue / Wed Trading',    stat: '80% WR / +3.5R avg',  desc: 'Best days to trade. Increase size on these days only.' },
-                  { title: 'Calm Emotional State', stat: '82% WR / +3.4R avg',  desc: 'Psychological readiness is a tradeable edge. Use it.' },
-                ].map((w, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 bg-emerald-500/5 border border-emerald-900/30">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-500 mt-0.5 shrink-0" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-emerald-300">{w.title}</span>
-                        <span className="text-[9px] mono text-emerald-600 font-bold">{w.stat}</span>
-                      </div>
-                      <p className="text-[9px] text-emerald-400/60 italic mt-0.5">{w.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Snapshot Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'Best Performing Day',   value: 'Tuesday / Wednesday', sub: '80% WR | +3.5R avg',   good: true },
-              { label: 'Worst Performing Day',  value: 'Friday',              sub: '33% WR | -$200 net',   good: false },
-              { label: 'Best Setup Type',       value: 'Breakout',            sub: '80% WR | +3.8R avg',   good: true },
-              { label: 'Worst Setup Type',      value: 'Reversal',            sub: '33% WR | -$280 net',   good: false },
-              { label: 'Best Session',          value: 'London Open Phase',   sub: '77% WR | +3.4R avg',   good: true },
-              { label: 'Worst Session',         value: 'Tokyo',               sub: '50% WR | +$80 net',    good: false },
-              { label: 'Best Mkt Condition',    value: 'Trending Market',     sub: '71% WR | +3.1R avg',   good: true },
-              { label: 'Biggest P/L Leak',      value: 'Impulse Trades',      sub: '< 25% WR | -$800 net', good: false },
-            ].map((item, i) => (
-              <div key={i} className={`p-4 border ${item.good ? 'bg-[#040d09] border-emerald-900/40' : 'bg-[#0f0408] border-rose-900/40'}`}>
-                <div className={`text-[8px] font-black uppercase tracking-widest mb-1.5 ${item.good ? 'text-emerald-800' : 'text-rose-800'}`}>{item.label}</div>
-                <div className={`text-sm font-black ${item.good ? 'text-emerald-300' : 'text-rose-300'}`}>{item.value}</div>
-                <div className="text-[9px] text-slate-600 mt-1 mono">{item.sub}</div>
-              </div>
-            ))}
-          </div>
-
-        </>)}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            CONDITIONS TAB
-        ══════════════════════════════════════════════════════════════════════ */}
-        {tab === 'conditions' && (
-          <div className="space-y-1 grid-2col">
-
-            <ConditionBlock title="Market Regime → Strategy Performance" icon={TrendingUp} color="blue"
-              data={d.conditions.marketRegime}
-              insight="Strategy produces 71% WR in trending markets but only 33% WR in volatile conditions. Volatile regimes cost -$180 net — skip them or halve position size." insightType="warning" />
-
-            <ConditionBlock title="Volatility State → Strategy Performance" icon={Activity} color="indigo"
-              data={d.conditions.volatilityState}
-              insight="Low/Normal volatility produces 68–80% WR. High volatility drops to 50% WR with lower R. ATR spike = reduce size or stand aside." insightType="warning" />
-
-            <ConditionBlock title="Trading Session → Strategy Performance" icon={Globe} color="cyan"
-              data={d.conditions.sessionName}
-              insight="London is your edge session at 75% WR. Tokyo at 50% WR offers no edge above coin-flip. Remove Tokyo from your active trading plan." insightType="danger" />
-
-            <ConditionBlock title="Session Phase → Strategy Performance" icon={Clock} color="cyan"
-              data={d.conditions.sessionPhase}
-              insight="Open phase: 77% WR, Close phase: 50% WR. Your edge is phase-specific. Enforce a rule: no new entries in Close phase." insightType="danger" />
-
-            <ConditionBlock title="Direction (Long/Short) → Strategy Performance" icon={ArrowUp} color="emerald"
-              data={d.conditions.direction}
-              insight="Long bias outperforms Short by 14% WR. In the current HTF bullish regime this is expected. Require higher confluence (≥4.0) for all short trades." insightType="info" />
-
-            <ConditionBlock title="HTF Bias Alignment → Strategy Performance" icon={Layers} color="violet"
-              data={d.conditions.htfBias}
-              insight="Aligned-HTF trades average 77% WR. Counter-HTF trades average 38–50% WR and negative/minimal R. Counter-trend trades are statistically a losing strategy." insightType="danger" />
-
-            <ConditionBlock title="Setup Tag → Strategy Performance" icon={Award} color="amber"
-              data={d.conditions.setupTag}
-              insight="Reversal setups are your most expensive mistake: 33% WR, -$280 net loss. Breakouts (80%) and Continuations (75%) are your edge. Allocate accordingly." insightType="danger" />
-
-            <ConditionBlock title="Trade Grade → Strategy Performance" icon={Target} color="emerald"
-              data={d.conditions.tradeGrade}
-              insight="A-grade = 90% WR (+4.2R). D-grade = 33% WR (-$280). Each grade step down costs ~0.5R avg and 18% WR. Grade your setups honestly — it directly correlates with outcome." insightType="warning" />
-
-            <ConditionBlock title="Confluence Score → Strategy Performance" icon={Sparkles} color="violet"
-              data={d.conditions.confluenceScore}
-              insight="Below 2.5 confluence = 25% WR and -$440 net. This bucket is a guaranteed loss generator. Hard minimum rule: 3.0 confluence before entry." insightType="danger" />
-
-            <ConditionBlock title="Day of Week → Strategy Performance" icon={Calendar} color="indigo"
-              data={d.conditions.dayOfWeek}
-              insight="Tue/Wed: 80% WR each. Friday: 33% WR, -$200 net. You have a documented 47% WR spread between best and worst days. Calendar matters — trade it intentionally." insightType="warning" />
-
-            <ConditionBlock title="Exit Reason → Strategy Performance" icon={DoorOpen} color="rose"
-              data={d.conditions.exitReason}
-              insight="Emotional exits produce 40% WR and -$180 net loss vs. Target Hit at 100% WR. Letting trades play to plan is worth +$1,980 over emotional exits in this sample." insightType="danger" />
-
-            <ConditionBlock title="News Environment → Strategy Performance" icon={Zap} color="amber"
-              data={d.conditions.newsEnv}
-              insight="Clean sessions: 75% WR. Major news: 50% WR with near-zero net after spread/slippage. Implement a 30-minute pre/post news blackout as a hard rule." insightType="warning" />
-
-          </div>
         )}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            WIN / LOSS PROFILES TAB
-        ══════════════════════════════════════════════════════════════════════ */}
-        {tab === 'profiles' && (
-          <div className="space-y-6">
-
-            <div className="bg-[#080d18] border border-blue-900/40 p-4 flex items-start gap-3">
-              <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-              <div>
-                <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">How to Read This Section</h3>
-                <p className="text-[10px] text-slate-400 leading-relaxed">
-                  Each row shows what conditions looked like on <span className="text-emerald-400 font-bold">winning trades</span> vs <span className="text-rose-400 font-bold">losing trades</span>. This is the behavioral and market fingerprint of your P/L. Use this to build pre-trade checklists that filter out loss-prone setups before entry.
-                </p>
-              </div>
-            </div>
-
-            {/* Profile Table */}
-            <div className="bg-[#080d18] border border-[#0c1828] overflow-hidden">
-              <div className="grid grid-cols-4 px-4 py-3 bg-[#0a1220] border-b border-[#0c1828]">
-                <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Factor</span>
-                <span className="text-[9px] font-black text-emerald-800 uppercase tracking-widest">When Winning</span>
-                <span className="text-[9px] font-black text-rose-800 uppercase tracking-widest">When Losing</span>
-                <span className="text-[9px] font-black text-amber-800 uppercase tracking-widest">Insight / Rule to Add</span>
-              </div>
-              <div className="max-h-[700px] overflow-y-auto" style={{scrollbarWidth:'thin',scrollbarColor:'#1a2d45 transparent'}}>
-                {d.winProfile.map((row, i) => (
-                  <div key={i} className={`grid grid-cols-4 gap-0 px-4 py-3 border-b border-[#0c1828] last:border-0 hover:bg-white/[0.018] transition-colors ${i % 2 === 0 ? '' : 'bg-[#060b16]'}`}>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight pr-4">{row.factor}</div>
-                    <div className="pr-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-500/10 border border-emerald-900/50 text-[10px] font-bold text-emerald-300">
-                        <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />{row.winVal}
-                      </span>
-                    </div>
-                    <div className="pr-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-rose-500/10 border border-rose-900/50 text-[10px] font-bold text-rose-300">
-                        <XCircle className="w-2.5 h-2.5 shrink-0" />{row.lossVal}
-                      </span>
-                    </div>
-                    <div className="text-[9px] text-amber-300/70 leading-relaxed italic font-medium">{row.insight}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Composite Profiles */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-[#030f08] border border-emerald-900/50 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Perfect WIN Setup Profile</h3>
-                </div>
-                <p className="text-[9px] text-emerald-700 italic mb-3">All conditions present = your highest-probability trade. When the full checklist passes, 88%+ WR expected.</p>
-                <div className="space-y-1">
-                  {[
-                    'London Session — Open Phase only',
-                    'HTF Bias fully aligned with trade direction',
-                    'Market Regime: Trending (not ranging/volatile)',
-                    'Setup Tag: Breakout or Continuation',
-                    'Trade Grade: A or B (no exceptions)',
-                    'Confluence Score: ≥ 3.5 / 5.0',
-                    'MTF Alignment: All timeframes confirmed',
-                    'Emotional State: Calm (self-assessed before entry)',
-                    'Energy Level: ≥ 3.5 / 5.0',
-                    'Day: Tuesday, Wednesday, or Thursday',
-                    'News: Clean window (no releases within 30min)',
-                    'Impulse Flags: None active',
-                    'Rules Followed: 100% (no deviations)',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-emerald-950/30 border border-emerald-900/30">
-                      <div className="w-1 h-1 bg-emerald-500 rounded-full shrink-0" />
-                      <span className="text-[10px] font-semibold text-emerald-200/80">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[#0f0408] border border-rose-900/50 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <XCircle className="w-4 h-4 text-rose-400" />
-                  <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">LOSS Setup Profile — Red Flag Checklist</h3>
-                </div>
-                <p className="text-[9px] text-rose-700 italic mb-3">If ANY of these conditions are present, your WR drops below 50%. Multiple flags = near-certain loss.</p>
-                <div className="space-y-1">
-                  {[
-                    'Session: Close phase or Tokyo session',
-                    'HTF Bias: Counter-trend direction',
-                    'Market Regime: Volatile or strongly ranging',
-                    'Setup Tag: Reversal (33% WR — statistically no edge)',
-                    'Trade Grade: C, D, or F',
-                    'Confluence Score: < 2.5 (25% WR bucket)',
-                    'MTF Alignment: Skipped or conflicting signals',
-                    'Emotional State: Anxious, FOMO, or Revenge',
-                    'Energy Level: < 2.5 / 5.0',
-                    'Day: Friday (33% WR, -$200 net loss)',
-                    'Major news event within 30 minutes',
-                    'Any impulse flag checked (FOMO/Revenge/Bored/Emotional)',
-                    'Any rule broken (rules broken = 25% WR only)',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-rose-950/30 border border-rose-900/30">
-                      <div className="w-1 h-1 bg-rose-500 rounded-full shrink-0" />
-                      <span className="text-[10px] font-semibold text-rose-200/80">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            PSYCHOLOGY TAB
-        ══════════════════════════════════════════════════════════════════════ */}
-        {tab === 'psychology' && (
-          <div className="space-y-1 grid-2col">
-
-            <ConditionBlock title="Emotional State → Strategy Performance" icon={Brain} color="rose"
-              data={d.conditions.emotionalState}
-              insight="Your emotional state is MORE predictive of outcome than any technical setup. Calm = 82% WR. FOMO = 0% WR. This IS your edge multiplier. Add a mandatory emotional check before every entry." insightType="danger" />
-
-            <ConditionBlock title="Impulse Control → Strategy Performance" icon={Flame} color="rose"
-              data={d.conditions.impulseFlags}
-              insight="Revenge: 0% WR, -$380 net. FOMO: 25% WR, -$420 net. No impulse trade has ever produced net profit in this sample. This is a rule, not a guideline: impulse flag = no trade." insightType="danger" />
-
-            <ConditionBlock title="Rule Adherence → Strategy Performance" icon={ShieldCheck} color="violet"
-              data={d.conditions.rulesBroken}
-              insight="Zero broken rules = 80% WR, +$1,900 net. Two+ broken = 25% WR, -$480 net. The data proves that every rule you break costs you ~$400 in expected value." insightType="danger" />
-
-            {/* Energy / Focus */}
-            <div className="bg-[#080d18] border border-indigo-900/40 overflow-hidden">
-              <div className="px-4 py-3 bg-indigo-950/20 border-b border-indigo-900/40 flex items-center gap-2.5">
-                <Battery className="w-3.5 h-3.5 text-indigo-400" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Energy & Focus Level → Strategy Performance</h3>
-              </div>
-              <div className="p-4 space-y-5">
-                <div className="grid grid-cols-2 gap-6">
-                  {[
-                    { title: 'Energy Level at Entry', buckets: [{l:'High (4–5)',wr:78,r:3.4,t:18},{l:'Medium (3)',wr:65,r:2.6,t:14},{l:'Low (< 3)',wr:28,r:0.4,t:10}] },
-                    { title: 'Focus Level at Entry',  buckets: [{l:'High (4–5)',wr:80,r:3.6,t:16},{l:'Medium (3)',wr:63,r:2.4,t:16},{l:'Low (< 3)',wr:22,r:0.2,t:10}] },
-                  ].map((m, mi) => (
-                    <div key={mi}>
-                      <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-3">{m.title}</p>
-                      {m.buckets.map((b, bi) => {
-                        const c = b.wr >= 70 ? {t:'text-emerald-400',bg:'bg-emerald-500'} : b.wr >= 55 ? {t:'text-amber-400',bg:'bg-amber-500'} : {t:'text-rose-400',bg:'bg-rose-500'};
-                        return (
-                          <div key={bi} className="mb-3">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className={`text-[10px] font-bold uppercase ${c.t}`}>{b.l}</span>
-                              <span className={`text-[10px] font-black mono ${c.t}`}>{b.wr}% WR · +{b.r}R · {b.t} trades</span>
-                            </div>
-                            <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
-                              <div className={`h-full ${c.bg} rounded-full`} style={{width:`${b.wr}%`}} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-                <InsightBadge text="Low energy cuts WR from 78% to 28% — a 50-point collapse. Implement a readiness score of ≥ 3.5 energy AND ≥ 3.5 focus as mandatory pre-trade gates. Skip trading on low-readiness days." type="warning" />
-              </div>
-            </div>
-
-            {/* Confidence */}
-            <div className="bg-[#080d18] border border-cyan-900/40 overflow-hidden">
-              <div className="px-4 py-3 bg-cyan-950/20 border-b border-cyan-900/40 flex items-center gap-2.5">
-                <Eye className="w-3.5 h-3.5 text-cyan-400" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">Confidence at Entry → Strategy Performance</h3>
-              </div>
-              <div className="p-4">
-                {[
-                  {l:'High (4–5)',wr:79,r:3.4,t:18,pl:1200},
-                  {l:'Medium (3)',wr:63,r:2.2,t:14,pl:480},
-                  {l:'Low (1–2)', wr:31,r:0.4,t:10,pl:-280},
-                ].map((b, i) => {
-                  const c = b.wr >= 70 ? {t:'text-emerald-400',bg:'bg-emerald-500'} : b.wr >= 55 ? {t:'text-amber-400',bg:'bg-amber-500'} : {t:'text-rose-400',bg:'bg-rose-500'};
-                  const plC = b.pl >= 0 ? 'text-emerald-600' : 'text-rose-600';
-                  return (
-                    <div key={i} className="mb-4">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className={`text-[10px] font-bold uppercase ${c.t}`}>{b.l}</span>
-                        <span className="text-[9px] mono text-slate-500">{b.wr}% WR · +{b.r}R · <span className={plC}>{b.pl >= 0 ? '+' : ''}${b.pl}</span></span>
-                      </div>
-                      <div className="w-full bg-[#0a1020] h-1.5 rounded-full">
-                        <div className={`h-full ${c.bg} rounded-full`} style={{width:`${b.wr}%`}} />
-                      </div>
-                    </div>
-                  );
-                })}
-                <InsightBadge text="Low confidence at entry produces 31% WR — not random, predictive. When you feel unsure, the market confirms it. Add confidence score ≥ 3 as a mandatory entry gate." type="warning" />
-              </div>
-            </div>
-
-            {/* Worth Repeating */}
-            <div className="bg-[#080d18] border border-emerald-900/40 overflow-hidden">
-              <div className="px-4 py-3 bg-emerald-950/20 border-b border-emerald-900/40 flex items-center gap-2.5">
-                <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Trade Repeatability → Performance Correlation</h3>
-              </div>
-              <div className="p-5 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    {l:'"Worth Repeating" Trades', wr:'80%', r:'+3.4R', pl:'+$1,620', c:'emerald'},
-                    {l:'"Not Repeatable" Trades',  wr:'28%', r:'+0.4R', pl:'-$380',   c:'rose'},
-                  ].map((x, i) => (
-                    <div key={i} className={`p-4 bg-${x.c}-950/30 border border-${x.c}-900/40 text-center`}>
-                      <div className={`text-[9px] text-${x.c}-700 uppercase tracking-widest mb-2`}>{x.l}</div>
-                      <div className={`text-2xl font-black mono text-${x.c}-400`}>{x.wr}</div>
-                      <div className={`text-[10px] mono text-${x.c}-600 mt-1`}>{x.r} · {x.pl}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    {l:'Avg Rule Adherence — "Repeat"', v:'97%'},
-                    {l:'Avg Rule Adherence — "Avoid"',  v:'71%'},
-                    {l:'Avg Grade — "Repeat"',          v:'A/B'},
-                    {l:'Avg Grade — "Avoid"',           v:'C/D'},
-                  ].map((x,i) => (
-                    <div key={i} className="flex justify-between items-center py-2 px-3 bg-[#0a1020] border border-[#0c1828]">
-                      <span className="text-[9px] text-slate-600 uppercase">{x.l}</span>
-                      <span className="text-xs font-black text-white mono">{x.v}</span>
-                    </div>
-                  ))}
-                </div>
-                <InsightBadge text="You correctly identify 'not worth repeating' trades with high accuracy — but you take them anyway. The data shows these cost you $380 net. Add a hard gate: if hesitant, skip the trade." type="info" />
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            STRATEGY MATRIX TAB
-        ══════════════════════════════════════════════════════════════════════ */}
-        {tab === 'matrix' && (
-          <div className="space-y-6">
-
-            <div className="bg-[#080d18] border border-blue-900/40 p-4 flex items-start gap-3">
-              <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-              <p className="text-[10px] text-slate-400 leading-relaxed">
-                Each cell shows <span className="text-white font-bold">WR%</span> and <span className="text-white font-bold">Avg R</span> for that strategy when traded under that condition.
-                <span className="text-emerald-400 font-bold"> Green ≥ 75%</span> = deploy with confidence.
-                <span className="text-amber-400 font-bold"> Amber 55–74%</span> = reduce size.
-                <span className="text-rose-400 font-bold"> Red &lt; 55%</span> = avoid or paper-trade.
-              </p>
-            </div>
-
-            {/* Strategy × Market/Session/Psychology Conditions */}
-            <div className="overflow-x-auto">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Strategy × Key Conditions (WR% / Avg R)</div>
-              <table className="w-full border-collapse min-w-[900px]">
-                <thead>
-                  <tr className="bg-[#0a1220]">
-                    <th className="text-left px-4 py-3 text-[9px] font-black text-slate-600 uppercase tracking-widest border border-[#0c1828] w-36">Strategy</th>
-                    {[
-                      {l:'Bullish Trend', c:'emerald'},{l:'Bearish Trend', c:'blue'},
-                      {l:'Ranging Mkt',  c:'amber'}, {l:'Volatile Mkt',  c:'rose'},
-                      {l:'Open Phase',   c:'cyan'},   {l:'Close Phase',   c:'rose'},
-                      {l:'Calm State',   c:'emerald'},{l:'Anxious State', c:'rose'},
-                      {l:'Rules Clean',  c:'emerald'},{l:'Rule Broken',   c:'rose'},
-                      {l:'Net P/L', c:'blue'},
-                    ].map((h, i) => (
-                      <th key={i} className={`text-center px-3 py-3 text-[9px] font-black text-${h.c}-700 uppercase tracking-widest border border-[#0c1828] min-w-[80px]`}>{h.l}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {matrixRows.map((row, ri) => {
-                    const cells = [row.bullish, row.bearish, row.ranging, row.volatile, row.openPhase, row.closePhase, row.calm, row.anxious, row.noRule, row.ruleBroken];
-                    return (
-                      <tr key={ri} className={`hover:bg-white/[0.02] transition-colors ${ri % 2 === 0 ? 'bg-[#080d18]' : 'bg-[#070c17]'}`}>
-                        <td className="px-4 py-3 text-[11px] font-bold text-white border border-[#0c1828]">{row.strategy}</td>
-                        {cells.map((cell, ci) => {
-                          const bg = cell.wr >= 75 ? 'bg-emerald-500/[0.08] text-emerald-300' : cell.wr >= 55 ? 'bg-amber-500/[0.06] text-amber-300' : cell.wr < 40 ? 'bg-rose-500/[0.1] text-rose-300' : 'text-slate-400';
-                          const rC = cell.r >= 2 ? 'text-emerald-700' : cell.r >= 0 ? 'text-slate-700' : 'text-rose-700';
-                          return (
-                            <td key={ci} className={`px-3 py-3 text-center border border-[#0c1828] ${bg}`}>
-                              <div className="text-sm font-black mono">{cell.wr}%</div>
-                              <div className={`text-[9px] font-bold mono ${rC}`}>{cell.r > 0 ? '+' : ''}{cell.r}R</div>
-                            </td>
-                          );
-                        })}
-                        <td className={`px-3 py-3 text-center border border-[#0c1828] ${row.netPL >= 0 ? 'text-emerald-400 bg-emerald-500/[0.07]' : 'text-rose-400 bg-rose-500/[0.07]'}`}>
-                          <div className="text-sm font-black mono">{row.netPL >= 0 ? '+' : ''}${row.netPL.toLocaleString()}</div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Strategy × Setup Tag */}
-            <div className="overflow-x-auto">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Strategy × Setup Tag (WR% / Avg R)</div>
-              <table className="w-full border-collapse min-w-[700px]">
-                <thead>
-                  <tr className="bg-[#0a1220]">
-                    <th className="text-left px-4 py-3 text-[9px] font-black text-slate-600 uppercase tracking-widest border border-[#0c1828] w-36">Strategy</th>
-                    {['Breakout','Continuation','Pullback','Momentum','Mean Rev.','Reversal'].map(t => (
-                      <th key={t} className="text-center px-4 py-3 text-[9px] font-black text-amber-700 uppercase tracking-widest border border-[#0c1828]">{t}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    {s:'SMC Breaker',   v:[{wr:88,r:4.2},{wr:80,r:3.8},{wr:62,r:2.2},{wr:75,r:3.4},{wr:70,r:2.8},{wr:28,r:-0.4}]},
-                    {s:'Silver Bullet', v:[{wr:72,r:3.2},{wr:70,r:3.0},{wr:58,r:2.0},{wr:65,r:2.6},{wr:60,r:2.0},{wr:38,r:0.4}]},
-                    {s:'London Open',   v:[{wr:90,r:5.0},{wr:85,r:4.4},{wr:55,r:1.8},{wr:80,r:4.0},{wr:75,r:3.2},{wr:22,r:-0.8}]},
-                  ].map((row, ri) => (
-                    <tr key={ri} className={`hover:bg-white/[0.02] ${ri % 2 === 0 ? 'bg-[#080d18]' : 'bg-[#070c17]'}`}>
-                      <td className="px-4 py-3 text-[11px] font-bold text-white border border-[#0c1828]">{row.s}</td>
-                      {row.v.map((v, vi) => {
-                        const bg = v.wr >= 75 ? 'bg-emerald-500/[0.08] text-emerald-300' : v.wr >= 55 ? 'bg-amber-500/[0.06] text-amber-300' : 'bg-rose-500/[0.08] text-rose-300';
-                        return (
-                          <td key={vi} className={`px-4 py-3 text-center border border-[#0c1828] ${bg}`}>
-                            <div className="text-xs font-black mono">{v.wr}%</div>
-                            <div className={`text-[9px] mono ${v.r >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{v.r > 0 ? '+' : ''}{v.r}R</div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <InsightBadge text="Reversal setups produce negative R in SMC Breaker and London Open. This is consistent across all strategies — Reversals are not part of your edge regardless of strategy used." type="danger" />
-            </div>
-
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            EQUITY & RISK TAB
-        ══════════════════════════════════════════════════════════════════════ */}
-        {tab === 'equity' && (
-          <div className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-5">
-
-              {/* Equity Curve */}
-              <div className="lg:col-span-2 bg-[#080d18] border border-[#0c1828]">
-                <div className="px-5 py-4 border-b border-[#0c1828] flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-400" />
-                  <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Equity Curve</h3>
-                </div>
-                <div className="p-6">
-                  <div className="relative h-56">
-                    <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] text-slate-600 mono pr-3 py-1">
-                      {['$102.1k','$101.6k','$101.1k','$100.6k','$100.0k'].map(v => <span key={v}>{v}</span>)}
-                    </div>
-                    <div className="ml-16 h-full border-l border-b border-[#0c1828] relative">
-                      {[0,25,50,75].map(p => <div key={p} className="absolute w-full border-t border-[#0c1828]" style={{top:`${p}%`}} />)}
-                      <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 600 224">
-                        <defs>
-                          <linearGradient id="eg" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
-                            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                          </linearGradient>
-                        </defs>
-                        <path d="M0,210 L100,185 L200,200 L300,155 L400,120 L500,85 L600,50" fill="none" stroke="#10b981" strokeWidth="2.5"/>
-                        <path d="M0,210 L100,185 L200,200 L300,155 L400,120 L500,85 L600,50 L600,224 L0,224 Z" fill="url(#eg)"/>
-                        {[[0,210],[100,185],[200,200],[300,155],[400,120],[500,85],[600,50]].map(([x,y],i) => (
-                          <circle key={i} cx={x} cy={y} r="4" fill="#10b981" />
-                        ))}
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mt-8 pt-4 border-t border-[#0c1828]">
-                    {[{l:'Start',v:'$100,000',c:'text-slate-400'},{l:'Current',v:'$102,100',c:'text-emerald-400'},{l:'Return',v:'+2.1%',c:'text-emerald-400'}].map((x,i)=>(
-                      <div key={i} className="text-center">
-                        <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-1">{x.l}</div>
-                        <div className={`text-lg font-black mono ${x.c}`}>{x.v}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Risk of Ruin */}
-              <div className="bg-[#080d18] border border-amber-900/40">
-                <div className="px-5 py-4 border-b border-amber-900/40 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-amber-400" />
-                  <h3 className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Risk of Ruin</h3>
-                </div>
-                <div className="p-5 space-y-4">
-                  <div className="flex justify-center py-3">
-                    <div className="relative w-32 h-32">
-                      <svg className="w-full h-full -rotate-90">
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="#0c1828" strokeWidth="8" />
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="#10b981" strokeWidth="8" strokeDasharray="352" strokeDashoffset="349.2" strokeLinecap="round" />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-2xl font-black text-emerald-400 mono">0.8%</div>
-                        <div className="text-[8px] text-slate-600 uppercase tracking-widest">Ruin Risk</div>
-                      </div>
-                    </div>
-                  </div>
-                  {[{l:'Win Rate',v:'67%'},{l:'Avg Risk/Trade',v:'1.1%'},{l:'Profit Factor',v:'8.0'},{l:'Max Drawdown',v:'0.30%'},{l:'Kelly %',v:'18%'},{l:'Half-Kelly',v:'9%'}].map((x,i) => (
-                    <div key={i} className="flex justify-between items-center py-2 px-3 bg-[#0a1020] border border-[#0c1828]">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">{x.l}</span>
-                      <span className="text-xs font-black text-white mono">{x.v}</span>
-                    </div>
-                  ))}
-                  <div className="p-3 bg-emerald-950/30 border border-emerald-900/40 text-center">
-                    <div className="text-[9px] text-emerald-700 uppercase tracking-widest mb-1">Status</div>
-                    <div className="text-xs font-black text-emerald-400">EXCELLENT</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Drawdown + Streaks + Win/Loss Summary */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="bg-[#080d18] border border-rose-900/40 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingDown className="w-4 h-4 text-rose-400" />
-                  <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Drawdown</h3>
-                </div>
-                {[{l:'Max DD (Absolute)',v:'$300'},{l:'Max DD (%)',v:'0.30%'},{l:'Current DD',v:'0.30%'},{l:'Avg Loss Streak',v:'1.2 trades'},{l:'Max Loss Streak',v:'2 trades'},{l:'Recovery Rate',v:'100%'}].map((x,i)=>(
-                  <div key={i} className="flex justify-between items-center py-2 px-3 bg-[#0a1020] border border-[#0c1828] mb-1">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">{x.l}</span>
-                    <span className="text-xs font-black text-white mono">{x.v}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-[#080d18] border border-violet-900/40 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Activity className="w-4 h-4 text-violet-400" />
-                  <h3 className="text-[10px] font-black text-violet-400 uppercase tracking-widest">Streaks & Sequences</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-emerald-950/30 border border-emerald-900/40 p-3 text-center">
-                    <div className="text-2xl font-black text-emerald-400 mono">2</div>
-                    <div className="text-[8px] text-slate-600 uppercase mt-1">Best Win Streak</div>
-                  </div>
-                  <div className="bg-rose-950/30 border border-rose-900/40 p-3 text-center">
-                    <div className="text-2xl font-black text-rose-400 mono">2</div>
-                    <div className="text-[8px] text-slate-600 uppercase mt-1">Worst Loss Streak</div>
-                  </div>
-                </div>
-                <div className="p-3 bg-rose-950/30 border border-rose-900/40 text-center">
-                  <div className="text-[8px] text-rose-700 uppercase tracking-widest mb-1">Current Streak</div>
-                  <div className="text-sm font-black text-rose-400 mono">LOSS × 1</div>
-                </div>
-                <InsightBadge text="Post-loss WR: 0 wins from 0 qualifying trades — insufficient data. Begin tracking recovery behavior explicitly." type="info" />
-              </div>
-
-              <div className="bg-[#080d18] border border-blue-900/40 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-4 h-4 text-blue-400" />
-                  <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Win / Loss Summary</h3>
-                </div>
-                {[{l:'Total Wins',v:'28',c:'text-emerald-400'},{l:'Total Losses',v:'14',c:'text-rose-400'},{l:'Win/Loss Ratio',v:'3.5x',c:'text-blue-400'},{l:'Avg Win ($)',v:'$1,050',c:'text-emerald-400'},{l:'Avg Loss ($)',v:'$300',c:'text-rose-400'},{l:'MAE (avg)',v:'-12 pips',c:'text-amber-400'},{l:'MFE (avg)',v:'+48 pips',c:'text-emerald-400'},{l:'MFE Capture Rate',v:'68%',c:'text-blue-400'}].map((x,i)=>(
-                  <div key={i} className="flex justify-between items-center py-2 px-3 bg-[#0a1020] border border-[#0c1828] mb-1">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">{x.l}</span>
-                    <span className={`text-xs font-black mono ${x.c}`}>{x.v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
+
+      {/* ── MOBILE LEGEND BAR ── */}
+      {isMobile && (
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'5px 12px', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap' }}>
+          {[{dot:C.htf,l:'HTF'},{dot:C.atf,l:'ATF'},{dot:C.etf,l:'ETF'},{dot:C.win,l:'≥80%'},{dot:C.warn,l:'62–79%'},{dot:C.loss,l:'<62%'}].map(x => (
+            <div key={x.l} style={{ display:'flex', alignItems:'center', gap:3 }}>
+              <div style={{ width:5, height:5, borderRadius:1, background:x.dot }} />
+              <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim }}>{x.l}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── CONTENT ── */}
+      <div className="fadein" key={`${page}-${isMobile}`} style={{ paddingBottom:28 }}>
+        {isMobile ? (
+          // MOBILE: stacked cards
+          <div style={{ paddingTop:10 }}>
+            {rows.map(row => <MobileCard key={row.id} row={row} />)}
+          </div>
+        ) : (
+          // DESKTOP: scrollable table
+          <div style={{ overflowX:'auto' }}>
+            <table style={{ borderCollapse:'separate', borderSpacing:0 }}>
+              <thead>
+                <tr>
+                  <th style={{ background:C.panel, width:148, minWidth:148, padding:'12px 12px', borderRight:`2px solid ${C.sep}`, borderBottom:`2px solid ${C.sep}`, textAlign:'left', verticalAlign:'bottom' }}>
+                    <span style={{ fontFamily:RJ, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:'0.15em', textTransform:'uppercase' }}>MTF Combo</span>
+                    <div style={{ fontFamily:RJ, fontSize:8, fontWeight:400, color:C.dim, marginTop:2 }}>HTF → ATF → ETF</div>
+                  </th>
+                  {GROUPS.map((g, i) => (
+                    <th key={i} style={{
+                      padding:'12px 12px', textAlign:'left', verticalAlign:'bottom',
+                      background:g.color+'10',
+                      borderBottom:`2px solid ${C.sep}`,
+                      borderLeft: g.leftBorder ? `2px solid ${C.sep}` : undefined,
+                      borderRight:`1px solid ${C.border}`,
+                      width:    i<=2?220:i===3?190:i===4?145:i===5?170:i===6?110:i===7?195:i===8?160:i===9?110:150,
+                      minWidth: i<=2?220:i===3?190:i===4?145:i===5?170:i===6?110:i===7?195:i===8?160:i===9?110:150,
+                    }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:3 }}>
+                        <div style={{ width:5, height:5, borderRadius:'50%', background:g.color, flexShrink:0 }} />
+                        <span style={{ fontFamily:RJ, fontSize:10, fontWeight:700, color:g.color, letterSpacing:'0.12em', textTransform:'uppercase' }}>{g.label}</span>
+                      </div>
+                      <div style={{ fontFamily:RJ, fontSize:9, fontWeight:400, color:C.dim, paddingLeft:10 }}>{g.sub}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => <MatrixRow key={row.id} row={row} />)}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── PAGE 2 INSIGHTS ── */}
+      {page === 2 && <InsightsPanel isMobile={isMobile} />}
     </div>
   );
 }
