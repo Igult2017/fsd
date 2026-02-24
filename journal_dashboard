@@ -50,7 +50,15 @@ import {
   Flame,
   Zap,
   Camera,
-  Trash2
+  Trash2,
+  Trophy,
+  Medal,
+  Star,
+  Crown,
+  ArrowUp,
+  ArrowDown,
+  BarChart2,
+  Filter
 } from 'lucide-react';
 
 // --- Mock Data ---
@@ -71,35 +79,478 @@ const STATS = [
   { label: 'Avg Trade', value: '$228.40', change: '-$12.0', icon: Clock, color: 'text-orange-500' },
 ];
 
-// --- Components ---
+// --- Leaderboard Mock Data ---
+const LEADERBOARD_DATA = [
+  {
+    rank: 1,
+    username: 'AlphaWolf_X',
+    avatar: 'AW',
+    country: '🇺🇸',
+    pnl: 48320.50,
+    pnlPercent: 483.2,
+    winRate: 78,
+    trades: 312,
+    profitFactor: 4.12,
+    strategy: 'Momentum Breakout',
+    strategyDetail: 'Targets high-volume breakouts on 1-min chart during NY open with tight 0.5R stops.',
+    instruments: ['NVDA', 'TSLA', 'AMD'],
+    streak: 12,
+    badge: 'Elite',
+    change: 'up',
+  },
+  {
+    rank: 2,
+    username: 'QuantEdge',
+    avatar: 'QE',
+    country: '🇬🇧',
+    pnl: 39810.00,
+    pnlPercent: 398.1,
+    winRate: 71,
+    trades: 487,
+    profitFactor: 3.45,
+    strategy: 'Mean Reversion',
+    strategyDetail: 'Fades extended moves on VWAP deviation with 3:1 R/R on the London-NY overlap.',
+    instruments: ['AAPL', 'MSFT', 'SPY'],
+    streak: 7,
+    badge: 'Pro',
+    change: 'up',
+  },
+  {
+    rank: 3,
+    username: 'NightScalper',
+    avatar: 'NS',
+    country: '🇯🇵',
+    pnl: 31540.75,
+    pnlPercent: 315.4,
+    winRate: 82,
+    trades: 891,
+    profitFactor: 2.98,
+    strategy: 'Asian Session Scalp',
+    strategyDetail: 'Scalps tight ranges during Tokyo open with 10-tick targets and hard 5-tick stops.',
+    instruments: ['USD/JPY', 'EUR/JPY', 'GBP/JPY'],
+    streak: 21,
+    badge: 'Master',
+    change: 'same',
+  },
+  {
+    rank: 4,
+    username: 'ZoneTrader99',
+    avatar: 'ZT',
+    country: '🇨🇦',
+    pnl: 27200.00,
+    pnlPercent: 272.0,
+    winRate: 65,
+    trades: 198,
+    profitFactor: 3.10,
+    strategy: 'Supply & Demand',
+    strategyDetail: 'Trades fresh S/D zones on HTF confluence with patience for 4:1 setups.',
+    instruments: ['ES', 'NQ', 'CL'],
+    streak: 5,
+    badge: 'Pro',
+    change: 'up',
+  },
+  {
+    rank: 5,
+    username: 'FlowState_T',
+    avatar: 'FS',
+    country: '🇦🇺',
+    pnl: 22980.25,
+    pnlPercent: 229.8,
+    winRate: 60,
+    trades: 156,
+    profitFactor: 2.75,
+    strategy: 'Order Flow',
+    strategyDetail: 'Reads DOM and footprint charts to enter with institutional flow at key HTF levels.',
+    instruments: ['BTC', 'ETH', 'NQ'],
+    streak: 3,
+    badge: 'Elite',
+    change: 'down',
+  },
+  {
+    rank: 6,
+    username: 'IcebergHunter',
+    avatar: 'IH',
+    country: '🇩🇪',
+    pnl: 19450.00,
+    pnlPercent: 194.5,
+    winRate: 58,
+    trades: 274,
+    profitFactor: 2.55,
+    strategy: 'Iceberg Detection',
+    strategyDetail: 'Identifies hidden institutional orders via tape reading and trades the absorption levels.',
+    instruments: ['DAX', 'EURUSD', 'BUND'],
+    streak: 8,
+    badge: 'Pro',
+    change: 'up',
+  },
+  {
+    rank: 7,
+    username: 'PriceAction_K',
+    avatar: 'PK',
+    country: '🇿🇦',
+    pnl: 16720.80,
+    pnlPercent: 167.2,
+    winRate: 63,
+    trades: 143,
+    profitFactor: 2.30,
+    strategy: 'Pure Price Action',
+    strategyDetail: 'No indicators. Trades pin bars and engulfing candles at major S/R on daily charts.',
+    instruments: ['GBPUSD', 'EURUSD', 'GOLD'],
+    streak: 4,
+    badge: 'Elite',
+    change: 'down',
+  },
+  {
+    rank: 8,
+    username: 'RiskMgmtPro',
+    avatar: 'RM',
+    country: '🇫🇷',
+    pnl: 14100.00,
+    pnlPercent: 141.0,
+    winRate: 55,
+    trades: 320,
+    profitFactor: 2.10,
+    strategy: 'R-Multiple System',
+    strategyDetail: 'Focuses purely on 5:1 R/R setups. Takes losses quickly, lets winners compound.',
+    instruments: ['SPY', 'QQQ', 'NVDA'],
+    streak: 2,
+    badge: 'Pro',
+    change: 'same',
+  },
+];
 
-const StatCard = ({ label, value, change, icon: Icon, color }) => (
-  <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm transition-all hover:border-slate-700 h-full flex flex-col justify-between">
+const BADGE_STYLES = {
+  Elite: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  Pro: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+  Master: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+};
+
+const RANK_COLORS = {
+  1: { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', text: 'text-yellow-400', glow: 'shadow-yellow-500/20' },
+  2: { bg: 'bg-slate-400/10', border: 'border-slate-400/30', text: 'text-slate-300', glow: 'shadow-slate-400/20' },
+  3: { bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400', glow: 'shadow-orange-500/20' },
+};
+
+// --- Leaderboard Components ---
+const RankBadge = ({ rank }) => {
+  if (rank === 1) return (
+    <div className="w-8 h-8 rounded-full bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center shadow-lg shadow-yellow-500/20">
+      <Crown size={14} className="text-yellow-400" />
+    </div>
+  );
+  if (rank === 2) return (
+    <div className="w-8 h-8 rounded-full bg-slate-400/20 border border-slate-400/30 flex items-center justify-center">
+      <Medal size={14} className="text-slate-300" />
+    </div>
+  );
+  if (rank === 3) return (
+    <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
+      <Award size={14} className="text-orange-400" />
+    </div>
+  );
+  return (
+    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+      <span className="text-[11px] font-black text-slate-400 font-mono">#{rank}</span>
+    </div>
+  );
+};
+
+const StrategyTag = ({ strategy }) => (
+  <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+    {strategy}
+  </span>
+);
+
+const LeaderboardPage = () => {
+  const [activeFilter, setActiveFilter] = React.useState('pnl');
+  const [expandedUser, setExpandedUser] = React.useState(null);
+  const [timeframe, setTimeframe] = React.useState('All Time');
+
+  const filters = [
+    { key: 'pnl', label: 'P&L' },
+    { key: 'winRate', label: 'Win Rate' },
+    { key: 'profitFactor', label: 'Profit Factor' },
+    { key: 'trades', label: 'Trade Count' },
+  ];
+
+  const sorted = [...LEADERBOARD_DATA].sort((a, b) => {
+    if (activeFilter === 'pnl') return b.pnl - a.pnl;
+    if (activeFilter === 'winRate') return b.winRate - a.winRate;
+    if (activeFilter === 'profitFactor') return b.profitFactor - a.profitFactor;
+    if (activeFilter === 'trades') return b.trades - a.trades;
+    return 0;
+  });
+
+  const top3 = sorted.slice(0, 3);
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+              <Trophy size={20} className="text-yellow-400" />
+            </div>
+            <h2 className="text-3xl font-black text-white uppercase italic font-geist tracking-tight">Leaderboard</h2>
+          </div>
+          <p className="text-sm text-slate-400 ml-0">Top performing traders and their winning strategies</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {['Today', 'This Week', 'This Month', 'All Time'].map(t => (
+            <button
+              key={t}
+              onClick={() => setTimeframe(t)}
+              className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${timeframe === t ? 'bg-indigo-600 text-white' : 'bg-slate-800/50 text-slate-500 hover:text-slate-300 border border-slate-800'}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Podium - Top 3 */}
+      <div className="grid grid-cols-3 gap-4">
+        {[top3[1], top3[0], top3[2]].map((user, i) => {
+          const actualRank = i === 0 ? 2 : i === 1 ? 1 : 3;
+          const rankStyle = RANK_COLORS[actualRank];
+          const heightClass = actualRank === 1 ? 'pt-0' : 'pt-6';
+          return (
+            <div
+              key={user.username}
+              className={`${heightClass} ${actualRank === 1 ? 'order-2' : actualRank === 2 ? 'order-1' : 'order-3'}`}
+            >
+              <div className={`relative bg-slate-900 border ${rankStyle.border} rounded-2xl p-6 text-center transition-all hover:border-opacity-60 shadow-lg ${rankStyle.glow} ${actualRank === 1 ? 'shadow-xl' : ''}`}>
+                {actualRank === 1 && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <div className="bg-yellow-500 text-yellow-950 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Champion</div>
+                  </div>
+                )}
+
+                {/* Avatar */}
+                <div className={`w-14 h-14 rounded-2xl ${rankStyle.bg} border ${rankStyle.border} flex items-center justify-center mx-auto mb-3`}>
+                  <span className={`text-lg font-black ${rankStyle.text}`}>{user.avatar}</span>
+                </div>
+
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <span className="text-sm font-black text-white tracking-tight">{user.username}</span>
+                  <span className="text-base">{user.country}</span>
+                </div>
+
+                <StrategyTag strategy={user.strategy} />
+
+                <div className="mt-4 pt-4 border-t border-slate-800">
+                  <p className="text-2xl font-black text-emerald-400 font-mono">+{user.pnlPercent.toFixed(0)}%</p>
+                  <p className="text-[10px] text-slate-500 font-mono mt-0.5">${user.pnl.toLocaleString()}</p>
+                </div>
+
+                <div className="flex justify-around mt-4 text-center">
+                  <div>
+                    <p className="text-[9px] text-slate-600 uppercase tracking-wider font-black">Win Rate</p>
+                    <p className="text-xs font-black text-white font-mono">{user.winRate}%</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-slate-600 uppercase tracking-wider font-black">PF</p>
+                    <p className="text-xs font-black text-white font-mono">{user.profitFactor}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-slate-600 uppercase tracking-wider font-black">Streak</p>
+                    <p className="text-xs font-black text-emerald-400 font-mono">🔥{user.streak}</p>
+                  </div>
+                </div>
+
+                {/* Podium Rank */}
+                <div className="mt-4 flex justify-center">
+                  <RankBadge rank={actualRank} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest mr-2 flex items-center gap-1">
+          <Filter size={10} /> Sort by
+        </span>
+        {filters.map(f => (
+          <button
+            key={f.key}
+            onClick={() => setActiveFilter(f.key)}
+            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all border ${activeFilter === f.key ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300'}`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Full Rankings Table */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+        <div className="px-8 py-5 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Full Rankings</h3>
+          <span className="text-[10px] text-slate-600 font-mono">{sorted.length} traders</span>
+        </div>
+
+        <div className="divide-y divide-slate-800/60">
+          {sorted.map((user) => {
+            const isExpanded = expandedUser === user.username;
+            const rankStyle = RANK_COLORS[user.rank] || {};
+            return (
+              <div key={user.username}>
+                <button
+                  onClick={() => setExpandedUser(isExpanded ? null : user.username)}
+                  className="w-full text-left px-8 py-5 hover:bg-slate-800/30 transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Rank */}
+                    <RankBadge rank={user.rank} />
+
+                    {/* Avatar + Name */}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black ${rankStyle.bg || 'bg-slate-800'} border ${rankStyle.border || 'border-slate-700'}`}>
+                      <span className={rankStyle.text || 'text-slate-300'}>{user.avatar}</span>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-sm font-black text-white tracking-tight">{user.username}</span>
+                        <span>{user.country}</span>
+                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${BADGE_STYLES[user.badge]}`}>{user.badge}</span>
+                        {user.change === 'up' && <ArrowUp size={10} className="text-emerald-400" />}
+                        {user.change === 'down' && <ArrowDown size={10} className="text-red-400" />}
+                      </div>
+                      <StrategyTag strategy={user.strategy} />
+                    </div>
+
+                    {/* Instruments */}
+                    <div className="hidden md:flex gap-1">
+                      {user.instruments.map(inst => (
+                        <span key={inst} className="text-[9px] font-black px-2 py-0.5 bg-slate-800 rounded text-slate-400 border border-slate-700 font-mono">{inst}</span>
+                      ))}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="hidden lg:grid grid-cols-4 gap-6 text-right">
+                      <div>
+                        <p className="text-[9px] text-slate-600 uppercase font-black tracking-wider">Win Rate</p>
+                        <p className="text-xs font-black text-white font-mono">{user.winRate}%</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-slate-600 uppercase font-black tracking-wider">Trades</p>
+                        <p className="text-xs font-black text-white font-mono">{user.trades}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-slate-600 uppercase font-black tracking-wider">PF</p>
+                        <p className="text-xs font-black text-white font-mono">{user.profitFactor}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-slate-600 uppercase font-black tracking-wider">P&L</p>
+                        <p className="text-sm font-black text-emerald-400 font-mono">+{user.pnlPercent.toFixed(0)}%</p>
+                      </div>
+                    </div>
+
+                    <ChevronRight size={14} className={`text-slate-600 group-hover:text-slate-400 transition-all ml-2 ${isExpanded ? 'rotate-90' : ''}`} />
+                  </div>
+                </button>
+
+                {/* Expanded Strategy Card */}
+                {isExpanded && (
+                  <div className="px-8 pb-6 bg-slate-800/20 border-t border-slate-800/60">
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Strategy Details */}
+                      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Brain size={14} className="text-indigo-400" />
+                          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Strategy Breakdown</h4>
+                        </div>
+                        <h5 className="text-base font-black text-white mb-2 italic">{user.strategy}</h5>
+                        <p className="text-xs text-slate-400 leading-relaxed">{user.strategyDetail}</p>
+
+                        <div className="mt-4 pt-4 border-t border-slate-800 flex flex-wrap gap-2">
+                          {user.instruments.map(inst => (
+                            <span key={inst} className="text-[9px] font-black px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg font-mono">{inst}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Performance Stats */}
+                      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <BarChart2 size={14} className="text-emerald-400" />
+                          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Performance Stats</h4>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          {[
+                            { label: 'Total P&L', value: `+$${user.pnl.toLocaleString()}`, color: 'text-emerald-400' },
+                            { label: 'Return %', value: `+${user.pnlPercent.toFixed(1)}%`, color: 'text-emerald-400' },
+                            { label: 'Win Rate', value: `${user.winRate}%`, color: 'text-blue-400' },
+                            { label: 'Profit Factor', value: user.profitFactor, color: 'text-purple-400' },
+                            { label: 'Total Trades', value: user.trades, color: 'text-white' },
+                            { label: 'Win Streak', value: `🔥 ${user.streak}`, color: 'text-orange-400' },
+                          ].map(stat => (
+                            <div key={stat.label} className="bg-slate-800/50 rounded-xl p-3">
+                              <p className="text-[9px] text-slate-600 uppercase font-black tracking-wider mb-1">{stat.label}</p>
+                              <p className={`text-sm font-black font-mono ${stat.color}`}>{stat.value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-indigo-600/20 border border-indigo-500/20 rounded-2xl p-6 flex items-center justify-between">
+        <div>
+          <h4 className="text-sm font-black text-white uppercase tracking-wide mb-1">Think you can make the top 10?</h4>
+          <p className="text-xs text-slate-400">Log more trades and keep your win rate above 60% to climb the ranks.</p>
+        </div>
+        <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-indigo-600/20 shrink-0 ml-4">
+          View My Rank
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- Original Components ---
+
+const StatCard = ({ label, value, change, icon: Icon, color, dark = true }) => (
+  <div className={`border p-5 rounded-2xl shadow-sm transition-all h-full flex flex-col justify-between ${dark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm'}`}>
     <div>
       <div className="flex justify-between items-start mb-4">
-        <div className={`p-2 rounded-xl bg-slate-800/50 ${color}`}>
+        <div className={`p-2 rounded-xl ${dark ? 'bg-slate-800/50' : 'bg-gray-100'} ${color}`}>
           <Icon size={18} />
         </div>
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${change.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
           {change}
         </span>
       </div>
-      <h3 className="text-slate-500 text-[10px] font-semibold uppercase tracking-widest">{label}</h3>
+      <h3 className={`text-[10px] font-semibold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</h3>
     </div>
-    <p className="text-xl font-bold text-white mt-2 font-mono tracking-tight">{value}</p>
+    <p className={`text-xl font-bold mt-2 font-mono tracking-tight ${dark ? 'text-white' : 'text-slate-800'}`}>{value}</p>
   </div>
 );
 
-const SidebarItem = ({ icon: Icon, label, active = false, onClick, hasDropdown = false, isOpen = false, onToggle, collapsed = false }) => (
+const SidebarItem = ({ icon: Icon, label, active = false, onClick, hasDropdown = false, isOpen = false, onToggle, collapsed = false, dark = true }) => (
   <div>
     <button 
       onClick={hasDropdown ? onToggle : onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-        active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-      } ${collapsed ? 'justify-center' : ''}`}
+      className={`w-full flex items-center gap-3 rounded-xl transition-all ${
+        active
+          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+          : dark
+            ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+            : 'text-slate-500 hover:bg-gray-100 hover:text-slate-900'
+      } ${collapsed ? 'justify-center px-2 py-4' : 'px-4 py-3'}`}
       title={collapsed ? label : ''}
     >
-      <Icon size={18} strokeWidth={2.5} />
+      <Icon size={collapsed ? 26 : 18} strokeWidth={collapsed ? 2 : 2.5} />
       {!collapsed && (
         <>
           <span className="font-bold text-[11px] tracking-widest uppercase flex-1 text-left">{label}</span>
@@ -112,22 +563,22 @@ const SidebarItem = ({ icon: Icon, label, active = false, onClick, hasDropdown =
   </div>
 );
 
-const MiniCalendar = () => {
+const MiniCalendar = ({ isDark = true }) => {
   const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const dates = Array.from({ length: 31 }, (_, i) => i + 1);
   
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <div className={`border rounded-2xl p-5 transition-colors duration-300 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-gray-50 border-gray-200'}`}>
       <div className="flex justify-between items-center mb-6">
-        <h4 className="text-white text-sm font-bold tracking-tight">October 2023</h4>
+        <h4 className={`text-sm font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>October 2023</h4>
         <div className="flex gap-2">
-          <button className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800"><ChevronLeft size={14} className="text-slate-400" /></button>
-          <button className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800"><ChevronRight size={14} className="text-slate-400" /></button>
+          <button className={`p-1.5 rounded-lg transition-colors border ${isDark ? 'hover:bg-slate-800 border-slate-800' : 'hover:bg-gray-200 border-gray-200'}`}><ChevronLeft size={14} className={isDark ? 'text-slate-400' : 'text-slate-500'} /></button>
+          <button className={`p-1.5 rounded-lg transition-colors border ${isDark ? 'hover:bg-slate-800 border-slate-800' : 'hover:bg-gray-200 border-gray-200'}`}><ChevronRight size={14} className={isDark ? 'text-slate-400' : 'text-slate-500'} /></button>
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-2">
         {days.map((d, index) => (
-          <span key={`day-${index}`} className="text-[10px] text-slate-600 text-center font-black uppercase tracking-tighter">{d}</span>
+          <span key={`day-${index}`} className={`text-[10px] text-center font-black uppercase tracking-tighter ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{d}</span>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -141,9 +592,9 @@ const MiniCalendar = () => {
             <button 
               key={`date-${date}`} 
               className={`h-8 w-8 text-[11px] flex items-center justify-center rounded-lg transition-all font-mono ${
-                isWin ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold' : 
-                isLoss ? 'bg-red-500/20 text-red-400 border border-red-500/30 font-bold' : 
-                'text-slate-500 hover:bg-slate-800 hover:text-white'
+                isWin  ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 font-bold' : 
+                isLoss ? 'bg-red-500/20 text-red-500 border border-red-500/30 font-bold' : 
+                isDark ? 'text-slate-500 hover:bg-slate-800 hover:text-white' : 'text-slate-400 hover:bg-gray-200 hover:text-slate-700'
               }`}
             >
               {date}
@@ -192,33 +643,14 @@ const SmoothEquityCurve = () => {
           />
         ))}
 
-        <polyline
-          fill="url(#curveGradient)"
-          points={areaPoints}
-        />
-
-        <polyline
-          fill="none"
-          stroke="#6366f1"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          points={points}
-          className="drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]"
-        />
+        <polyline fill="url(#curveGradient)" points={areaPoints} />
+        <polyline fill="none" stroke="#6366f1" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" points={points} className="drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
 
         {data.map((val, i) => {
           const x = (i / (data.length - 1)) * width;
           const y = height - (val / 100) * height;
           return (
-            <circle 
-              key={i} 
-              cx={x} cy={y} r="5" 
-              fill="#0f172a" 
-              stroke="#6366f1" 
-              strokeWidth="3"
-              className="hover:r-7 transition-all cursor-pointer"
-            />
+            <circle key={i} cx={x} cy={y} r="5" fill="#0f172a" stroke="#6366f1" strokeWidth="3" className="hover:r-7 transition-all cursor-pointer" />
           );
         })}
       </svg>
@@ -232,10 +664,7 @@ const CreateSessionForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      sessionName,
-      startingBalance: parseFloat(startingBalance)
-    });
+    onSubmit({ sessionName, startingBalance: parseFloat(startingBalance) });
     setSessionName('');
     setStartingBalance('');
   };
@@ -247,65 +676,22 @@ const CreateSessionForm = ({ onSubmit }) => {
           <h2 className="text-2xl font-black text-white mb-2 uppercase italic font-geist tracking-tight">Create New Session</h2>
           <p className="text-sm text-slate-400">Start a new trading session to track your performance</p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-              Session Name
-            </label>
-            <input
-              type="text"
-              value={sessionName}
-              onChange={(e) => setSessionName(e.target.value)}
-              placeholder="e.g., Morning Scalping Session"
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-5 py-3.5 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
-              required
-            />
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Session Name</label>
+            <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)} placeholder="e.g., Morning Scalping Session" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-5 py-3.5 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all" required />
           </div>
-
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-              Starting Balance
-            </label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Starting Balance</label>
             <div className="relative">
               <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-              <input
-                type="number"
-                value={startingBalance}
-                onChange={(e) => setStartingBalance(e.target.value)}
-                placeholder="10000"
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-5 py-3.5 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-mono"
-                min="0"
-                step="0.01"
-                required
-              />
+              <input type="number" value={startingBalance} onChange={(e) => setStartingBalance(e.target.value)} placeholder="10000" className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-5 py-3.5 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-mono" min="0" step="0.01" required />
             </div>
-            <p className="text-[10px] text-slate-500 mt-2 font-medium">Enter your initial account balance for this session</p>
           </div>
-
           <div className="flex gap-4 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest px-6 py-4 rounded-xl transition-all shadow-xl shadow-indigo-600/20 border border-indigo-500/50"
-            >
-              Create Session
-            </button>
+            <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest px-6 py-4 rounded-xl transition-all shadow-xl shadow-indigo-600/20 border border-indigo-500/50">Create Session</button>
           </div>
         </form>
-      </div>
-
-      <div className="mt-6 bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-indigo-500/10 rounded-lg">
-            <Activity size={16} className="text-indigo-400" />
-          </div>
-          <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-wide mb-1">Session Tracking</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Each session tracks your trades independently. Monitor your progress, analyze performance, and compare different trading strategies across sessions.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -332,52 +718,36 @@ const SessionsList = ({ sessions, onDeleteSession }) => {
         <h2 className="text-2xl font-black text-white mb-2 uppercase italic font-geist tracking-tight">Trading Sessions</h2>
         <p className="text-sm text-slate-400">Manage and track all your trading sessions</p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sessions.map((session) => {
           const profitLoss = session.currentBalance - session.startingBalance;
           const profitLossPercent = ((profitLoss / session.startingBalance) * 100).toFixed(2);
           const isProfit = profitLoss >= 0;
-
           return (
-            <div key={session.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all group">
+            <div key={session.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-all">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-lg font-black text-white mb-1 tracking-tight">{session.sessionName}</h3>
-                  <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">
-                    {new Date(session.createdAt).toLocaleDateString()}
-                  </p>
+                  <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">{new Date(session.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-black">Starting Balance</p>
                   <p className="text-xl font-bold text-white font-mono">${session.startingBalance.toLocaleString()}</p>
                 </div>
-
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-black">Current Balance</p>
                   <p className="text-xl font-bold text-white font-mono">${session.currentBalance.toLocaleString()}</p>
                 </div>
-
                 <div className="pt-4 border-t border-slate-800">
                   <div className="flex justify-between items-center">
                     <p className="text-[10px] text-slate-500 uppercase tracking-wider font-black">P&L</p>
                     <div className="text-right">
-                      <p className={`text-sm font-black font-mono ${isProfit ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {isProfit ? '+' : ''}{profitLossPercent}%
-                      </p>
-                      <p className={`text-xs font-mono ${isProfit ? 'text-emerald-400/60' : 'text-red-400/60'}`}>
-                        {isProfit ? '+' : ''}${profitLoss.toLocaleString()}
-                      </p>
+                      <p className={`text-sm font-black font-mono ${isProfit ? 'text-emerald-400' : 'text-red-400'}`}>{isProfit ? '+' : ''}{profitLossPercent}%</p>
+                      <p className={`text-xs font-mono ${isProfit ? 'text-emerald-400/60' : 'text-red-400/60'}`}>{isProfit ? '+' : ''}${profitLoss.toLocaleString()}</p>
                     </div>
                   </div>
-                </div>
-
-                <div className="pt-2">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-black">Trades</p>
-                  <p className="text-sm font-bold text-slate-300">{session.trades.length} trades</p>
                 </div>
               </div>
             </div>
@@ -388,48 +758,458 @@ const SessionsList = ({ sessions, onDeleteSession }) => {
   );
 };
 
-// Simplified Trade Entry Form Component  
-
 const TradeEntryForm = () => {
-  const [step, setStep] = React.useState(1);
   const [formData, setFormData] = React.useState({ thesis: '', instrument: '', whatWorked: '' });
-  
   return (
     <div className="max-w-6xl mx-auto p-8">
-      <div className="bg-slate-900 border border-slate-800 p-8">
+      <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl">
         <h2 className="text-2xl font-black text-white mb-4">Trade Journal Entry</h2>
         <div className="space-y-4">
           <div>
             <label className="text-xs font-bold text-slate-400 block mb-2">Trade Thesis</label>
-            <textarea 
-              value={formData.thesis} 
-              onChange={(e) => setFormData({...formData, thesis: e.target.value})} 
-              rows={4} 
-              className="w-full p-3 bg-slate-800 border border-slate-700 text-white text-sm" 
-              placeholder="Why are you taking this trade?"
-            />
+            <textarea value={formData.thesis} onChange={(e) => setFormData({...formData, thesis: e.target.value})} rows={4} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm" placeholder="Why are you taking this trade?" />
           </div>
           <div>
             <label className="text-xs font-bold text-slate-400 block mb-2">Instrument</label>
-            <input 
-              value={formData.instrument} 
-              onChange={(e) => setFormData({...formData, instrument: e.target.value})} 
-              className="w-full p-3 bg-slate-800 border border-slate-700 text-white text-sm" 
-              placeholder="BTCUSD"
-            />
+            <input value={formData.instrument} onChange={(e) => setFormData({...formData, instrument: e.target.value})} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm" placeholder="BTCUSD" />
           </div>
-          <button 
-            onClick={() => {console.log('Saved:', formData); alert('Trade saved!');}} 
-            className="px-6 py-3 bg-indigo-600 text-white text-xs font-bold"
-          >
-            Save Entry
-          </button>
+          <button onClick={() => alert('Trade saved!')} className="px-6 py-3 bg-indigo-600 text-white text-xs font-bold rounded-xl">Save Entry</button>
         </div>
       </div>
     </div>
   );
 };
 
+// --- Sidebar Leaderboard Preview ---
+const SidebarLeaderboardPreview = ({ onViewAll, isDark = true }) => (
+  <div className={`mt-4 border rounded-2xl p-4 transition-colors duration-300 ${isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-gray-50 border-gray-200'}`}>
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+        <Trophy size={12} className="text-yellow-400" />
+        <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Top Traders</span>
+      </div>
+      <button onClick={onViewAll} className="text-[9px] text-indigo-400 hover:text-indigo-300 font-black uppercase tracking-wider transition-all">
+        All →
+      </button>
+    </div>
+    <div className="space-y-2">
+      {LEADERBOARD_DATA.slice(0, 3).map((user, i) => (
+        <div key={user.username} className="flex items-center gap-2">
+          <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black ${i === 0 ? 'bg-yellow-500/20 text-yellow-400' : i === 1 ? 'bg-slate-400/20 text-slate-300' : 'bg-orange-500/20 text-orange-400'}`}>
+            {i === 0 ? '👑' : i === 1 ? '2' : '3'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-[10px] font-black truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{user.username}</p>
+            <p className={`text-[8px] truncate font-mono ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{user.strategy}</p>
+          </div>
+          <span className="text-[10px] font-black text-emerald-400 font-mono shrink-0">+{user.pnlPercent.toFixed(0)}%</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// --- Find A Broker Modal ---
+const FindBrokerModal = ({ onClose }) => {
+  const [step, setStep] = React.useState(1);
+  const [form, setForm] = React.useState({
+    experience: '', style: [], markets: [], capital: '', leverage: '', platform: '', regulation: [], priority: ''
+  });
+  const [submitted, setSubmitted] = React.useState(false);
+
+  const toggle = (field, val) => {
+    setForm(f => ({
+      ...f,
+      [field]: f[field].includes(val) ? f[field].filter(x => x !== val) : [...f[field], val]
+    }));
+  };
+
+  const MultiChip = ({ field, options }) => (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => {
+        const active = form[field].includes(opt);
+        return (
+          <button key={opt} type="button" onClick={() => toggle(field, opt)}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider border transition-all ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}`}>
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const SingleChip = ({ field, options }) => (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => {
+        const active = form[field] === opt;
+        return (
+          <button key={opt} type="button" onClick={() => setForm(f => ({ ...f, [field]: opt }))}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider border transition-all ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}`}>
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const MATCHED_BROKERS = [
+    { name: 'Interactive Brokers', match: 98, fee: '$0 commissions', regulation: 'SEC, FCA, ASIC', best: 'Professional traders', logo: 'IB' },
+    { name: 'TD Ameritrade', match: 91, fee: '$0 commissions', regulation: 'SEC, FINRA', best: 'US equity traders', logo: 'TD' },
+    { name: 'Saxo Bank', match: 85, fee: 'From 0.08%', regulation: 'FCA, DFSA', best: 'Forex & CFDs', logo: 'SX' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-8 py-5 flex items-center justify-between z-10 rounded-t-3xl">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+              <Briefcase size={16} className="text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white uppercase italic tracking-tight">Find A Broker</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Step {Math.min(step, 2)} of 2 — {step === 1 ? 'Your Profile' : step === 2 ? 'Preferences' : 'Your Matches'}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-all text-slate-400 hover:text-white"><X size={18} /></button>
+        </div>
+
+        {/* Progress Bar */}
+        {!submitted && (
+          <div className="px-8 pt-4">
+            <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${(step / 2) * 100}%` }} />
+            </div>
+          </div>
+        )}
+
+        <div className="px-8 py-6 space-y-6">
+          {submitted ? (
+            <div className="space-y-4">
+              <div className="text-center py-4">
+                <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle2 size={28} className="text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-black text-white mb-1 uppercase italic">Your Top Matches</h3>
+                <p className="text-sm text-slate-400">Based on your trading profile, we recommend:</p>
+              </div>
+              {MATCHED_BROKERS.map((b, i) => (
+                <div key={b.name} className={`bg-slate-800/50 border rounded-2xl p-5 flex items-center gap-4 ${i === 0 ? 'border-indigo-500/40' : 'border-slate-700'}`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'}`}>{b.logo}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-black text-white">{b.name}</p>
+                      {i === 0 && <span className="text-[9px] font-black px-2 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-full uppercase tracking-wider">Best Match</span>}
+                    </div>
+                    <p className="text-[10px] text-slate-500">Fees: {b.fee} · Reg: {b.regulation}</p>
+                    <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Best for: {b.best}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xl font-black text-white font-mono">{b.match}%</p>
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider">Match</p>
+                  </div>
+                </div>
+              ))}
+              <button onClick={onClose} className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all mt-4">Done</button>
+            </div>
+          ) : step === 1 ? (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Trading Experience</label>
+                <SingleChip field="experience" options={['Beginner', 'Intermediate', 'Advanced', 'Professional']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Trading Style (select all that apply)</label>
+                <MultiChip field="style" options={['Scalping', 'Day Trading', 'Swing Trading', 'Position Trading', 'Algorithmic']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Markets You Trade</label>
+                <MultiChip field="markets" options={['Stocks', 'Forex', 'Crypto', 'Futures', 'Options', 'CFDs', 'Indices']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Starting Capital</label>
+                <SingleChip field="capital" options={['Under $1K', '$1K–$10K', '$10K–$50K', '$50K–$200K', '$200K+']} />
+              </div>
+              <button onClick={() => setStep(2)} disabled={!form.experience || !form.capital}
+                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all">
+                Next →
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Preferred Leverage</label>
+                <SingleChip field="leverage" options={['1:1', 'Up to 1:10', 'Up to 1:30', 'Up to 1:100', '1:500+']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Preferred Platform</label>
+                <SingleChip field="platform" options={['MT4', 'MT5', 'TradingView', 'cTrader', 'Proprietary']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Regulation Preference</label>
+                <MultiChip field="regulation" options={['FCA', 'SEC', 'ASIC', 'CySEC', 'FSCA', 'Any']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Your Top Priority</label>
+                <SingleChip field="priority" options={['Low Fees', 'Fast Execution', 'Education', 'Customer Support', 'Wide Markets']} />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setStep(1)} className="flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl transition-all">← Back</button>
+                <button onClick={() => setSubmitted(true)} className="flex-2 px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all">Find My Broker →</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Find A Propfirm Modal ---
+const FindPropfirmModal = ({ onClose }) => {
+  const [step, setStep] = React.useState(1);
+  const [form, setForm] = React.useState({
+    experience: '', style: [], markets: [], accountSize: '', challengeType: '', drawdown: '', profit: '', payoutFreq: ''
+  });
+  const [submitted, setSubmitted] = React.useState(false);
+
+  const toggle = (field, val) => {
+    setForm(f => ({
+      ...f,
+      [field]: f[field].includes(val) ? f[field].filter(x => x !== val) : [...f[field], val]
+    }));
+  };
+
+  const MultiChip = ({ field, options }) => (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => {
+        const active = form[field].includes(opt);
+        return (
+          <button key={opt} type="button" onClick={() => toggle(field, opt)}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider border transition-all ${active ? 'bg-purple-600 border-purple-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}`}>
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const SingleChip = ({ field, options }) => (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => {
+        const active = form[field] === opt;
+        return (
+          <button key={opt} type="button" onClick={() => setForm(f => ({ ...f, [field]: opt }))}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider border transition-all ${active ? 'bg-purple-600 border-purple-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}`}>
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const MATCHED_FIRMS = [
+    { name: 'FTMO', match: 97, fee: '$155 challenge fee', payout: '80% split', drawdown: '10% max', logo: 'FT', highlight: true },
+    { name: 'The Funded Trader', match: 89, fee: '$99 challenge fee', payout: '75–90% split', drawdown: '8% max', logo: 'TF', highlight: false },
+    { name: 'MyForexFunds', match: 82, fee: '$84 challenge fee', payout: '75% split', drawdown: '12% max', logo: 'MF', highlight: false },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-8 py-5 flex items-center justify-between z-10 rounded-t-3xl">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20">
+              <Trophy size={16} className="text-purple-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white uppercase italic tracking-tight">Find A Prop Firm</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Step {Math.min(step, 2)} of 2 — {step === 1 ? 'Trader Profile' : 'Challenge Preferences'}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-all text-slate-400 hover:text-white"><X size={18} /></button>
+        </div>
+
+        {/* Progress Bar */}
+        {!submitted && (
+          <div className="px-8 pt-4">
+            <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-purple-500 rounded-full transition-all duration-500" style={{ width: `${(step / 2) * 100}%` }} />
+            </div>
+          </div>
+        )}
+
+        <div className="px-8 py-6 space-y-6">
+          {submitted ? (
+            <div className="space-y-4">
+              <div className="text-center py-4">
+                <div className="w-14 h-14 bg-purple-500/10 border border-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Crown size={28} className="text-purple-400" />
+                </div>
+                <h3 className="text-xl font-black text-white mb-1 uppercase italic">Your Top Prop Firms</h3>
+                <p className="text-sm text-slate-400">Matched to your trading style and goals:</p>
+              </div>
+              {MATCHED_FIRMS.map((f, i) => (
+                <div key={f.name} className={`bg-slate-800/50 border rounded-2xl p-5 flex items-center gap-4 ${f.highlight ? 'border-purple-500/40' : 'border-slate-700'}`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${f.highlight ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-300'}`}>{f.logo}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-black text-white">{f.name}</p>
+                      {f.highlight && <span className="text-[9px] font-black px-2 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-full uppercase tracking-wider">Best Match</span>}
+                    </div>
+                    <p className="text-[10px] text-slate-500">{f.fee} · Drawdown: {f.drawdown}</p>
+                    <p className="text-[10px] text-emerald-400 font-bold mt-0.5">Payout: {f.payout}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xl font-black text-white font-mono">{f.match}%</p>
+                    <p className="text-[9px] text-slate-500 uppercase tracking-wider">Match</p>
+                  </div>
+                </div>
+              ))}
+              <button onClick={onClose} className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all mt-4">Done</button>
+            </div>
+          ) : step === 1 ? (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Trading Experience</label>
+                <SingleChip field="experience" options={['Beginner', 'Intermediate', 'Advanced', 'Professional']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Trading Style</label>
+                <MultiChip field="style" options={['Scalping', 'Day Trading', 'Swing Trading', 'News Trading', 'Algorithmic']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Markets You Trade</label>
+                <MultiChip field="markets" options={['Forex', 'Indices', 'Stocks', 'Commodities', 'Crypto', 'Futures']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Account Size</label>
+                <SingleChip field="accountSize" options={['$10K', '$25K', '$50K', '$100K', '$200K+']} />
+              </div>
+              <button onClick={() => setStep(2)} disabled={!form.experience || !form.accountSize}
+                className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 disabled:text-slate-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all">
+                Next →
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Challenge Type Preference</label>
+                <SingleChip field="challengeType" options={['1-Step', '2-Step', 'Instant Funding', 'No Challenge']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Max Drawdown You Can Handle</label>
+                <SingleChip field="drawdown" options={['5%', '8%', '10%', '12%', '15%']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Profit Target (Challenge Phase)</label>
+                <SingleChip field="profit" options={['5%', '8%', '10%', '12%', '15%+']} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Preferred Payout Frequency</label>
+                <SingleChip field="payoutFreq" options={['Weekly', 'Bi-Weekly', 'Monthly', 'On Demand']} />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setStep(1)} className="flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl transition-all">← Back</button>
+                <button onClick={() => setSubmitted(true)} className="flex-2 px-8 py-3.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all">Find My Firm →</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Language Data ---
+const LANGUAGES = [
+  { code: 'en', label: 'English',     flag: '🇬🇧', native: 'English' },
+  { code: 'fr', label: 'French',      flag: '🇫🇷', native: 'Français' },
+  { code: 'de', label: 'German',      flag: '🇩🇪', native: 'Deutsch' },
+  { code: 'ar', label: 'Arabic',      flag: '🇸🇦', native: 'العربية' },
+  { code: 'es', label: 'Spanish',     flag: '🇪🇸', native: 'Español' },
+  { code: 'nl', label: 'Dutch',        flag: '🇳🇱', native: 'Nederlands' },
+  { code: 'zh', label: 'Chinese',     flag: '🇨🇳', native: '中文' },
+  { code: 'ja', label: 'Japanese',    flag: '🇯🇵', native: '日本語' },
+  { code: 'hi', label: 'Indian',      flag: '🇮🇳', native: 'हिन्दी' },
+];
+
+// --- Language Selector Component ---
+const LanguageSelector = () => {
+  const [open, setOpen] = React.useState(false);
+  const [selected, setSelected] = React.useState(LANGUAGES[0]);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className={`p-2.5 rounded-lg transition-all flex items-center gap-1.5 ${open ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50 text-slate-400 hover:text-white'}`}
+        title="Change Language"
+      >
+        <Globe size={18} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-52 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden z-50">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+            <Globe size={12} className="text-indigo-400" />
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Select Language</span>
+          </div>
+
+          {/* Language List */}
+          <div className="py-1.5 max-h-72 overflow-y-auto no-scrollbar">
+            {LANGUAGES.map((lang) => {
+              const isActive = selected.code === lang.code;
+              return (
+                <button
+                  key={lang.code}
+                  onClick={() => { setSelected(lang); setOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 transition-all group ${
+                    isActive
+                      ? 'bg-indigo-600/20 text-white'
+                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+                  }`}
+                >
+                  <span className="text-xl leading-none">{lang.flag}</span>
+                  <div className="flex-1 text-left">
+                    <p className={`text-[11px] font-black uppercase tracking-wider ${isActive ? 'text-white' : 'text-slate-300'}`}>{lang.label}</p>
+                    <p className="text-[9px] text-slate-500 font-medium mt-0.5">{lang.native}</p>
+                  </div>
+                  {isActive && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_6px_rgba(99,102,241,0.8)]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-4 py-2.5 border-t border-slate-800 bg-slate-800/30">
+            <p className="text-[9px] text-slate-600 font-medium">
+              Selected: <span className="text-slate-400 font-black">{selected.flag} {selected.label}</span>
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- Main App ---
 const App = () => {
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [isDarkTheme, setIsDarkTheme] = React.useState(true);
@@ -437,35 +1217,31 @@ const App = () => {
   const [selectedSession, setSelectedSession] = React.useState(null);
   const [sessionsDropdownOpen, setSessionsDropdownOpen] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [showBrokerModal, setShowBrokerModal] = React.useState(false);
+  const [showPropfirmModal, setShowPropfirmModal] = React.useState(false);
 
   React.useEffect(() => {
-    const savedSessions = localStorage.getItem('tradingSessions');
-    if (savedSessions) {
-      setSessions(JSON.parse(savedSessions));
-    }
+    try {
+      const savedSessions = localStorage.getItem('tradingSessions');
+      if (savedSessions) setSessions(JSON.parse(savedSessions));
+    } catch {}
   }, []);
 
   React.useEffect(() => {
-    localStorage.setItem('tradingSessions', JSON.stringify(sessions));
+    try {
+      localStorage.setItem('tradingSessions', JSON.stringify(sessions));
+    } catch {}
   }, [sessions]);
 
   const handleCreateSession = (sessionData) => {
-    const newSession = {
-      id: Date.now(),
-      ...sessionData,
-      createdAt: new Date().toISOString(),
-      currentBalance: sessionData.startingBalance,
-      trades: []
-    };
+    const newSession = { id: Date.now(), ...sessionData, createdAt: new Date().toISOString(), currentBalance: sessionData.startingBalance, trades: [] };
     setSessions([...sessions, newSession]);
     setActiveTab('sessions');
   };
 
   const handleDeleteSession = (sessionId) => {
     setSessions(sessions.filter(s => s.id !== sessionId));
-    if (selectedSession?.id === sessionId) {
-      setSelectedSession(null);
-    }
+    if (selectedSession?.id === sessionId) setSelectedSession(null);
   };
 
   const handleSelectSession = (session) => {
@@ -474,7 +1250,6 @@ const App = () => {
     setSessionsDropdownOpen(false);
   };
 
-  // Get current session data or use mock data
   const currentSessionData = selectedSession || {
     sessionName: 'Demo Session',
     startingBalance: 42850.12,
@@ -489,7 +1264,6 @@ const App = () => {
     const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(0) : '60';
     const totalPnL = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
     const profitLoss = currentSessionData.currentBalance - currentSessionData.startingBalance;
-    
     return [
       { label: 'Total P&L', value: `$${profitLoss.toLocaleString()}`, change: profitLoss >= 0 ? `+${((profitLoss / currentSessionData.startingBalance) * 100).toFixed(1)}%` : `-${((Math.abs(profitLoss) / currentSessionData.startingBalance) * 100).toFixed(1)}%`, icon: DollarSign, color: 'text-emerald-500' },
       { label: 'Win Rate', value: `${winRate}%`, change: '+2.1%', icon: Percent, color: 'text-blue-500' },
@@ -509,99 +1283,41 @@ const App = () => {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-      
-      <div className="flex h-screen bg-black text-slate-200 overflow-hidden font-geist">
-        {/* Sidebar - Collapsible */}
-        <aside className={`border-r border-slate-800 flex flex-col p-5 bg-slate-950/80 backdrop-blur-xl shrink-0 transition-all duration-300 ${
-          sidebarCollapsed ? 'w-20' : 'w-64'
-        }`}>
+
+      <div className={`flex h-screen overflow-hidden font-geist transition-colors duration-300 ${isDarkTheme ? 'bg-black text-slate-200' : 'bg-gray-100 text-slate-800'}`}>
+        {/* Sidebar */}
+        <aside className={`border-r flex flex-col p-5 backdrop-blur-xl shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-64'} ${isDarkTheme ? 'border-slate-800 bg-slate-950/80' : 'border-gray-200 bg-white/90'}`}>
           <div className={`flex items-center gap-3 px-3 mb-10 ${sidebarCollapsed ? 'justify-center' : ''}`}>
-            <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center shadow-2xl shadow-indigo-600/40">
-              <Diamond size={20} className="text-white" strokeWidth={2.5} fill="white" />
+            <div className={`bg-indigo-600 rounded-lg flex items-center justify-center shadow-2xl shadow-indigo-600/40 ${sidebarCollapsed ? 'w-12 h-12' : 'w-9 h-9'}`}>
+              <Diamond size={sidebarCollapsed ? 26 : 20} className="text-white" strokeWidth={2.5} fill="white" />
             </div>
-            {!sidebarCollapsed && (
-              <span className="text-xl font-black tracking-[0.15em] text-white uppercase italic font-geist">FSDZONES</span>
-            )}
+            {!sidebarCollapsed && <span className={`text-xl font-black tracking-[0.15em] uppercase italic font-geist ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>FSDZONES</span>}
           </div>
 
           <nav className="space-y-1.5 flex-1 overflow-y-auto no-scrollbar">
-            <SidebarItem 
-              icon={Layout} 
-              label="Dashboard" 
-              active={activeTab === 'dashboard'} 
-              onClick={() => setActiveTab('dashboard')}
-              collapsed={sidebarCollapsed}
-            />
-            <SidebarItem 
-              icon={BookOpen} 
-              label="Journal" 
-              active={activeTab === 'journal'} 
-              onClick={() => setActiveTab('journal')}
-              collapsed={sidebarCollapsed}
-            />
-            <SidebarItem 
-              icon={LineChart} 
-              label="Analytics" 
-              active={activeTab === 'analytics'} 
-              onClick={() => setActiveTab('analytics')}
-              collapsed={sidebarCollapsed}
-            />
-            <SidebarItem 
-              icon={Calendar} 
-              label="Calendar" 
-              active={activeTab === 'calendar'} 
-              onClick={() => setActiveTab('calendar')}
-              collapsed={sidebarCollapsed}
-            />
-            <SidebarItem 
-              icon={ShieldCheck} 
-              label="Strategy Audit" 
-              active={activeTab === 'strategy'} 
-              onClick={() => setActiveTab('strategy')}
-              collapsed={sidebarCollapsed}
-            />
-            <SidebarItem 
-              icon={TrendingDown} 
-              label="Drawdown" 
-              active={activeTab === 'drawdown'} 
-              onClick={() => setActiveTab('drawdown')}
-              collapsed={sidebarCollapsed}
-            />
-            <SidebarItem 
-              icon={Lock} 
-              label="Trade Vault" 
-              active={activeTab === 'vault'} 
-              onClick={() => setActiveTab('vault')}
-              collapsed={sidebarCollapsed}
-            />
-            
+            <SidebarItem icon={Layout} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={BookOpen} label="Journal" active={activeTab === 'journal'} onClick={() => setActiveTab('journal')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={LineChart} label="Analytics" active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={Calendar} label="Calendar" active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={ShieldCheck} label="Strategy Audit" active={activeTab === 'strategy'} onClick={() => setActiveTab('strategy')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={TrendingDown} label="Drawdown" active={activeTab === 'drawdown'} onClick={() => setActiveTab('drawdown')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={Lock} label="Trade Vault" active={activeTab === 'vault'} onClick={() => setActiveTab('vault')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+            <SidebarItem icon={Trophy} label="Leaderboard" active={activeTab === 'leaderboard'} onClick={() => setActiveTab('leaderboard')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+
             {!sidebarCollapsed && (
               <>
-                <div className="pt-6 mt-6 border-t border-slate-800/60 space-y-1.5">
-                  <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Live Trading</p>
-                  <SidebarItem 
-                    icon={Globe} 
-                    label="Sessions" 
-                    hasDropdown={true}
-                    isOpen={sessionsDropdownOpen}
-                    onToggle={() => setSessionsDropdownOpen(!sessionsDropdownOpen)}
-                    collapsed={sidebarCollapsed}
-                  />
+                <SidebarLeaderboardPreview onViewAll={() => setActiveTab('leaderboard')} isDark={isDarkTheme} />
+
+                <div className={`pt-6 mt-2 border-t space-y-1.5 ${isDarkTheme ? 'border-slate-800/60' : 'border-gray-200'}`}>
+                  <p className={`px-4 text-[9px] font-black uppercase tracking-[0.2em] mb-2 ${isDarkTheme ? 'text-slate-600' : 'text-slate-400'}`}>Live Trading</p>
+                  <SidebarItem icon={Globe} label="Sessions" hasDropdown isOpen={sessionsDropdownOpen} onToggle={() => setSessionsDropdownOpen(!sessionsDropdownOpen)} collapsed={sidebarCollapsed} dark={isDarkTheme} />
                   {sessionsDropdownOpen && (
-                    <div className="ml-4 pl-4 border-l-2 border-slate-800 space-y-1">
+                    <div className={`ml-4 pl-4 border-l-2 space-y-1 ${isDarkTheme ? 'border-slate-800' : 'border-gray-200'}`}>
                       {sessions.length === 0 ? (
-                        <p className="text-[10px] text-slate-600 px-4 py-2 italic">No sessions yet</p>
+                        <p className={`text-[10px] px-4 py-2 italic ${isDarkTheme ? 'text-slate-600' : 'text-slate-400'}`}>No sessions yet</p>
                       ) : (
                         sessions.map(session => (
-                          <button
-                            key={session.id}
-                            onClick={() => handleSelectSession(session)}
-                            className={`w-full text-left px-4 py-2 rounded-lg transition-all text-[10px] font-bold ${
-                              selectedSession?.id === session.id 
-                                ? 'bg-indigo-500/20 text-indigo-300' 
-                                : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300'
-                            }`}
-                          >
+                          <button key={session.id} onClick={() => handleSelectSession(session)} className={`w-full text-left px-4 py-2 rounded-lg transition-all text-[10px] font-bold ${selectedSession?.id === session.id ? 'bg-indigo-500/20 text-indigo-400' : isDarkTheme ? 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-700'}`}>
                             <div className="flex items-center justify-between">
                               <span className="truncate">{session.sessionName}</span>
                               <span className="text-[8px] font-mono ml-2">${session.currentBalance.toLocaleString()}</span>
@@ -611,353 +1327,272 @@ const App = () => {
                       )}
                     </div>
                   )}
-                  <SidebarItem 
-                    icon={PlusSquare} 
-                    label="Create Session" 
-                    active={activeTab === 'create-session'} 
-                    onClick={() => setActiveTab('create-session')}
-                    collapsed={sidebarCollapsed}
-                  />
+                  <SidebarItem icon={PlusSquare} label="Create Session" active={activeTab === 'create-session'} onClick={() => setActiveTab('create-session')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
                 </div>
 
-                <div className="pt-6 mt-2 border-t border-slate-800/60 space-y-1.5">
-                  <p className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2">Account</p>
-                  <SidebarItem 
-                    icon={UserPlus} 
-                    label="Add Account" 
-                    active={activeTab === 'add-account'} 
-                    onClick={() => setActiveTab('add-account')}
-                    collapsed={sidebarCollapsed}
-                  />
-                  <SidebarItem 
-                    icon={Users} 
-                    label="Accounts" 
-                    active={activeTab === 'accounts'} 
-                    onClick={() => setActiveTab('accounts')}
-                    collapsed={sidebarCollapsed}
-                  />
+                <div className={`pt-6 mt-2 border-t space-y-1.5 ${isDarkTheme ? 'border-slate-800/60' : 'border-gray-200'}`}>
+                  <p className={`px-4 text-[9px] font-black uppercase tracking-[0.2em] mb-2 ${isDarkTheme ? 'text-slate-600' : 'text-slate-400'}`}>Account</p>
+                  <SidebarItem icon={UserPlus} label="Add Account" active={activeTab === 'add-account'} onClick={() => setActiveTab('add-account')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+                  <SidebarItem icon={Users} label="Accounts" active={activeTab === 'accounts'} onClick={() => setActiveTab('accounts')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
                 </div>
               </>
             )}
-            
+
             {sidebarCollapsed && (
-              <>
-                <div className="pt-6 mt-6 border-t border-slate-800/60 space-y-1.5">
-                  <SidebarItem 
-                    icon={Globe} 
-                    label="Sessions" 
-                    collapsed={sidebarCollapsed}
-                    onClick={() => setActiveTab('sessions')}
-                  />
-                  <SidebarItem 
-                    icon={PlusSquare} 
-                    label="Create" 
-                    active={activeTab === 'create-session'} 
-                    onClick={() => setActiveTab('create-session')}
-                    collapsed={sidebarCollapsed}
-                  />
-                </div>
-              </>
+              <div className={`pt-6 mt-6 border-t space-y-1.5 ${isDarkTheme ? 'border-slate-800/60' : 'border-gray-200'}`}>
+                <SidebarItem icon={Globe} label="Sessions" collapsed={sidebarCollapsed} onClick={() => setActiveTab('sessions')} dark={isDarkTheme} />
+                <SidebarItem icon={PlusSquare} label="Create" active={activeTab === 'create-session'} onClick={() => setActiveTab('create-session')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
+              </div>
             )}
 
             <div className="pt-6 mt-2">
-              <SidebarItem 
-                icon={Settings} 
-                label="Settings" 
-                active={activeTab === 'settings'} 
-                onClick={() => setActiveTab('settings')}
-                collapsed={sidebarCollapsed}
-              />
+              <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} collapsed={sidebarCollapsed} dark={isDarkTheme} />
             </div>
           </nav>
 
           {!sidebarCollapsed && (
-            <div className="mt-auto bg-slate-900/40 p-5 rounded-2xl border border-slate-800/60 backdrop-blur-sm">
-              <p className="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-[0.2em]">
-                {selectedSession ? 'Session Balance' : 'Account Balance'}
-              </p>
-              <p className="text-2xl font-bold text-white font-mono tracking-tighter">
-                ${(selectedSession?.currentBalance || 42850.12).toLocaleString()}
-              </p>
+            <div className={`mt-auto p-5 rounded-2xl border backdrop-blur-sm transition-colors duration-300 ${isDarkTheme ? 'bg-slate-900/40 border-slate-800/60' : 'bg-gray-50 border-gray-200'}`}>
+              <p className={`text-[10px] mb-2 uppercase font-black tracking-[0.2em] ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>{selectedSession ? 'Session Balance' : 'Account Balance'}</p>
+              <p className={`text-2xl font-bold font-mono tracking-tighter ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>${(selectedSession?.currentBalance || 42850.12).toLocaleString()}</p>
               {selectedSession && (
                 <div className="mt-3">
-                  <p className="text-[8px] text-slate-600 uppercase tracking-wider mb-1">Starting Balance</p>
-                  <p className="text-sm text-slate-400 font-mono">${selectedSession.startingBalance.toLocaleString()}</p>
+                  <p className={`text-[8px] uppercase tracking-wider mb-1 ${isDarkTheme ? 'text-slate-600' : 'text-slate-400'}`}>Starting Balance</p>
+                  <p className={`text-sm font-mono ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>${selectedSession.startingBalance.toLocaleString()}</p>
                 </div>
               )}
-              <div className="h-1.5 w-full bg-slate-800 rounded-full mt-4 overflow-hidden">
+              <div className={`h-1.5 w-full rounded-full mt-4 overflow-hidden ${isDarkTheme ? 'bg-slate-800' : 'bg-gray-200'}`}>
                 <div className="h-full bg-indigo-500 w-3/4 shadow-[0_0_12px_rgba(99,102,241,0.6)]" />
               </div>
             </div>
           )}
-          
-          {/* Toggle Button */}
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="mt-4 p-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all border border-slate-700 flex items-center justify-center"
-            title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          >
-            {sidebarCollapsed ? <ChevronRight size={18} className="text-slate-400" /> : <ChevronLeft size={18} className="text-slate-400" />}
+
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className={`mt-4 rounded-xl transition-all border flex items-center justify-center ${sidebarCollapsed ? 'p-4' : 'p-3'} ${isDarkTheme ? 'bg-slate-800/50 hover:bg-slate-800 border-slate-700' : 'bg-gray-100 hover:bg-gray-200 border-gray-300'}`}>
+            {sidebarCollapsed ? <ChevronRight size={22} className={isDarkTheme ? 'text-slate-400' : 'text-slate-500'} /> : <ChevronLeft size={18} className={isDarkTheme ? 'text-slate-400' : 'text-slate-500'} />}
           </button>
         </aside>
 
-        <div className="flex-1 flex flex-col min-w-0 bg-slate-950">
-          <header className="h-20 border-b border-slate-800 flex items-center justify-between px-10 bg-slate-950/90 backdrop-blur-xl z-20 shrink-0">
+        {/* Main Content */}
+        <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${isDarkTheme ? 'bg-slate-950' : 'bg-gray-50'}`}>
+          <header className={`h-20 border-b flex items-center justify-between px-10 backdrop-blur-xl z-20 shrink-0 transition-colors duration-300 ${isDarkTheme ? 'border-slate-800 bg-slate-950/90' : 'border-gray-200 bg-white/90'}`}>
             <div className="flex items-center gap-4">
-              <button className="px-4 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-all uppercase tracking-wider">
-                Find A Broker
-              </button>
-              <button className="px-4 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-all uppercase tracking-wider">
-                Find A Propfirm
-              </button>
+              <button onClick={() => setShowBrokerModal(true)} className="px-4 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-all uppercase tracking-wider">Find A Broker</button>
+              <button onClick={() => setShowPropfirmModal(true)} className="px-4 py-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-all uppercase tracking-wider">Find A Propfirm</button>
             </div>
-            
             <div className="flex items-center gap-1">
-              <div className="h-6 w-px bg-slate-800 mx-2"></div>
-              
-              <button className="p-2.5 rounded-lg hover:bg-slate-800/50 transition-all text-slate-400 hover:text-white" title="Change Language">
-                <Globe size={18} />
-              </button>
-              
-              <button className="p-2.5 rounded-lg hover:bg-slate-800/50 transition-all text-slate-400 hover:text-white relative" title="Notifications">
+              <div className={`h-6 w-px mx-2 ${isDarkTheme ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+              <LanguageSelector isDark={isDarkTheme} />
+              <button className={`p-2.5 rounded-lg transition-all relative ${isDarkTheme ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-900'}`}>
                 <Bell size={18} />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full border border-slate-950"></span>
               </button>
-              
-              <button className="p-2.5 rounded-lg hover:bg-slate-800/50 transition-all text-slate-400 hover:text-white" title="Fullscreen">
-                <Maximize size={18} />
-              </button>
-              
-              <button onClick={() => setIsDarkTheme(!isDarkTheme)} className="p-2.5 rounded-lg hover:bg-slate-800/50 transition-all text-slate-400 hover:text-white" title="Toggle Theme">
+              <button className={`p-2.5 rounded-lg transition-all ${isDarkTheme ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-900'}`}><Maximize size={18} /></button>
+              <button onClick={() => setIsDarkTheme(!isDarkTheme)} className={`p-2.5 rounded-lg transition-all ${isDarkTheme ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-900'}`}>
                 {isDarkTheme ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              
-              <button className="p-2.5 rounded-lg hover:bg-slate-800/50 transition-all text-slate-400 hover:text-white" title="Account Profile">
-                <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <User size={16} className="text-white" />
-                </div>
+              <button className={`p-2.5 rounded-lg transition-all ${isDarkTheme ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-900'}`}>
+                <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center"><User size={16} className="text-white" /></div>
               </button>
-              
-              <button className="p-2.5 rounded-lg hover:bg-slate-800/50 transition-all text-slate-400 hover:text-white" title="Community">
-                <Users size={18} />
-              </button>
+              <button className={`p-2.5 rounded-lg transition-all ${isDarkTheme ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-900'}`}><Users size={18} /></button>
             </div>
           </header>
 
           <div className="flex-1 overflow-y-auto no-scrollbar">
             <div className="max-w-[1600px] mx-auto p-6 md:p-10 space-y-10">
-              
+
               {activeTab === 'create-session' ? (
                 <CreateSessionForm onSubmit={handleCreateSession} />
               ) : activeTab === 'sessions' ? (
                 <SessionsList sessions={sessions} onDeleteSession={handleDeleteSession} />
               ) : activeTab === 'journal' ? (
                 <TradeEntryForm />
+              ) : activeTab === 'leaderboard' ? (
+                <LeaderboardPage />
               ) : (
                 <>
-              {selectedSession && (
-                <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1 font-black">Active Session</p>
-                      <h2 className="text-2xl font-black text-white tracking-tight">{selectedSession.sessionName}</h2>
-                    </div>
-                    <button 
-                      onClick={() => setSelectedSession(null)}
-                      className="text-xs text-slate-400 hover:text-white transition-all px-4 py-2 bg-slate-800/50 rounded-lg"
-                    >
-                      Clear Session
-                    </button>
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {sessionStats.map((stat, idx) => (
-                  <StatCard key={idx} {...stat} />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-                <div className="xl:col-span-8 bg-slate-900 border border-slate-800 rounded-3xl p-8 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                    <LineChart size={120} className="text-indigo-500" />
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 relative z-10">
-                    <h3 className="text-xl font-black text-white flex items-center gap-3 tracking-tight uppercase italic font-geist">
-                      <LineChart size={20} className="text-indigo-400" /> Equity Curve
-                    </h3>
-                    <div className="flex bg-slate-800/50 p-1 rounded-xl border border-slate-800">
-                      {['1D', '1W', '1M', 'ALL'].map((range, i) => (
-                        <button 
-                          key={range}
-                          className={`px-4 py-1.5 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${i === 0 ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                        >
-                          {range}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <SmoothEquityCurve />
-
-                  <div className="flex justify-between mt-6 text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] px-4 font-mono">
-                    <span>09:00</span>
-                    <span>11:00</span>
-                    <span>13:00</span>
-                    <span>15:00</span>
-                    <span>17:00</span>
-                  </div>
-                </div>
-
-                <div className="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-3xl p-8 h-full">
-                  <h3 className="text-xl font-black text-white mb-6 tracking-tight uppercase italic font-geist">Performance</h3>
-                  <div className="space-y-8">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Winning Rate</span>
-                        <span className="text-emerald-400 font-bold font-mono">60%</span>
+                  {/* Active Session Banner */}
+                  {selectedSession && (
+                    <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`text-[10px] uppercase tracking-wider mb-1 font-black ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>Active Session</p>
+                          <h2 className={`text-2xl font-black tracking-tight ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>{selectedSession.sessionName}</h2>
+                        </div>
+                        <button onClick={() => setSelectedSession(null)} className={`text-xs transition-all px-4 py-2 rounded-lg ${isDarkTheme ? 'text-slate-400 hover:text-white bg-slate-800/50' : 'text-slate-500 hover:text-slate-800 bg-gray-100 hover:bg-gray-200'}`}>Clear Session</button>
                       </div>
-                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex shadow-inner p-0.5">
-                        <div className="h-full bg-emerald-500 rounded-full w-[60%] transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
+                    </div>
+                  )}
+
+                  {/* Stat Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    {sessionStats.map((stat, idx) => <StatCard key={idx} {...stat} dark={isDarkTheme} />)}
+                  </div>
+
+                  {/* Equity Curve + Performance */}
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                    {/* Equity Curve */}
+                    <div className={`xl:col-span-8 border rounded-3xl p-8 relative overflow-hidden transition-colors duration-300 ${isDarkTheme ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                      <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><LineChart size={120} className="text-indigo-500" /></div>
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 relative z-10">
+                        <h3 className={`text-xl font-black flex items-center gap-3 tracking-tight uppercase italic font-geist ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>
+                          <LineChart size={20} className="text-indigo-400" /> Equity Curve
+                        </h3>
+                        <div className={`flex p-1 rounded-xl border ${isDarkTheme ? 'bg-slate-800/50 border-slate-800' : 'bg-gray-100 border-gray-200'}`}>
+                          {['1D', '1W', '1M', 'ALL'].map((range, i) => (
+                            <button key={range} className={`px-4 py-1.5 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${
+                              i === 0
+                                ? isDarkTheme ? 'bg-slate-700 text-white shadow-lg' : 'bg-white text-slate-800 shadow-sm'
+                                : isDarkTheme ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-700'
+                            }`}>{range}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <SmoothEquityCurve />
+                      <div className={`flex justify-between mt-6 text-[10px] font-black uppercase tracking-[0.3em] px-4 font-mono ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {['09:00', '11:00', '13:00', '15:00', '17:00'].map(t => <span key={t}>{t}</span>)}
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Losing Rate</span>
-                        <span className="text-red-400 font-bold font-mono">40%</span>
-                      </div>
-                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex shadow-inner p-0.5">
-                        <div className="h-full bg-red-500 rounded-full w-[40%] transition-all duration-1000 shadow-[0_0_10px_rgba(239,68,68,0.4)]" />
-                      </div>
-                    </div>
-
-                    <div className="pt-8 border-t border-slate-800/60 mt-4">
-                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Volume Leaders</h4>
-                      <div className="space-y-6">
-                        {['NVDA', 'TSLA', 'AAPL'].map(sym => (
-                          <div key={sym} className="flex justify-between items-center">
-                            <span className="text-sm font-black text-white tracking-widest font-geist italic">{sym}</span>
-                            <div className="flex items-center gap-4">
-                              <div className="w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-indigo-500 w-2/3 shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
-                              </div>
-                              <span className="text-[10px] font-bold text-slate-500 font-mono">12 TRADES</span>
+                    {/* Performance Panel */}
+                    <div className={`xl:col-span-4 border rounded-3xl p-8 h-full transition-colors duration-300 ${isDarkTheme ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                      <h3 className={`text-xl font-black mb-6 tracking-tight uppercase italic font-geist ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>Performance</h3>
+                      <div className="space-y-8">
+                        {[
+                          { label: 'Winning Rate', value: '60%', color: 'text-emerald-500', barColor: 'bg-emerald-500', glow: 'rgba(16,185,129,0.4)', width: 'w-[60%]' },
+                          { label: 'Losing Rate',  value: '40%', color: 'text-red-500',    barColor: 'bg-red-500',    glow: 'rgba(239,68,68,0.4)',    width: 'w-[40%]' }
+                        ].map(({ label, value, color, barColor, glow, width }) => (
+                          <div key={label} className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
+                              <span className={`${color} font-bold font-mono`}>{value}</span>
+                            </div>
+                            <div className={`w-full h-3 rounded-full overflow-hidden flex shadow-inner p-0.5 ${isDarkTheme ? 'bg-slate-800' : 'bg-gray-100'}`}>
+                              <div className={`h-full ${barColor} rounded-full ${width} transition-all duration-1000`} style={{ boxShadow: `0 0 10px ${glow}` }} />
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-10">
-                <div className="xl:col-span-8 space-y-8">
-                  <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <div className="px-8 py-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-sm">
-                      <h3 className="text-xl font-black text-white tracking-tight italic uppercase font-geist">Recent Trade Log</h3>
-                      <button className="text-indigo-400 hover:text-indigo-300 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all">
-                        Journal Access <ChevronRight size={16} />
-                      </button>
-                    </div>
-                    <div className="overflow-x-auto no-scrollbar">
-                      <table className="w-full text-left border-collapse min-w-[700px]">
-                        <thead>
-                          <tr className="border-b border-slate-800 bg-slate-800/30">
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Ticker</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Type</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Execution</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Size</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Net P&L</th>
-                            <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800/50">
-                          {(currentSessionData.trades && currentSessionData.trades.length > 0 ? currentSessionData.trades : MOCK_TRADES).map((trade) => (
-                            <tr key={trade.id} className="hover:bg-slate-800/40 transition-all group">
-                              <td className="px-8 py-5">
-                                <div className="flex flex-col">
-                                  <p className="text-white font-black tracking-widest italic">{trade.symbol}</p>
-                                  <p className="text-[10px] text-slate-500 font-mono font-bold mt-1 uppercase opacity-60">{trade.date}</p>
+                        <div className={`pt-8 border-t mt-4 ${isDarkTheme ? 'border-slate-800/60' : 'border-gray-100'}`}>
+                          <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-6 ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>Volume Leaders</h4>
+                          <div className="space-y-6">
+                            {['NVDA', 'TSLA', 'AAPL'].map(sym => (
+                              <div key={sym} className="flex justify-between items-center">
+                                <span className={`text-sm font-black tracking-widest font-geist italic ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>{sym}</span>
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-32 h-1.5 rounded-full overflow-hidden ${isDarkTheme ? 'bg-slate-800' : 'bg-gray-100'}`}>
+                                    <div className="h-full bg-indigo-500 w-2/3 shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+                                  </div>
+                                  <span className={`text-[10px] font-bold font-mono ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>12 TRADES</span>
                                 </div>
-                              </td>
-                              <td className="px-8 py-5">
-                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg tracking-[0.1em] border ${trade.type === 'LONG' ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20' : 'bg-red-500/5 text-red-400 border-red-500/20'}`}>
-                                  {trade.type}
-                                </span>
-                              </td>
-                              <td className="px-8 py-5 text-sm font-mono font-bold text-slate-400">
-                                <span className="text-slate-100">{trade.entry.toFixed(2)}</span>
-                                <span className="mx-3 text-slate-700">/</span>
-                                <span className="text-slate-100">{trade.exit.toFixed(2)}</span>
-                              </td>
-                              <td className="px-8 py-5 text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                                <span className="text-slate-200 font-mono">{trade.size}</span> UNITS
-                              </td>
-                              <td className={`px-8 py-5 text-sm font-black font-mono tracking-tighter ${trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {trade.pnl >= 0 ? `+$${trade.pnl.toLocaleString()}` : `-$${Math.abs(trade.pnl).toLocaleString()}`}
-                              </td>
-                              <td className="px-8 py-5">
-                                <div className="flex items-center">
-                                  <div className={`w-1.5 h-1.5 rounded-full mr-3 shadow-lg ${trade.status === 'Win' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-red-500 shadow-red-500/50'}`} />
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">{trade.status}</span>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="xl:col-span-4 space-y-8">
-                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8">
-                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-2 mb-6">
-                      <Calendar size={12} strokeWidth={3} /> Performance Heatmap
-                    </h3>
-                    <MiniCalendar />
-                  </div>
-
-                  <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-950 rounded-3xl p-8 text-white relative overflow-hidden group border border-white/10 shadow-2xl">
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-3">
-                        <TrendingUp size={16} className="text-indigo-200" strokeWidth={3} />
-                        <h4 className="font-black text-sm uppercase tracking-[0.2em]">Alpha Logic</h4>
-                      </div>
-                      <p className="text-xs text-indigo-100/80 leading-relaxed mb-6 font-bold italic tracking-tight">
-                        "Win probability increases by 18.4% when entries are localized within the 09:30 - 10:15 window."
-                      </p>
-                      <button className="text-[10px] font-black uppercase tracking-[0.25em] bg-white text-indigo-950 hover:bg-indigo-50 px-6 py-3 rounded-xl transition-all shadow-xl w-full">
-                        Optimize Strategy
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8">
-                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-2 mb-6">
-                      <Clock size={12} strokeWidth={3} /> Global Sessions
-                    </h3>
-                    <div className="bg-slate-800/40 border border-slate-800 rounded-2xl p-6 space-y-5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse" />
-                          <span className="text-xs font-black text-white tracking-widest uppercase">New York</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <span className="text-[9px] font-black text-emerald-500 tracking-[0.1em] bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 uppercase">Live</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              </>
+                  {/* Trade Log + Right Widgets */}
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-10">
+                    {/* Trade Log */}
+                    <div className="xl:col-span-8 space-y-8">
+                      <div className={`border rounded-3xl overflow-hidden shadow-sm transition-colors duration-300 ${isDarkTheme ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'}`}>
+                        <div className={`px-8 py-6 border-b flex justify-between items-center backdrop-blur-sm ${isDarkTheme ? 'border-slate-800 bg-slate-900/50' : 'border-gray-100 bg-gray-50/80'}`}>
+                          <h3 className={`text-xl font-black tracking-tight italic uppercase font-geist ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>Recent Trade Log</h3>
+                          <button className="text-indigo-400 hover:text-indigo-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all">Journal Access <ChevronRight size={16} /></button>
+                        </div>
+                        <div className="overflow-x-auto no-scrollbar">
+                          <table className="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                              <tr className={`border-b ${isDarkTheme ? 'border-slate-800 bg-slate-800/30' : 'border-gray-100 bg-gray-50'}`}>
+                                {['Ticker', 'Type', 'Execution', 'Size', 'Net P&L', 'Status'].map(h => (
+                                  <th key={h} className={`px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className={`divide-y ${isDarkTheme ? 'divide-slate-800/50' : 'divide-gray-100'}`}>
+                              {(currentSessionData.trades?.length > 0 ? currentSessionData.trades : MOCK_TRADES).map((trade) => (
+                                <tr key={trade.id} className={`transition-all ${isDarkTheme ? 'hover:bg-slate-800/40' : 'hover:bg-gray-50'}`}>
+                                  <td className="px-8 py-5">
+                                    <p className={`font-black tracking-widest italic ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>{trade.symbol}</p>
+                                    <p className={`text-[10px] font-mono font-bold mt-1 uppercase opacity-60 ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>{trade.date}</p>
+                                  </td>
+                                  <td className="px-8 py-5">
+                                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg tracking-[0.1em] border ${trade.type === 'LONG' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>{trade.type}</span>
+                                  </td>
+                                  <td className="px-8 py-5 text-sm font-mono font-bold">
+                                    <span className={isDarkTheme ? 'text-slate-100' : 'text-slate-700'}>{trade.entry.toFixed(2)}</span>
+                                    <span className={`mx-3 ${isDarkTheme ? 'text-slate-700' : 'text-gray-300'}`}>/</span>
+                                    <span className={isDarkTheme ? 'text-slate-100' : 'text-slate-700'}>{trade.exit.toFixed(2)}</span>
+                                  </td>
+                                  <td className={`px-8 py-5 text-[11px] font-black uppercase tracking-widest ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>
+                                    <span className={`font-mono ${isDarkTheme ? 'text-slate-200' : 'text-slate-700'}`}>{trade.size}</span> UNITS
+                                  </td>
+                                  <td className={`px-8 py-5 text-sm font-black font-mono tracking-tighter ${trade.pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    {trade.pnl >= 0 ? `+$${trade.pnl.toLocaleString()}` : `-$${Math.abs(trade.pnl).toLocaleString()}`}
+                                  </td>
+                                  <td className="px-8 py-5">
+                                    <div className="flex items-center">
+                                      <div className={`w-1.5 h-1.5 rounded-full mr-3 shadow-lg ${trade.status === 'Win' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-red-500 shadow-red-500/50'}`} />
+                                      <span className={`text-[10px] font-black uppercase tracking-widest ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>{trade.status}</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column Widgets */}
+                    <div className="xl:col-span-4 space-y-8">
+                      {/* Calendar Heatmap */}
+                      <div className={`border rounded-3xl p-8 transition-colors duration-300 ${isDarkTheme ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <h3 className={`text-[10px] font-black uppercase tracking-[0.25em] flex items-center gap-2 mb-6 ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <Calendar size={12} strokeWidth={3} /> Performance Heatmap
+                        </h3>
+                        <MiniCalendar isDark={isDarkTheme} />
+                      </div>
+
+                      {/* Alpha Logic — always indigo, always looks great */}
+                      <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-950 rounded-3xl p-8 text-white relative overflow-hidden border border-white/10 shadow-2xl">
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-3">
+                            <TrendingUp size={16} className="text-indigo-200" strokeWidth={3} />
+                            <h4 className="font-black text-sm uppercase tracking-[0.2em]">Alpha Logic</h4>
+                          </div>
+                          <p className="text-xs text-indigo-100/80 leading-relaxed mb-6 font-bold italic tracking-tight">"Win probability increases by 18.4% when entries are localized within the 09:30 - 10:15 window."</p>
+                          <button className="text-[10px] font-black uppercase tracking-[0.25em] bg-white text-indigo-950 hover:bg-indigo-50 px-6 py-3 rounded-xl transition-all shadow-xl w-full">Optimize Strategy</button>
+                        </div>
+                      </div>
+
+                      {/* Global Sessions */}
+                      <div className={`border rounded-3xl p-8 transition-colors duration-300 ${isDarkTheme ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <h3 className={`text-[10px] font-black uppercase tracking-[0.25em] flex items-center gap-2 mb-6 ${isDarkTheme ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <Clock size={12} strokeWidth={3} /> Global Sessions
+                        </h3>
+                        <div className={`border rounded-2xl p-6 space-y-5 ${isDarkTheme ? 'bg-slate-800/40 border-slate-800' : 'bg-gray-50 border-gray-200'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse" />
+                              <span className={`text-xs font-black tracking-widest uppercase ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>New York</span>
+                            </div>
+                            <span className="text-[9px] font-black text-emerald-500 tracking-[0.1em] bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 uppercase">Live</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {showBrokerModal && <FindBrokerModal onClose={() => setShowBrokerModal(false)} />}
+      {showPropfirmModal && <FindPropfirmModal onClose={() => setShowPropfirmModal(false)} />}
     </>
   );
 };
