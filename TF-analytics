@@ -1,17 +1,36 @@
 import { useState, useEffect } from "react";
 
+// ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const C = {
-  bg:     '#030810', surface: '#060d1c', panel: '#080f1e',
-  border: 'rgba(255,255,255,0.045)', sep: 'rgba(255,255,255,0.09)',
-  htf:    '#a78bfa', atf: '#22d3ee', etf: '#34d399',
-  ind:    '#fb923c', ctx: '#94a3b8', perf: '#fbbf24',
-  win:    '#10b981', loss: '#f43f5e', warn: '#f59e0b',
-  dim:    '#1e3650', sub: '#475569', muted: '#64748b',
-  text:   '#94a3b8', strong: '#cbd5e1', bright: '#f1f5f9',
+  bg:      '#010409',
+  surface: '#040c15',
+  panel:   '#050e19',
+  border:  'rgba(148,200,255,0.06)',
+  sep:     'rgba(148,200,255,0.10)',
+  htf:     '#c084fc',
+  atf:     '#38bdf8',
+  etf:     '#34d399',
+  ind:     '#fb923c',
+  ctx:     '#94a3b8',
+  perf:    '#fbbf24',
+  win:     '#10b981',
+  loss:    '#f43f5e',
+  warn:    '#f59e0b',
+  dim:     '#1e3650',
+  sub:     '#475569',
+  muted:   '#64748b',
+  text:    '#8fa8c0',
+  strong:  '#cce0f5',
+  bright:  '#eaf4ff',
 };
+
 const wrC  = w => w >= 80 ? C.win  : w >= 62 ? C.warn : C.loss;
-const wrBg = w => w >= 80 ? 'rgba(16,185,129,0.07)' : w >= 62 ? 'rgba(245,158,11,0.06)' : 'rgba(244,63,94,0.07)';
-const RJ   = "'Barlow Condensed', sans-serif";
+const wrBg = w => w >= 80 ? 'rgba(16,185,129,0.05)' : w >= 62 ? 'rgba(245,158,11,0.04)' : 'rgba(244,63,94,0.05)';
+
+// Fonts: DM Mono for data, Syne for labels/headings
+const MONO = "'DM Mono', 'Fira Code', monospace";
+const SANS = "'Syne', 'Space Grotesk', sans-serif";
+const DISPLAY = "'Syne', sans-serif";
 
 const ROWS = [
   {
@@ -153,16 +172,41 @@ const ROWS = [
 
 // ─── DESKTOP TABLE CELLS ──────────────────────────────────────────────────────
 const TFCell = ({ data, color }) => (
-  <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:220, width:220 }}>
-    <div style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color, lineHeight:1.3, marginBottom:5, letterSpacing:'0.06em', textTransform:'uppercase' }}>{data.candle}</div>
-    <div style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:C.text, lineHeight:1.55 }}>{data.pa}</div>
+  <td style={{
+    padding:'11px 14px', verticalAlign:'top',
+    borderRight:`1px solid ${C.border}`,
+    borderBottom:`1px solid ${C.border}`,
+    minWidth:220, width:220,
+  }}>
+    <div style={{
+      fontFamily: MONO, fontSize:10, fontWeight:500,
+      color, lineHeight:1.3, marginBottom:6,
+      letterSpacing:'0.08em', textTransform:'uppercase',
+      opacity:0.9,
+    }}>{data.candle}</div>
+    <div style={{
+      fontFamily: SANS, fontSize:11, fontWeight:400,
+      color:C.text, lineHeight:1.65,
+    }}>{data.pa}</div>
   </td>
 );
 
 const IndCell = ({ value }) => (
-  <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:190, width:190, borderLeft:`2px solid ${C.sep}` }}>
+  <td style={{
+    padding:'11px 14px', verticalAlign:'top',
+    borderRight:`1px solid ${C.border}`,
+    borderBottom:`1px solid ${C.border}`,
+    minWidth:190, width:190,
+    borderLeft:`1px solid ${C.sep}`,
+  }}>
     {value.split('\n').map((line, i) => (
-      <div key={i} style={{ fontFamily:RJ, fontSize:11, lineHeight:1.5, marginBottom:3, color: i===0 ? C.strong : C.text, fontWeight: i===0 ? 700 : 500, letterSpacing: i===0 ? '0.05em':'0.02em' }}>{line}</div>
+      <div key={i} style={{
+        fontFamily: i === 0 ? MONO : SANS,
+        fontSize: 11, lineHeight:1.55, marginBottom:4,
+        color: i===0 ? C.strong : C.text,
+        fontWeight: i===0 ? 500 : 400,
+        letterSpacing: i===0 ? '0.06em':'0',
+      }}>{line}</div>
     ))}
   </td>
 );
@@ -175,9 +219,23 @@ const CtxCell = ({ value, id, w }) => {
   if (id==='nws') col = l0.includes('🚫') ? C.loss : l0.includes('📰') ? C.warn : C.win;
   if (id==='cnd') col = l0.includes('Uptrend')||l0.includes('Breakout') ? C.win : l0.includes('Downtrend')||l0.includes('News')||l0.includes('Chop') ? C.loss : C.warn;
   return (
-    <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:w, width:w, maxWidth:w }}>
-      <div style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color:col, lineHeight:1.45, marginBottom:lines[1]?4:0, wordBreak:'break-word', whiteSpace:'normal', letterSpacing:'0.05em' }}>{l0}</div>
-      {lines[1] && <div style={{ fontFamily:RJ, fontSize:10, fontWeight:400, color:C.sub, lineHeight:1.5, wordBreak:'break-word', whiteSpace:'normal' }}>{lines[1]}</div>}
+    <td style={{
+      padding:'11px 14px', verticalAlign:'top',
+      borderRight:`1px solid ${C.border}`,
+      borderBottom:`1px solid ${C.border}`,
+      minWidth:w, width:w, maxWidth:w,
+    }}>
+      <div style={{
+        fontFamily: MONO, fontSize:10, fontWeight:500,
+        color:col, lineHeight:1.5, marginBottom:lines[1]?4:0,
+        wordBreak:'break-word', whiteSpace:'normal',
+        letterSpacing:'0.05em',
+      }}>{l0}</div>
+      {lines[1] && <div style={{
+        fontFamily: SANS, fontSize:10, fontWeight:400,
+        color:C.sub, lineHeight:1.5,
+        wordBreak:'break-word', whiteSpace:'normal',
+      }}>{lines[1]}</div>}
     </td>
   );
 };
@@ -185,9 +243,23 @@ const CtxCell = ({ value, id, w }) => {
 const MomCell = ({ value }) => {
   const [main, sub] = value.split(' · ');
   return (
-    <td style={{ padding:'10px 12px', verticalAlign:'top', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:160, width:160, maxWidth:160 }}>
-      <div style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color:C.strong, lineHeight:1.45, marginBottom:sub?4:0, wordBreak:'break-word', whiteSpace:'normal', letterSpacing:'0.05em' }}>{main}</div>
-      {sub && <div style={{ fontFamily:RJ, fontSize:10, fontWeight:400, color:C.sub, lineHeight:1.5, wordBreak:'break-word', whiteSpace:'normal' }}>{sub}</div>}
+    <td style={{
+      padding:'11px 14px', verticalAlign:'top',
+      borderRight:`1px solid ${C.border}`,
+      borderBottom:`1px solid ${C.border}`,
+      minWidth:160, width:160, maxWidth:160,
+    }}>
+      <div style={{
+        fontFamily: MONO, fontSize:10, fontWeight:500,
+        color:C.strong, lineHeight:1.5, marginBottom:sub?4:0,
+        wordBreak:'break-word', whiteSpace:'normal',
+        letterSpacing:'0.05em',
+      }}>{main}</div>
+      {sub && <div style={{
+        fontFamily: SANS, fontSize:10, fontWeight:400,
+        color:C.sub, lineHeight:1.5,
+        wordBreak:'break-word', whiteSpace:'normal',
+      }}>{sub}</div>}
     </td>
   );
 };
@@ -196,33 +268,64 @@ const SampleSizeCell = ({ trades, wr }) => {
   const wins   = Math.round(trades * wr / 100);
   const losses = trades - wins;
   return (
-    <td style={{ padding:'10px 12px', verticalAlign:'middle', borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, minWidth:120, width:120, textAlign:'center' }}>
-      <div style={{ fontFamily:RJ, fontSize:22, fontWeight:700, color:C.strong, lineHeight:1, marginBottom:6, letterSpacing:'0.02em' }}>{trades}</div>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:4, marginBottom:4 }}>
-        <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:C.win, letterSpacing:'0.04em' }}>{wins}W</span>
-        <span style={{ fontFamily:RJ, fontSize:10, fontWeight:400, color:C.sub }}>/</span>
-        <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:C.loss, letterSpacing:'0.04em' }}>{losses}L</span>
+    <td style={{
+      padding:'11px 14px', verticalAlign:'middle',
+      borderRight:`1px solid ${C.border}`,
+      borderBottom:`1px solid ${C.border}`,
+      minWidth:120, width:120, textAlign:'center',
+    }}>
+      <div style={{
+        fontFamily: MONO, fontSize:22, fontWeight:400,
+        color:C.strong, lineHeight:1, marginBottom:7,
+        letterSpacing:'-0.02em',
+      }}>{trades}</div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, marginBottom:5 }}>
+        <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:C.win }}>{wins}W</span>
+        <span style={{ fontFamily:MONO, fontSize:10, fontWeight:400, color:C.sub }}>/</span>
+        <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:C.loss }}>{losses}L</span>
       </div>
-      <div style={{ height:3, borderRadius:99, background:'rgba(255,255,255,0.06)', overflow:'hidden' }}>
-        <div style={{ width:`${wr}%`, height:'100%', background:C.win, borderRadius:99 }} />
+      <div style={{ height:2, borderRadius:99, background:'rgba(255,255,255,0.05)', overflow:'hidden' }}>
+        <div style={{ width:`${wr}%`, height:'100%', background:`linear-gradient(90deg, ${C.win}, ${C.win}99)`, borderRadius:99 }} />
       </div>
     </td>
   );
 };
 
 const PerfCell = ({ row }) => (
-  <td style={{ padding:'12px 14px', verticalAlign:'middle', borderBottom:`1px solid ${C.border}`, background:wrBg(row.wr), borderLeft:`2px solid ${wrC(row.wr)}35`, minWidth:150, width:150 }}>
-    <div style={{ fontFamily:RJ, fontSize:28, fontWeight:700, color:wrC(row.wr), lineHeight:1, marginBottom:7, letterSpacing:'0.02em' }}>{row.wr}%</div>
-    <div style={{ height:3, borderRadius:99, background:'rgba(255,255,255,0.06)', overflow:'hidden', marginBottom:8 }}>
+  <td style={{
+    padding:'13px 16px', verticalAlign:'middle',
+    borderBottom:`1px solid ${C.border}`,
+    background: wrBg(row.wr),
+    borderLeft:`1px solid ${wrC(row.wr)}25`,
+    minWidth:150, width:150,
+  }}>
+    <div style={{
+      fontFamily: MONO, fontSize:26, fontWeight:400,
+      color:wrC(row.wr), lineHeight:1, marginBottom:8,
+      letterSpacing:'-0.02em',
+    }}>{row.wr}%</div>
+    <div style={{ height:2, borderRadius:99, background:'rgba(255,255,255,0.05)', overflow:'hidden', marginBottom:9 }}>
       <div style={{ width:`${row.wr}%`, height:'100%', background:wrC(row.wr), borderRadius:99 }} />
     </div>
-    <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:5 }}>
-      <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', flexShrink:0 }}>Avg R</span>
-      <span style={{ fontFamily:RJ, fontSize:13, fontWeight:700, color:row.avgR>=3?'#60a5fa':C.muted }}>{row.avgR>0?'+':''}{row.avgR}R</span>
+    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:5 }}>
+      <span style={{
+        fontFamily: MONO, fontSize:8, fontWeight:400,
+        color:C.dim, textTransform:'uppercase', letterSpacing:'0.14em', flexShrink:0,
+      }}>AVG R</span>
+      <span style={{
+        fontFamily: MONO, fontSize:13, fontWeight:500,
+        color:row.avgR>=3?'#60a5fa':C.muted,
+      }}>{row.avgR>0?'+':''}{row.avgR}R</span>
     </div>
-    <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:7 }}>
-      <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', flexShrink:0 }}>P/L</span>
-      <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:row.netPL>=0?C.win:C.loss }}>{row.netPL>=0?'+':''}${row.netPL.toLocaleString()}</span>
+    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+      <span style={{
+        fontFamily: MONO, fontSize:8, fontWeight:400,
+        color:C.dim, textTransform:'uppercase', letterSpacing:'0.14em', flexShrink:0,
+      }}>P/L</span>
+      <span style={{
+        fontFamily: MONO, fontSize:12, fontWeight:500,
+        color:row.netPL>=0?C.win:C.loss,
+      }}>{row.netPL>=0?'+':''}${row.netPL.toLocaleString()}</span>
     </div>
   </td>
 );
@@ -232,19 +335,45 @@ const MatrixRow = ({ row }) => {
   const isElite = row.wr >= 85;
   const isWeak  = row.wr < 50;
   return (
-    <tr>
-      <td style={{ minWidth:148, width:148, padding:'10px 12px', background:isElite?'#071520':isWeak?'#0e050e':C.surface, borderRight:`2px solid ${C.sep}`, borderBottom:`1px solid ${C.border}`, verticalAlign:'middle' }}>
+    <tr style={{ transition:'background 0.12s' }}>
+      <td style={{
+        minWidth:148, width:148,
+        padding:'11px 13px',
+        background: isElite ? 'rgba(192,132,252,0.03)' : isWeak ? 'rgba(244,63,94,0.03)' : C.surface,
+        borderRight:`1px solid ${C.sep}`,
+        borderBottom:`1px solid ${C.border}`,
+        verticalAlign:'middle',
+      }}>
         <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
           {[row.htf, row.atf, row.etf].map((tf, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:5 }}>
-              <span style={{ fontFamily:RJ, fontSize:12, fontWeight:700, color:roleC[tf]||C.sub, background:(roleC[tf]||C.sub)+'18', border:`1px solid ${(roleC[tf]||C.sub)}28`, padding:'2px 8px', borderRadius:3, letterSpacing:'0.1em' }}>{tf}</span>
-              <span style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em' }}>{i===0?'HTF':i===1?'ATF':'ETF'}</span>
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <span style={{
+                fontFamily: MONO, fontSize:11, fontWeight:500,
+                color:roleC[tf]||C.sub,
+                background:(roleC[tf]||C.sub)+'14',
+                border:`1px solid ${(roleC[tf]||C.sub)}22`,
+                padding:'2px 8px', borderRadius:2,
+                letterSpacing:'0.1em',
+              }}>{tf}</span>
+              <span style={{
+                fontFamily: MONO, fontSize:7, fontWeight:400,
+                color:C.dim, textTransform:'uppercase', letterSpacing:'0.14em',
+              }}>{i===0?'HTF':i===1?'ATF':'ETF'}</span>
             </div>
           ))}
         </div>
-        <div style={{ marginTop:6, fontFamily:RJ, fontSize:8, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:isElite?C.win:isWeak?C.loss:C.dim, borderTop:`1px solid ${isElite?C.win+'22':isWeak?C.loss+'22':C.border}`, paddingTop:5 }}>
-          {isElite?'★ ELITE':isWeak?'✗ AVOID':''}
-        </div>
+        {(isElite || isWeak) && (
+          <div style={{
+            marginTop:7,
+            fontFamily: MONO, fontSize:7, fontWeight:400,
+            letterSpacing:'0.16em', textTransform:'uppercase',
+            color: isElite ? C.win : C.loss,
+            borderTop:`1px solid ${isElite ? C.win+'18' : C.loss+'18'}`,
+            paddingTop:5,
+          }}>
+            {isElite ? '★ ELITE' : '✗ AVOID'}
+          </div>
+        )}
       </td>
       <TFCell data={row.tf1} color={C.htf} />
       <TFCell data={row.tf2} color={C.atf} />
@@ -280,114 +409,129 @@ const MobileCard = ({ row }) => {
 
   return (
     <div style={{
-      margin:'0 12px 10px',
-      background: isElite ? '#071520' : isWeak ? '#0c040c' : C.surface,
-      border:`1px solid ${isElite?C.win+'33':isWeak?C.loss+'33':C.border}`,
-      borderRadius:8, overflow:'hidden',
+      margin:'0 10px 8px',
+      background: isElite ? 'rgba(192,132,252,0.03)' : isWeak ? 'rgba(244,63,94,0.03)' : C.surface,
+      border:`1px solid ${isElite?C.win+'28':isWeak?C.loss+'28':C.border}`,
+      borderRadius:6, overflow:'hidden',
     }}>
-      {/* HEADER — always visible */}
-      <div onClick={() => setExpanded(e => !e)} style={{ padding:'14px', cursor:'pointer', userSelect:'none' }}>
-
-        {/* Row 1: TF badges + WR */}
+      <div onClick={() => setExpanded(e => !e)} style={{ padding:'13px', cursor:'pointer', userSelect:'none' }}>
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:10 }}>
           <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap', flex:1, marginRight:12 }}>
             {[{tf:row.htf,role:'HTF'},{tf:row.atf,role:'ATF'},{tf:row.etf,role:'ETF'}].map(({tf,role}) => (
               <div key={role} style={{ display:'flex', alignItems:'center', gap:3 }}>
-                <span style={{ fontFamily:RJ, fontSize:13, fontWeight:700, color:roleC[tf]||C.sub, background:(roleC[tf]||C.sub)+'18', border:`1px solid ${(roleC[tf]||C.sub)}28`, padding:'2px 7px', borderRadius:3, letterSpacing:'0.1em' }}>{tf}</span>
-                <span style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.08em' }}>{role}</span>
+                <span style={{
+                  fontFamily:MONO, fontSize:12, fontWeight:500,
+                  color:roleC[tf]||C.sub,
+                  background:(roleC[tf]||C.sub)+'14',
+                  border:`1px solid ${(roleC[tf]||C.sub)}22`,
+                  padding:'2px 7px', borderRadius:2, letterSpacing:'0.1em',
+                }}>{tf}</span>
+                <span style={{ fontFamily:MONO, fontSize:7, fontWeight:400, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em' }}>{role}</span>
               </div>
             ))}
             {(isElite||isWeak) && (
-              <span style={{ fontFamily:RJ, fontSize:8, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:isElite?C.win:C.loss, background:isElite?C.win+'15':C.loss+'15', border:`1px solid ${isElite?C.win:C.loss}30`, padding:'2px 7px', borderRadius:3 }}>
+              <span style={{
+                fontFamily:MONO, fontSize:7, fontWeight:400,
+                letterSpacing:'0.14em', textTransform:'uppercase',
+                color:isElite?C.win:C.loss,
+                background:isElite?C.win+'12':C.loss+'12',
+                border:`1px solid ${isElite?C.win:C.loss}25`,
+                padding:'2px 7px', borderRadius:2,
+              }}>
                 {isElite?'★ ELITE':'✗ AVOID'}
               </span>
             )}
           </div>
-          {/* WR% */}
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4, flexShrink:0 }}>
-            <span style={{ fontFamily:RJ, fontSize:24, fontWeight:700, color:wrC(row.wr), lineHeight:1 }}>{row.wr}%</span>
-            <div style={{ width:56, height:3, borderRadius:99, background:'rgba(255,255,255,0.07)', overflow:'hidden' }}>
+            <span style={{ fontFamily:MONO, fontSize:22, fontWeight:400, color:wrC(row.wr), lineHeight:1, letterSpacing:'-0.02em' }}>{row.wr}%</span>
+            <div style={{ width:54, height:2, borderRadius:99, background:'rgba(255,255,255,0.06)', overflow:'hidden' }}>
               <div style={{ width:`${row.wr}%`, height:'100%', background:wrC(row.wr), borderRadius:99 }} />
             </div>
           </div>
         </div>
 
-        {/* Row 2: Stats */}
         <div style={{ display:'flex', gap:20, marginBottom:10 }}>
           {[
-            { label:'Avg R',       value: `${row.avgR>0?'+':''}${row.avgR}R`, color: row.avgR>=3?'#60a5fa':C.muted },
-            { label:'Net P/L',     value: `${row.netPL>=0?'+':''}$${row.netPL.toLocaleString()}`, color: row.netPL>=0?C.win:C.loss },
-            { label:'Sample Size', value: (() => { const w = Math.round(row.trades * row.wr / 100); return `${row.trades} · ${w}W/${row.trades-w}L`; })(), color: C.strong },
+            { label:'AVG R',  value: `${row.avgR>0?'+':''}${row.avgR}R`, color: row.avgR>=3?'#60a5fa':C.muted },
+            { label:'NET P/L', value: `${row.netPL>=0?'+':''}$${row.netPL.toLocaleString()}`, color: row.netPL>=0?C.win:C.loss },
+            { label:'SAMPLE', value: (() => { const w = Math.round(row.trades * row.wr / 100); return `${row.trades} · ${w}W/${row.trades-w}L`; })(), color: C.strong },
           ].map(({label,value,color}) => (
             <div key={label}>
-              <div style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:2 }}>{label}</div>
-              <div style={{ fontFamily:RJ, fontSize:15, fontWeight:700, color }}>{value}</div>
+              <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.dim, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:2 }}>{label}</div>
+              <div style={{ fontFamily:MONO, fontSize:14, fontWeight:500, color, letterSpacing:'-0.01em' }}>{value}</div>
             </div>
           ))}
         </div>
 
-        {/* Row 3: Pills */}
-        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
+        <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
           {[
             { text:biasL0, color:biasCol },
             { text:condL0, color:condCol },
             { text:newsL0, color:newsCol },
           ].map(({text,color}) => (
-            <span key={text} style={{ fontFamily:RJ, fontSize:10, fontWeight:600, color, background:color+'15', border:`1px solid ${color}30`, padding:'3px 9px', borderRadius:20 }}>{text}</span>
+            <span key={text} style={{
+              fontFamily:MONO, fontSize:9, fontWeight:400,
+              color, background:color+'12',
+              border:`1px solid ${color}25`,
+              padding:'3px 9px', borderRadius:2,
+              letterSpacing:'0.06em',
+            }}>{text}</span>
           ))}
         </div>
 
-        {/* Row 4: Session + toggle */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <span style={{ fontFamily:RJ, fontSize:10, fontWeight:500, color:C.muted }}>{row.session}</span>
-          <span style={{ fontFamily:RJ, fontSize:10, fontWeight:700, color:'#6366f1', letterSpacing:'0.08em' }}>{expanded?'▲ LESS':'▼ MORE'}</span>
+          <span style={{ fontFamily:SANS, fontSize:10, fontWeight:400, color:C.muted }}>{row.session}</span>
+          <span style={{ fontFamily:MONO, fontSize:9, fontWeight:400, color:'#6366f1', letterSpacing:'0.1em' }}>{expanded?'▲ LESS':'▼ MORE'}</span>
         </div>
       </div>
 
-      {/* EXPANDED BODY */}
       {expanded && (
         <div style={{ borderTop:`1px solid ${C.sep}` }}>
-
-          {/* TF rows */}
           {[
             { label:'HTF', tf:row.htf, color:C.htf, data:row.tf1 },
             { label:'ATF', tf:row.atf, color:C.atf, data:row.tf2 },
             { label:'ETF', tf:row.etf, color:C.etf, data:row.tf3 },
           ].map(({ label, tf, color, data }) => (
-            <div key={label} style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}` }}>
+            <div key={label} style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:5 }}>
-                <span style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color, background:color+'18', border:`1px solid ${color}28`, padding:'1px 6px', borderRadius:3, letterSpacing:'0.08em' }}>{tf}</span>
-                <span style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em' }}>{label}</span>
-                <span style={{ fontFamily:RJ, fontSize:11, fontWeight:700, color, letterSpacing:'0.04em', textTransform:'uppercase' }}>{data.candle}</span>
+                <span style={{
+                  fontFamily:MONO, fontSize:10, fontWeight:500,
+                  color, background:color+'14',
+                  border:`1px solid ${color}22`,
+                  padding:'1px 6px', borderRadius:2, letterSpacing:'0.1em',
+                }}>{tf}</span>
+                <span style={{ fontFamily:MONO, fontSize:7, fontWeight:400, color:C.dim, textTransform:'uppercase', letterSpacing:'0.12em' }}>{label}</span>
+                <span style={{ fontFamily:MONO, fontSize:10, fontWeight:500, color, letterSpacing:'0.05em', textTransform:'uppercase' }}>{data.candle}</span>
               </div>
-              <p style={{ fontFamily:RJ, fontSize:12, fontWeight:500, color:C.text, lineHeight:1.6, margin:0 }}>{data.pa}</p>
+              <p style={{ fontFamily:SANS, fontSize:12, fontWeight:400, color:C.text, lineHeight:1.65, margin:0 }}>{data.pa}</p>
             </div>
           ))}
 
-          {/* Indicators */}
-          <div style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}` }}>
-            <div style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.ind, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>● Indicators</div>
+          <div style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.ind, textTransform:'uppercase', letterSpacing:'0.14em', marginBottom:6 }}>● INDICATORS</div>
             {row.indicators.split('\n').map((line, i) => (
-              <div key={i} style={{ fontFamily:RJ, fontSize:12, fontWeight:i===0?700:500, color:i===0?C.strong:C.text, lineHeight:1.5, marginBottom:2 }}>{line}</div>
+              <div key={i} style={{
+                fontFamily: i===0 ? MONO : SANS,
+                fontSize:11, fontWeight: i===0 ? 500 : 400,
+                color:i===0?C.strong:C.text, lineHeight:1.55, marginBottom:3,
+              }}>{line}</div>
             ))}
           </div>
 
-          {/* Momentum */}
-          <div style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}` }}>
-            <div style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.ctx, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:5 }}>● Momentum</div>
-            <div style={{ fontFamily:RJ, fontSize:13, fontWeight:700, color:C.strong }}>{momMain}</div>
-            {momSub && <div style={{ fontFamily:RJ, fontSize:11, fontWeight:400, color:C.sub, marginTop:2 }}>{momSub}</div>}
+          <div style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.ctx, textTransform:'uppercase', letterSpacing:'0.14em', marginBottom:5 }}>● MOMENTUM</div>
+            <div style={{ fontFamily:MONO, fontSize:13, fontWeight:500, color:C.strong, letterSpacing:'0.03em' }}>{momMain}</div>
+            {momSub && <div style={{ fontFamily:SANS, fontSize:11, fontWeight:400, color:C.sub, marginTop:2 }}>{momSub}</div>}
           </div>
 
-          {/* Full context */}
-          <div style={{ padding:'12px 14px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px' }}>
+          <div style={{ padding:'11px 14px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px' }}>
             <div>
-              <div style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:3 }}>Session</div>
-              <div style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:C.muted, lineHeight:1.5 }}>{row.session.replace(' · ', '\n')}</div>
+              <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.dim, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:3 }}>Session</div>
+              <div style={{ fontFamily:SANS, fontSize:11, fontWeight:400, color:C.muted, lineHeight:1.55 }}>{row.session.replace(' · ', '\n')}</div>
             </div>
             <div>
-              <div style={{ fontFamily:RJ, fontSize:8, fontWeight:600, color:C.dim, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:3 }}>Condition</div>
-              <div style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:condCol, lineHeight:1.5 }}>{condL0}</div>
+              <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.dim, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:3 }}>Condition</div>
+              <div style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:condCol, lineHeight:1.55 }}>{condL0}</div>
             </div>
           </div>
         </div>
@@ -398,7 +542,12 @@ const MobileCard = ({ row }) => {
 
 // ─── INSIGHTS PANEL ───────────────────────────────────────────────────────────
 const InsightsPanel = ({ isMobile }) => (
-  <div style={{ padding: isMobile ? '0 12px 28px' : '0 20px 28px', display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap:12 }}>
+  <div style={{
+    padding: isMobile ? '0 10px 28px' : '0 20px 28px',
+    display:'grid',
+    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr',
+    gap:10,
+  }}>
     {[
       { color:C.win,  title:'★ Highest Probability Pattern',
         lines:['HTF: Engulfing or Pin Bar closing at/above key S/R level','ATF: Double Bottom / OB Respected / FVG / Institution Candle','ETF: BOS or FVG Fill + Rejection Candle on M5 or M15','Indicators: Volume surge + RSI extreme confirming ATF','London or NY Open · No news · ATR Expanding'] },
@@ -407,12 +556,23 @@ const InsightsPanel = ({ isMobile }) => (
       { color:C.warn, title:'⚠ What Destroys Win Rate',
         lines:['30M as ATF: structure becomes noise, WR drops ~20%','M1 as ETF: no institutional footprint, coin-flip entries','During news: all patterns and levels completely invalidated','Dead zone session: spread destroys every edge','H4 as HTF: no macro context, bias shifts too frequently'] },
     ].map((c, i) => (
-      <div key={i} style={{ background:c.color+'07', border:`1px solid ${c.color}20`, borderRadius:6, padding:'14px 16px' }}>
-        <div style={{ fontFamily:RJ, fontSize:10, fontWeight:700, color:c.color, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:10 }}>{c.title}</div>
+      <div key={i} style={{
+        background:c.color+'06',
+        border:`1px solid ${c.color}18`,
+        borderRadius:4, padding:'14px 16px',
+      }}>
+        <div style={{
+          fontFamily: MONO, fontSize:9, fontWeight:400,
+          color:c.color, letterSpacing:'0.14em',
+          textTransform:'uppercase', marginBottom:11,
+        }}>{c.title}</div>
         {c.lines.map((line, j) => (
-          <div key={j} style={{ display:'flex', gap:7, marginBottom:6 }}>
-            <span style={{ color:c.color, fontWeight:700, fontSize:10, flexShrink:0, marginTop:1 }}>→</span>
-            <span style={{ fontFamily:RJ, fontSize:11, fontWeight:500, color:C.muted, lineHeight:1.45 }}>{line}</span>
+          <div key={j} style={{ display:'flex', gap:8, marginBottom:7 }}>
+            <span style={{ color:c.color, fontWeight:400, fontSize:10, flexShrink:0, marginTop:1 }}>→</span>
+            <span style={{
+              fontFamily: SANS, fontSize:11, fontWeight:400,
+              color:C.muted, lineHeight:1.5,
+            }}>{line}</span>
           </div>
         ))}
       </div>
@@ -451,70 +611,178 @@ export default function TFSMatrix() {
   return (
     <div style={{ minHeight:'100vh', background:C.bg, color:C.text }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Syne:wght@400;500;600;700&display=swap');
         *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Barlow Condensed', sans-serif; background:#030810; }
-        ::-webkit-scrollbar { width:4px; height:6px; }
-        ::-webkit-scrollbar-track { background:#050c1a; }
-        ::-webkit-scrollbar-thumb { background:#1a334f; border-radius:4px; }
-        .fadein { animation:fi .2s ease; }
-        @keyframes fi { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
-        tbody tr:hover td { background:rgba(255,255,255,0.01) !important; }
-        td, th { font-family:'Barlow Condensed', sans-serif; }
+        body { background:#010409; }
+        ::-webkit-scrollbar { width:3px; height:5px; }
+        ::-webkit-scrollbar-track { background:#030a14; }
+        ::-webkit-scrollbar-thumb { background:#112030; border-radius:4px; }
+        .fadein { animation:fi .18s ease; }
+        @keyframes fi { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+        tbody tr:hover td { background:rgba(148,200,255,0.015) !important; }
+        td, th { font-family:'DM Mono', monospace; }
       `}</style>
 
       {/* ── NAV ── */}
       <div style={{
         position:'sticky', top:0, zIndex:100,
-        background:'rgba(3,8,16,0.97)', backdropFilter:'blur(20px)',
-        borderBottom:`1px solid ${C.border}`,
-        display:'flex', alignItems:'stretch',
-        padding: isMobile ? '0 12px' : '0 20px',
-        minHeight: isMobile ? 52 : 'auto',
+        background:'rgba(1,4,9,0.97)',
+        backdropFilter:'blur(28px)',
+        borderBottom:`1px solid rgba(148,200,255,0.08)`,
       }}>
-        <div style={{ display:'flex', flexDirection:'column', justifyContent:'center', paddingRight: isMobile ? 12 : 24, borderRight:`1px solid ${C.border}`, marginRight:8 }}>
-          <span style={{ fontFamily:RJ, fontSize: isMobile ? 13 : 14, fontWeight:700, color:C.bright, letterSpacing:'0.2em', textTransform:'uppercase' }}>TFS MATRIX</span>
+        {/* Top accent line */}
+        <div style={{
+          height:1,
+          background:'linear-gradient(90deg, transparent, rgba(192,132,252,0.5) 20%, rgba(56,189,248,0.5) 50%, rgba(52,211,153,0.4) 80%, transparent)',
+        }} />
+
+        <div style={{
+          display:'flex', alignItems:'stretch',
+          padding: isMobile ? '0 14px' : '0 28px',
+          minHeight: isMobile ? 54 : 60,
+        }}>
+          {/* ── BRAND ── */}
+          <div style={{
+            display:'flex', flexDirection:'column', justifyContent:'center',
+            paddingRight: isMobile ? 16 : 28,
+            marginRight: isMobile ? 4 : 8,
+            borderRight:`1px solid rgba(148,200,255,0.08)`,
+            flexShrink:0,
+          }}>
+            <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+              <span style={{
+                fontFamily: DISPLAY,
+                fontSize: isMobile ? 15 : 18,
+                fontWeight:700,
+                color:'#eaf4ff',
+                letterSpacing:'0.22em',
+                textTransform:'uppercase',
+                lineHeight:1,
+              }}>TF</span>
+              <span style={{
+                fontFamily: MONO,
+                fontSize: isMobile ? 9 : 10,
+                fontWeight:400,
+                color:'rgba(148,200,255,0.45)',
+                letterSpacing:'0.3em',
+                textTransform:'uppercase',
+                lineHeight:1,
+              }}>ANALYTICS</span>
+            </div>
+
+          </div>
+
+          {/* ── PAGE TABS ── */}
+          <div style={{ display:'flex', alignItems:'stretch', gap:0, marginRight:'auto' }}>
+            {[
+              { n:1, icon:'⊞', label:'Full Matrix',    labelShort:'All',  sub:`${ROWS.length} scenarios` },
+              { n:2, icon:'★', label:'Best Performers', labelShort:'Best', sub:'WR ≥ 78%' },
+            ].map(p => {
+              const active = page === p.n;
+              return (
+                <button key={p.n} onClick={() => setPage(p.n)} style={{
+                  display:'flex', flexDirection:'column', justifyContent:'center',
+                  alignItems:'flex-start', gap:3,
+                  padding: isMobile ? '0 14px' : '0 22px',
+                  background: active ? 'rgba(99,102,241,0.07)' : 'transparent',
+                  borderBottom: active ? '2px solid #818cf8' : '2px solid transparent',
+                  borderTop:'2px solid transparent',
+                  borderLeft:'none', borderRight:'none',
+                  cursor:'pointer', transition:'all .16s ease',
+                  position:'relative',
+                }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+                    <span style={{
+                      fontFamily: MONO,
+                      fontSize: isMobile ? 10 : 11,
+                      fontWeight:400,
+                      color: active ? '#c7d2fe' : 'rgba(148,200,255,0.35)',
+                      letterSpacing:'0.06em',
+                      transition:'color .16s',
+                      lineHeight:1,
+                    }}>{p.icon}</span>
+                    <span style={{
+                      fontFamily: DISPLAY,
+                      fontSize: isMobile ? 11 : 12,
+                      fontWeight: active ? 600 : 500,
+                      color: active ? '#c7d2fe' : 'rgba(148,200,255,0.35)',
+                      letterSpacing:'0.14em',
+                      textTransform:'uppercase',
+                      transition:'color .16s',
+                      lineHeight:1,
+                    }}>{isMobile ? p.labelShort : p.label}</span>
+                  </div>
+                  {!isMobile && (
+                    <span style={{
+                      fontFamily: MONO,
+                      fontSize:8,
+                      fontWeight:400,
+                      color: active ? 'rgba(129,140,248,0.7)' : 'rgba(148,200,255,0.18)',
+                      letterSpacing:'0.1em',
+                      transition:'color .16s',
+                    }}>{p.sub}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── LEGEND ── */}
           {!isMobile && (
-            <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim, marginTop:1, letterSpacing:'0.1em', textTransform:'uppercase' }}>
-              Y: MTF Combo · X: HTF · ATF · ETF · Indicators · Context · Performance
-            </span>
+            <div style={{
+              display:'flex', alignItems:'center', gap:4,
+              borderLeft:`1px solid rgba(148,200,255,0.07)`,
+              paddingLeft:20, marginLeft:8,
+            }}>
+              {[
+                { dot:C.htf,  label:'HTF col' },
+                { dot:C.atf,  label:'ATF col' },
+                { dot:C.etf,  label:'ETF col' },
+                { dot:'rgba(148,200,255,0.12)', label:null }, // divider
+                { dot:C.win,  label:'≥ 80%'   },
+                { dot:C.warn, label:'62–79%'  },
+                { dot:C.loss, label:'< 62%'   },
+              ].map((x, i) =>
+                x.label === null ? (
+                  <div key={i} style={{ width:1, height:18, background:'rgba(148,200,255,0.08)', margin:'0 6px' }} />
+                ) : (
+                  <div key={x.label} style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 8px', borderRadius:3, background:'rgba(148,200,255,0.03)' }}>
+                    <div style={{
+                      width:6, height:6, borderRadius:1,
+                      background:x.dot,
+                      boxShadow:`0 0 5px ${x.dot}66`,
+                    }} />
+                    <span style={{
+                      fontFamily: MONO,
+                      fontSize:9,
+                      fontWeight:400,
+                      color:'rgba(148,200,255,0.38)',
+                      letterSpacing:'0.08em',
+                    }}>{x.label}</span>
+                  </div>
+                )
+              )}
+            </div>
           )}
         </div>
-        {[
-          { n:1, e:'⊞', label: isMobile ? 'All'  : 'Full Matrix',     sub:`${ROWS.length} scenarios` },
-          { n:2, e:'★', label: isMobile ? 'Best' : 'Best Performers', sub:'WR ≥ 78%' },
-        ].map(p => (
-          <button key={p.n} onClick={() => setPage(p.n)} style={{
-            display:'flex', flexDirection:'column', justifyContent:'center', gap:1,
-            padding: isMobile ? '0 10px' : '0 20px',
-            background: page===p.n ? 'rgba(99,102,241,0.07)' : 'transparent',
-            borderBottom: page===p.n ? '2px solid #6366f1' : '2px solid transparent',
-            borderTop:'none', borderLeft:'none', borderRight:'none',
-            cursor:'pointer', transition:'all .14s',
-          }}>
-            <span style={{ fontFamily:RJ, fontSize: isMobile ? 10 : 11, fontWeight:700, color:page===p.n?'#a5b4fc':C.sub, letterSpacing:'0.1em', textTransform:'uppercase' }}>{p.e} {p.label}</span>
-            {!isMobile && <span style={{ fontFamily:RJ, fontSize:9, fontWeight:500, color:page===p.n?'#6366f1':C.dim }}>{p.sub}</span>}
-          </button>
-        ))}
-        {!isMobile && (
-          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:12 }}>
-            {[{dot:C.htf,l:'HTF col'},{dot:C.atf,l:'ATF col'},{dot:C.etf,l:'ETF col'},{dot:C.win,l:'≥80%'},{dot:C.warn,l:'62–79%'},{dot:C.loss,l:'<62%'}].map(x => (
-              <div key={x.l} style={{ display:'flex', alignItems:'center', gap:4 }}>
-                <div style={{ width:6, height:6, borderRadius:2, background:x.dot }} />
-                <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim }}>{x.l}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* ── MOBILE LEGEND BAR ── */}
       {isMobile && (
-        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'5px 12px', borderBottom:`1px solid ${C.border}`, flexWrap:'wrap' }}>
-          {[{dot:C.htf,l:'HTF'},{dot:C.atf,l:'ATF'},{dot:C.etf,l:'ETF'},{dot:C.win,l:'≥80%'},{dot:C.warn,l:'62–79%'},{dot:C.loss,l:'<62%'}].map(x => (
-            <div key={x.l} style={{ display:'flex', alignItems:'center', gap:3 }}>
-              <div style={{ width:5, height:5, borderRadius:1, background:x.dot }} />
-              <span style={{ fontFamily:RJ, fontSize:9, fontWeight:600, color:C.dim }}>{x.l}</span>
+        <div style={{
+          display:'flex', alignItems:'center', gap:8,
+          padding:'6px 14px',
+          borderBottom:`1px solid rgba(148,200,255,0.06)`,
+          flexWrap:'wrap',
+          background:'rgba(1,4,9,0.6)',
+        }}>
+          {[
+            {dot:C.htf,l:'HTF'},{dot:C.atf,l:'ATF'},{dot:C.etf,l:'ETF'},
+            {dot:C.win,l:'≥80%'},{dot:C.warn,l:'62–79%'},{dot:C.loss,l:'<62%'},
+          ].map(x => (
+            <div key={x.l} style={{ display:'flex', alignItems:'center', gap:4 }}>
+              <div style={{ width:5, height:5, borderRadius:1, background:x.dot, boxShadow:`0 0 4px ${x.dot}55` }} />
+              <span style={{ fontFamily:MONO, fontSize:9, fontWeight:400, color:'rgba(148,200,255,0.35)', letterSpacing:'0.08em' }}>{x.l}</span>
             </div>
           ))}
         </div>
@@ -523,35 +791,53 @@ export default function TFSMatrix() {
       {/* ── CONTENT ── */}
       <div className="fadein" key={`${page}-${isMobile}`} style={{ paddingBottom:28 }}>
         {isMobile ? (
-          // MOBILE: stacked cards
           <div style={{ paddingTop:10 }}>
             {rows.map(row => <MobileCard key={row.id} row={row} />)}
           </div>
         ) : (
-          // DESKTOP: scrollable table
           <div style={{ overflowX:'auto' }}>
             <table style={{ borderCollapse:'separate', borderSpacing:0 }}>
               <thead>
                 <tr>
-                  <th style={{ background:C.panel, width:148, minWidth:148, padding:'12px 12px', borderRight:`2px solid ${C.sep}`, borderBottom:`2px solid ${C.sep}`, textAlign:'left', verticalAlign:'bottom' }}>
-                    <span style={{ fontFamily:RJ, fontSize:9, fontWeight:700, color:C.sub, letterSpacing:'0.15em', textTransform:'uppercase' }}>MTF Combo</span>
-                    <div style={{ fontFamily:RJ, fontSize:8, fontWeight:400, color:C.dim, marginTop:2 }}>HTF → ATF → ETF</div>
+                  <th style={{
+                    background:C.panel,
+                    width:148, minWidth:148,
+                    padding:'12px 13px',
+                    borderRight:`1px solid ${C.sep}`,
+                    borderBottom:`1px solid ${C.sep}`,
+                    textAlign:'left', verticalAlign:'bottom',
+                  }}>
+                    <span style={{
+                      fontFamily:MONO, fontSize:8, fontWeight:400,
+                      color:C.sub, letterSpacing:'0.18em', textTransform:'uppercase',
+                    }}>MTF Combo</span>
+                    <div style={{
+                      fontFamily:MONO, fontSize:7, fontWeight:400,
+                      color:C.dim, marginTop:2, letterSpacing:'0.1em',
+                    }}>HTF → ATF → ETF</div>
                   </th>
                   {GROUPS.map((g, i) => (
                     <th key={i} style={{
-                      padding:'12px 12px', textAlign:'left', verticalAlign:'bottom',
-                      background:g.color+'10',
-                      borderBottom:`2px solid ${C.sep}`,
-                      borderLeft: g.leftBorder ? `2px solid ${C.sep}` : undefined,
+                      padding:'12px 14px',
+                      textAlign:'left', verticalAlign:'bottom',
+                      background: g.color + '09',
+                      borderBottom:`1px solid ${C.sep}`,
+                      borderLeft: g.leftBorder ? `1px solid ${C.sep}` : undefined,
                       borderRight:`1px solid ${C.border}`,
                       width:    i<=2?220:i===3?190:i===4?145:i===5?170:i===6?110:i===7?195:i===8?160:i===9?110:150,
                       minWidth: i<=2?220:i===3?190:i===4?145:i===5?170:i===6?110:i===7?195:i===8?160:i===9?110:150,
                     }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:3 }}>
-                        <div style={{ width:5, height:5, borderRadius:'50%', background:g.color, flexShrink:0 }} />
-                        <span style={{ fontFamily:RJ, fontSize:10, fontWeight:700, color:g.color, letterSpacing:'0.12em', textTransform:'uppercase' }}>{g.label}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                        <div style={{ width:4, height:4, borderRadius:'50%', background:g.color, flexShrink:0 }} />
+                        <span style={{
+                          fontFamily:MONO, fontSize:9, fontWeight:400,
+                          color:g.color, letterSpacing:'0.16em', textTransform:'uppercase',
+                        }}>{g.label}</span>
                       </div>
-                      <div style={{ fontFamily:RJ, fontSize:9, fontWeight:400, color:C.dim, paddingLeft:10 }}>{g.sub}</div>
+                      <div style={{
+                        fontFamily:SANS, fontSize:9, fontWeight:400,
+                        color:C.dim, paddingLeft:10,
+                      }}>{g.sub}</div>
                     </th>
                   ))}
                 </tr>
