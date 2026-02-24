@@ -275,14 +275,14 @@ const SampleSizeCell = ({ trades, wr }) => {
       minWidth:120, width:120, textAlign:'center',
     }}>
       <div style={{
-        fontFamily: MONO, fontSize:22, fontWeight:400,
-        color:C.strong, lineHeight:1, marginBottom:7,
-        letterSpacing:'-0.02em',
+        fontFamily: MONO, fontSize:11, fontWeight:500,
+        color:C.strong, lineHeight:1, marginBottom:6,
+        letterSpacing:'0.04em',
       }}>{trades}</div>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, marginBottom:5 }}>
-        <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:C.win }}>{wins}W</span>
-        <span style={{ fontFamily:MONO, fontSize:10, fontWeight:400, color:C.sub }}>/</span>
-        <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:C.loss }}>{losses}L</span>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:4, marginBottom:5 }}>
+        <span style={{ fontFamily:MONO, fontSize:9, fontWeight:500, color:C.win }}>{wins}W</span>
+        <span style={{ fontFamily:MONO, fontSize:9, fontWeight:400, color:C.sub }}>/</span>
+        <span style={{ fontFamily:MONO, fontSize:9, fontWeight:500, color:C.loss }}>{losses}L</span>
       </div>
       <div style={{ height:2, borderRadius:99, background:'rgba(255,255,255,0.05)', overflow:'hidden' }}>
         <div style={{ width:`${wr}%`, height:'100%', background:`linear-gradient(90deg, ${C.win}, ${C.win}99)`, borderRadius:99 }} />
@@ -300,9 +300,9 @@ const PerfCell = ({ row }) => (
     minWidth:150, width:150,
   }}>
     <div style={{
-      fontFamily: MONO, fontSize:26, fontWeight:400,
-      color:wrC(row.wr), lineHeight:1, marginBottom:8,
-      letterSpacing:'-0.02em',
+      fontFamily: MONO, fontSize:11, fontWeight:500,
+      color:wrC(row.wr), lineHeight:1, marginBottom:7,
+      letterSpacing:'0.04em',
     }}>{row.wr}%</div>
     <div style={{ height:2, borderRadius:99, background:'rgba(255,255,255,0.05)', overflow:'hidden', marginBottom:9 }}>
       <div style={{ width:`${row.wr}%`, height:'100%', background:wrC(row.wr), borderRadius:99 }} />
@@ -313,7 +313,7 @@ const PerfCell = ({ row }) => (
         color:C.dim, textTransform:'uppercase', letterSpacing:'0.14em', flexShrink:0,
       }}>AVG R</span>
       <span style={{
-        fontFamily: MONO, fontSize:13, fontWeight:500,
+        fontFamily: MONO, fontSize:11, fontWeight:500,
         color:row.avgR>=3?'#60a5fa':C.muted,
       }}>{row.avgR>0?'+':''}{row.avgR}R</span>
     </div>
@@ -323,7 +323,7 @@ const PerfCell = ({ row }) => (
         color:C.dim, textTransform:'uppercase', letterSpacing:'0.14em', flexShrink:0,
       }}>P/L</span>
       <span style={{
-        fontFamily: MONO, fontSize:12, fontWeight:500,
+        fontFamily: MONO, fontSize:11, fontWeight:500,
         color:row.netPL>=0?C.win:C.loss,
       }}>{row.netPL>=0?'+':''}${row.netPL.toLocaleString()}</span>
     </div>
@@ -443,7 +443,7 @@ const MobileCard = ({ row }) => {
             )}
           </div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4, flexShrink:0 }}>
-            <span style={{ fontFamily:MONO, fontSize:22, fontWeight:400, color:wrC(row.wr), lineHeight:1, letterSpacing:'-0.02em' }}>{row.wr}%</span>
+            <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:wrC(row.wr), lineHeight:1, letterSpacing:'0.02em' }}>{row.wr}%</span>
             <div style={{ width:54, height:2, borderRadius:99, background:'rgba(255,255,255,0.06)', overflow:'hidden' }}>
               <div style={{ width:`${row.wr}%`, height:'100%', background:wrC(row.wr), borderRadius:99 }} />
             </div>
@@ -458,7 +458,7 @@ const MobileCard = ({ row }) => {
           ].map(({label,value,color}) => (
             <div key={label}>
               <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.dim, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:2 }}>{label}</div>
-              <div style={{ fontFamily:MONO, fontSize:14, fontWeight:500, color, letterSpacing:'-0.01em' }}>{value}</div>
+              <div style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color, letterSpacing:'-0.01em' }}>{value}</div>
             </div>
           ))}
         </div>
@@ -611,7 +611,7 @@ export default function TFSMatrix() {
   return (
     <div style={{ minHeight:'100vh', background:C.bg, color:C.text }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Syne:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Montserrat:wght@700;800;900&family=Syne:wght@400;500;600;700&display=swap');
         *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
         body { background:#010409; }
         ::-webkit-scrollbar { width:3px; height:5px; }
@@ -626,100 +626,73 @@ export default function TFSMatrix() {
       {/* ── NAV ── */}
       <div style={{
         position:'sticky', top:0, zIndex:100,
-        background:'rgba(1,4,9,0.97)',
-        backdropFilter:'blur(28px)',
-        borderBottom:`1px solid rgba(148,200,255,0.08)`,
+        background:'rgba(2,6,14,0.97)',
+        backdropFilter:'blur(20px)',
+        borderBottom:'1px solid rgba(148,200,255,0.07)',
       }}>
-        {/* Top accent line */}
         <div style={{
-          height:1,
-          background:'linear-gradient(90deg, transparent, rgba(192,132,252,0.5) 20%, rgba(56,189,248,0.5) 50%, rgba(52,211,153,0.4) 80%, transparent)',
-        }} />
-
-        <div style={{
-          display:'flex', alignItems:'stretch',
-          padding: isMobile ? '0 14px' : '0 28px',
-          minHeight: isMobile ? 54 : 60,
+          display:'flex', alignItems:'center',
+          padding: isMobile ? '0 16px' : '0 24px',
+          height: isMobile ? 46 : 52,
+          gap:0,
         }}>
+
           {/* ── BRAND ── */}
           <div style={{
-            display:'flex', flexDirection:'column', justifyContent:'center',
-            paddingRight: isMobile ? 16 : 28,
-            marginRight: isMobile ? 4 : 8,
-            borderRight:`1px solid rgba(148,200,255,0.08)`,
+            display:'flex', alignItems:'center', gap:8,
+            paddingRight:20,
+            borderRight:'1px solid rgba(148,200,255,0.07)',
             flexShrink:0,
           }}>
-            <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
-              <span style={{
-                fontFamily: DISPLAY,
-                fontSize: isMobile ? 15 : 18,
-                fontWeight:700,
-                color:'#eaf4ff',
-                letterSpacing:'0.22em',
-                textTransform:'uppercase',
-                lineHeight:1,
-              }}>TF</span>
-              <span style={{
-                fontFamily: MONO,
-                fontSize: isMobile ? 9 : 10,
-                fontWeight:400,
-                color:'rgba(148,200,255,0.45)',
-                letterSpacing:'0.3em',
-                textTransform:'uppercase',
-                lineHeight:1,
-              }}>ANALYTICS</span>
-            </div>
-
+            <span style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: isMobile ? 11 : 12,
+              fontWeight:900,
+              color:'#cbd5e1',
+              letterSpacing:'0.18em',
+              textTransform:'uppercase',
+            }}>TF</span>
+            <span style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: isMobile ? 11 : 12,
+              fontWeight:700,
+              color:'rgba(148,200,255,0.35)',
+              letterSpacing:'0.18em',
+              textTransform:'uppercase',
+            }}>Analytics</span>
           </div>
 
-          {/* ── PAGE TABS ── */}
-          <div style={{ display:'flex', alignItems:'stretch', gap:0, marginRight:'auto' }}>
+          {/* ── TABS ── */}
+          <div style={{ display:'flex', alignItems:'stretch', height:'100%', marginRight:'auto' }}>
             {[
-              { n:1, icon:'⊞', label:'Full Matrix',    labelShort:'All',  sub:`${ROWS.length} scenarios` },
-              { n:2, icon:'★', label:'Best Performers', labelShort:'Best', sub:'WR ≥ 78%' },
+              { n:1, label: isMobile ? 'Matrix' : 'Full Matrix',    sub:`${ROWS.length} scenarios` },
+              { n:2, label: isMobile ? 'Best'   : 'Best Performers', sub:'WR ≥ 78%' },
             ].map(p => {
               const active = page === p.n;
               return (
                 <button key={p.n} onClick={() => setPage(p.n)} style={{
-                  display:'flex', flexDirection:'column', justifyContent:'center',
-                  alignItems:'flex-start', gap:3,
-                  padding: isMobile ? '0 14px' : '0 22px',
-                  background: active ? 'rgba(99,102,241,0.07)' : 'transparent',
-                  borderBottom: active ? '2px solid #818cf8' : '2px solid transparent',
-                  borderTop:'2px solid transparent',
-                  borderLeft:'none', borderRight:'none',
-                  cursor:'pointer', transition:'all .16s ease',
-                  position:'relative',
+                  display:'flex', alignItems:'center', gap: isMobile ? 0 : 8,
+                  padding: isMobile ? '0 14px' : '0 18px',
+                  background:'transparent',
+                  borderBottom: active ? '1px solid rgba(148,200,255,0.5)' : '1px solid transparent',
+                  borderTop:'none', borderLeft:'none', borderRight:'none',
+                  cursor:'pointer', transition:'all .15s',
                 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                    <span style={{
-                      fontFamily: MONO,
-                      fontSize: isMobile ? 10 : 11,
-                      fontWeight:400,
-                      color: active ? '#c7d2fe' : 'rgba(148,200,255,0.35)',
-                      letterSpacing:'0.06em',
-                      transition:'color .16s',
-                      lineHeight:1,
-                    }}>{p.icon}</span>
-                    <span style={{
-                      fontFamily: DISPLAY,
-                      fontSize: isMobile ? 11 : 12,
-                      fontWeight: active ? 600 : 500,
-                      color: active ? '#c7d2fe' : 'rgba(148,200,255,0.35)',
-                      letterSpacing:'0.14em',
-                      textTransform:'uppercase',
-                      transition:'color .16s',
-                      lineHeight:1,
-                    }}>{isMobile ? p.labelShort : p.label}</span>
-                  </div>
+                  <span style={{
+                    fontFamily: MONO,
+                    fontSize: isMobile ? 11 : 11,
+                    fontWeight: active ? 500 : 400,
+                    color: active ? '#cbd5e1' : 'rgba(148,200,255,0.28)',
+                    letterSpacing:'0.1em',
+                    textTransform:'uppercase',
+                    transition:'color .15s',
+                  }}>{p.label}</span>
                   {!isMobile && (
                     <span style={{
-                      fontFamily: MONO,
-                      fontSize:8,
-                      fontWeight:400,
-                      color: active ? 'rgba(129,140,248,0.7)' : 'rgba(148,200,255,0.18)',
-                      letterSpacing:'0.1em',
-                      transition:'color .16s',
+                      fontFamily: MONO, fontSize:9,
+                      color: active ? 'rgba(148,200,255,0.35)' : 'rgba(148,200,255,0.14)',
+                      letterSpacing:'0.08em',
+                      transition:'color .15s',
                     }}>{p.sub}</span>
                   )}
                 </button>
@@ -729,39 +702,19 @@ export default function TFSMatrix() {
 
           {/* ── LEGEND ── */}
           {!isMobile && (
-            <div style={{
-              display:'flex', alignItems:'center', gap:4,
-              borderLeft:`1px solid rgba(148,200,255,0.07)`,
-              paddingLeft:20, marginLeft:8,
-            }}>
+            <div style={{ display:'flex', alignItems:'center', gap:16 }}>
               {[
-                { dot:C.htf,  label:'HTF col' },
-                { dot:C.atf,  label:'ATF col' },
-                { dot:C.etf,  label:'ETF col' },
-                { dot:'rgba(148,200,255,0.12)', label:null }, // divider
-                { dot:C.win,  label:'≥ 80%'   },
-                { dot:C.warn, label:'62–79%'  },
-                { dot:C.loss, label:'< 62%'   },
-              ].map((x, i) =>
-                x.label === null ? (
-                  <div key={i} style={{ width:1, height:18, background:'rgba(148,200,255,0.08)', margin:'0 6px' }} />
-                ) : (
-                  <div key={x.label} style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 8px', borderRadius:3, background:'rgba(148,200,255,0.03)' }}>
-                    <div style={{
-                      width:6, height:6, borderRadius:1,
-                      background:x.dot,
-                      boxShadow:`0 0 5px ${x.dot}66`,
-                    }} />
-                    <span style={{
-                      fontFamily: MONO,
-                      fontSize:9,
-                      fontWeight:400,
-                      color:'rgba(148,200,255,0.38)',
-                      letterSpacing:'0.08em',
-                    }}>{x.label}</span>
-                  </div>
-                )
-              )}
+                {c:C.htf,l:'HTF'},{c:C.atf,l:'ATF'},{c:C.etf,l:'ETF'},
+                null,
+                {c:C.win,l:'≥80%'},{c:C.warn,l:'62–79%'},{c:C.loss,l:'<62%'},
+              ].map((x, i) => x === null ? (
+                <div key={i} style={{ width:1, height:14, background:'rgba(148,200,255,0.08)' }} />
+              ) : (
+                <div key={x.l} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                  <div style={{ width:5, height:5, borderRadius:1, background:x.c }} />
+                  <span style={{ fontFamily:MONO, fontSize:9, color:'rgba(148,200,255,0.32)', letterSpacing:'0.08em' }}>{x.l}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -770,19 +723,18 @@ export default function TFSMatrix() {
       {/* ── MOBILE LEGEND BAR ── */}
       {isMobile && (
         <div style={{
-          display:'flex', alignItems:'center', gap:8,
-          padding:'6px 14px',
-          borderBottom:`1px solid rgba(148,200,255,0.06)`,
-          flexWrap:'wrap',
-          background:'rgba(1,4,9,0.6)',
+          display:'flex', alignItems:'center', gap:12,
+          padding:'5px 16px',
+          borderBottom:'1px solid rgba(148,200,255,0.05)',
+          background:'rgba(2,6,14,0.6)',
         }}>
           {[
             {dot:C.htf,l:'HTF'},{dot:C.atf,l:'ATF'},{dot:C.etf,l:'ETF'},
             {dot:C.win,l:'≥80%'},{dot:C.warn,l:'62–79%'},{dot:C.loss,l:'<62%'},
           ].map(x => (
             <div key={x.l} style={{ display:'flex', alignItems:'center', gap:4 }}>
-              <div style={{ width:5, height:5, borderRadius:1, background:x.dot, boxShadow:`0 0 4px ${x.dot}55` }} />
-              <span style={{ fontFamily:MONO, fontSize:9, fontWeight:400, color:'rgba(148,200,255,0.35)', letterSpacing:'0.08em' }}>{x.l}</span>
+              <div style={{ width:5, height:5, borderRadius:1, background:x.dot }} />
+              <span style={{ fontFamily:MONO, fontSize:9, color:'rgba(148,200,255,0.3)', letterSpacing:'0.08em' }}>{x.l}</span>
             </div>
           ))}
         </div>
