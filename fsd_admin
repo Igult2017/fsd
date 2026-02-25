@@ -39,7 +39,8 @@ const MOCK_POSTS = [
   { id: 6, title: 'BTC/USDT Short Setup', author: 'Admin', date: '2023-10-23', status: 'Published', section: 'trade-signals', signal: { pair: 'BTC/USDT', action: 'SELL', entry: '34,280', sl: '35,100', tp1: '33,200', tp2: '32,000', tp3: '', rr: '1.9', timeframe: 'D1', confidence: 'Medium', market: 'Crypto', rationale: 'Rejection at key resistance with bearish divergence on daily RSI.' } },
 ];
 
-const GROWTH_DATA = [40, 55, 45, 70, 65, 85, 75, 90, 80, 95, 88, 110];
+const GROWTH_DATA_MONTHLY = [40, 55, 45, 70, 65, 85, 75, 90, 80, 95, 88, 110];
+const GROWTH_DATA_DAILY = [12,18,14,22,19,25,17,30,28,24,32,27,20,35,33,29,38,31,26,40,36,34,42,39,37,44,41,43,46,45];
 
 const MOCK_TICKETS = [
   { id: 'TK-1042', user: 'Alex Thompson', email: 'alex@example.com', subject: 'API connection drops intermittently', priority: 'High', status: 'Open', created: '10m ago', channel: 'email' },
@@ -94,17 +95,86 @@ const EXPERTISE_OPTIONS = ['Technical Analysis', 'Fundamental Analysis', 'Forex'
 const EMPTY_FORM = { title: '', section: 'blog', status: 'Draft', authorName: '', authorBio: '', authorExpertise: [], shareOn: [], signal: { pair: '', action: 'BUY', market: 'Forex', timeframe: 'H1', entry: '', sl: '', tp1: '', tp2: '', tp3: '', rr: '', confidence: 'High', rationale: '' } };
 
 // ─── MINI COMPONENTS ─────────────────────────────────────────────────────────
-const LineGraph = ({ data }) => {
-  const w = 500, h = 160, p = 20, max = Math.max(...data);
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * (w - p * 2) + p},${h - ((v / max) * (h - p * 2) + p)}`).join(' ');
-  const area = `${p},${h} ${pts} ${w - p},${h}`;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const BarGraph = ({ data, labels, xAxisLabel }) => {
+  const [hovered, setHovered] = useState(null);
+  const w = 500, h = 210;
+  const padLeft = 46, padRight = 12, padTop = 16, padBot = 52;
+  const chartW = w - padLeft - padRight;
+  const chartH = h - padTop - padBot;
+  const max = Math.max(...data);
+  // nice Y ticks
+  const rawStep = max / 4;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const step = Math.ceil(rawStep / mag) * mag;
+  const yTicks = Array.from({ length: 5 }, (_, i) => i * step);
+  const yMax = yTicks[yTicks.length - 1];
+  const barW = chartW / data.length;
+  const gap = barW * 0.28;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '160px' }}>
-      <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" /><stop offset="100%" stopColor="#6366f1" stopOpacity="0" /></linearGradient></defs>
-      {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => <line key={i} x1={p} y1={p + (h - p * 2) * pct} x2={w - p} y2={p + (h - p * 2) * pct} stroke="#1e293b" strokeWidth="1" />)}
-      <polyline fill="url(#lg)" points={area} />
-      <polyline fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={pts} />
-      {data.map((v, i) => { const x = (i / (data.length - 1)) * (w - p * 2) + p; const y = h - ((v / max) * (h - p * 2) + p); return <circle key={i} cx={x} cy={y} r="4" fill="#6366f1" stroke="#0f172a" strokeWidth="2" />; })}
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: '210px', overflow: 'visible' }}>
+      <defs>
+        <linearGradient id="bargrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#6366f1" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#4338ca" stopOpacity="0.7" />
+        </linearGradient>
+        <linearGradient id="bargradhov" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#818cf8" stopOpacity="1" />
+          <stop offset="100%" stopColor="#6366f1" stopOpacity="0.85" />
+        </linearGradient>
+      </defs>
+
+      {/* Y-axis label */}
+      <text x={10} y={h / 2} textAnchor="middle" fill="#475569" fontSize="9" fontWeight="700"
+        transform={`rotate(-90, 10, ${h / 2})`} letterSpacing="0.08em">USERS</text>
+
+      {/* Y-axis ticks + grid lines */}
+      {yTicks.map((tick, i) => {
+        const y = padTop + chartH - (tick / yMax) * chartH;
+        return (
+          <g key={i}>
+            <line x1={padLeft} y1={y} x2={padLeft + chartW} y2={y} stroke="#1e293b" strokeWidth="1" />
+            <text x={padLeft - 6} y={y + 3.5} textAnchor="end" fill="#475569" fontSize="9" fontWeight="600">
+              {tick >= 1000 ? `${tick / 1000}k` : tick}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* X-axis label */}
+      <text x={padLeft + chartW / 2} y={h - 4} textAnchor="middle" fill="#475569" fontSize="9" fontWeight="700" letterSpacing="0.08em">
+        {xAxisLabel || 'MONTH'}
+      </text>
+
+      {/* Y axis line */}
+      <line x1={padLeft} y1={padTop} x2={padLeft} y2={padTop + chartH} stroke="#334155" strokeWidth="1" />
+      {/* X axis line */}
+      <line x1={padLeft} y1={padTop + chartH} x2={padLeft + chartW} y2={padTop + chartH} stroke="#334155" strokeWidth="1" />
+
+      {/* Bars */}
+      {data.map((v, i) => {
+        const barH = (v / yMax) * chartH;
+        const x = padLeft + i * barW + gap / 2;
+        const y = padTop + chartH - barH;
+        const bw = barW - gap;
+        const isHov = hovered === i;
+        const lbl = labels ? labels[i] : MONTHS[i];
+        return (
+          <g key={i} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)} style={{ cursor: 'pointer' }}>
+            <rect x={x - 1} y={padTop} width={bw + 2} height={chartH} fill={isHov ? 'rgba(99,102,241,0.05)' : 'transparent'} />
+            <rect x={x} y={y} width={bw} height={barH} fill={isHov ? 'url(#bargradhov)' : 'url(#bargrad)'} rx="2" style={{ transition: 'fill 0.12s' }} />
+            {isHov && (
+              <g>
+                <rect x={x + bw / 2 - 20} y={y - 22} width={40} height={17} fill="#1e293b" rx="3" stroke="#334155" strokeWidth="1" />
+                <text x={x + bw / 2} y={y - 10} textAnchor="middle" fill="white" fontSize="10" fontWeight="700">{v} users</text>
+              </g>
+            )}
+            {lbl !== '' && (
+              <text x={x + bw / 2} y={padTop + chartH + 14} textAnchor="middle" fill="#475569" fontSize="9" fontWeight="600">{lbl}</text>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 };
@@ -688,6 +758,480 @@ const BlogSection = ({ bp }) => {
   );
 };
 
+
+// ─── MARKETING SECTION ───────────────────────────────────────────────────────
+const MarketingSection = ({ bp }) => {
+  const [activeChannels, setActiveChannels] = useState(['Email']);
+
+  const toggleChannel = label => {
+    setActiveChannels(prev =>
+      prev.includes(label) ? prev.filter(c => c !== label) : [...prev, label]
+    );
+  };
+
+  const CHANNELS = [
+    { icon: Mail, label: 'Email' },
+    { icon: AlertCircle, label: 'Push' },
+    { icon: ShieldCheck, label: 'In-App' },
+  ];
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: bp.isDesktop ? '2fr 1fr' : '1fr', gap: '24px' }}>
+      <div style={{ ...cs, padding: '24px' }}>
+        <h3 style={{ color: 'white', fontWeight: 700, fontStyle: 'italic', fontSize: '17px', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Megaphone size={17} style={{ color: C.indigoL }} /> Multi-Channel Broadcast
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ ...lbl }}>Target Audience</label>
+            <select style={{ ...inp, cursor: 'pointer' }}>
+              <option>All Users (12,842)</option>
+              <option>Free Plan Only</option>
+              <option>Inactive Users</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ ...lbl }}>Channel</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              {CHANNELS.map(({ icon: Icon, label }) => {
+                const active = activeChannels.includes(label);
+                return (
+                  <button
+                    key={label}
+                    onClick={() => toggleChannel(label)}
+                    style={{
+                      ...btn,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px',
+                      padding: '14px 8px',
+                      background: active ? 'rgba(99,102,241,0.15)' : 'rgba(30,41,59,0.5)',
+                      color: active ? C.indigoL : C.muted,
+                      border: `1px solid ${active ? 'rgba(99,102,241,0.5)' : C.border2}`,
+                      fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.07em',
+                      outline: active ? `2px solid rgba(99,102,241,0.25)` : 'none',
+                      outlineOffset: '2px',
+                      boxShadow: active ? '0 0 12px rgba(99,102,241,0.2)' : 'none',
+                      transition: 'all 0.15s ease',
+                      position: 'relative',
+                    }}
+                  >
+                    <Icon size={20} />
+                    {label}
+                    {active && (
+                      <div style={{
+                        position: 'absolute', top: '6px', right: '6px',
+                        width: '14px', height: '14px',
+                        background: C.indigo,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <CheckCircle size={9} style={{ color: 'white' }} />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {activeChannels.length > 0 && (
+              <p style={{ color: C.indigoL, fontSize: '11px', margin: '8px 0 0', fontWeight: 600 }}>
+                ✓ Sending via: {activeChannels.join(', ')}
+              </p>
+            )}
+            {activeChannels.length === 0 && (
+              <p style={{ color: C.redL, fontSize: '11px', margin: '8px 0 0', fontWeight: 600 }}>
+                ⚠ Select at least one channel
+              </p>
+            )}
+          </div>
+          <div>
+            <label style={{ ...lbl }}>Message</label>
+            <textarea rows={5} placeholder="Enter your announcement..." style={{ ...inp, resize: 'none', display: 'block' }} />
+          </div>
+          <button
+            style={{
+              ...btn,
+              background: activeChannels.length > 0 ? C.indigo : C.border,
+              color: activeChannels.length > 0 ? 'white' : C.muted,
+              padding: '13px', fontSize: '12px',
+              textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none',
+              cursor: activeChannels.length > 0 ? 'pointer' : 'not-allowed',
+              transition: 'background 0.15s',
+            }}
+          >
+            Send Campaign Now
+          </button>
+        </div>
+      </div>
+      <div style={{ ...cs, padding: '20px' }}>
+        <h4 style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 16px' }}>Campaign Stats</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {[
+            { label: 'Emails Sent', value: '24,810', change: '+12%', up: true },
+            { label: 'Open Rate', value: '38.4%', change: '+2.1%', up: true },
+            { label: 'Click Rate', value: '9.2%', change: '-0.4%', up: false },
+            { label: 'Unsubscribes', value: '142', change: '+8', up: false },
+          ].map((s, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: C.muted, fontSize: '13px' }}>{s.label}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: 'white', fontWeight: 700 }}>{s.value}</span>
+                <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', background: s.up ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)', color: s.up ? C.greenL : C.redL }}>{s.change}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── GROWTH ANALYTICS CARD ───────────────────────────────────────────────────
+const GrowthAnalyticsCard = () => {
+  const [period, setPeriod] = useState('monthly');
+  const isMonthly = period === 'monthly';
+  const data = isMonthly ? GROWTH_DATA_MONTHLY : GROWTH_DATA_DAILY;
+  // Monthly: show all month names. Daily: show every 5th day to avoid crowding
+  const labels = isMonthly
+    ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    : Array.from({ length: 30 }, (_, i) => (i + 1) % 5 === 0 || i === 0 ? String(i + 1) : '');
+  const xAxisLabel = isMonthly ? 'MONTH' : 'DAY';
+  return (
+    <div style={{ ...cs, padding: '20px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+        <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <TrendingUp size={15} style={{ color: C.greenL }} /> Growth Analytics
+        </h3>
+        <select
+          value={period}
+          onChange={e => setPeriod(e.target.value)}
+          style={{ background: C.border, color: '#94a3b8', border: `1px solid ${C.border2}`, padding: '5px 10px', fontFamily: FONT, fontSize: '12px', outline: 'none', cursor: 'pointer' }}
+        >
+          <option value="monthly">Last 12 Months</option>
+          <option value="daily">Last 30 Days</option>
+        </select>
+      </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+        <BarGraph data={data} labels={labels} xAxisLabel={xAxisLabel} />
+      </div>
+    </div>
+  );
+};
+
+// ─── SETTINGS SECTION ────────────────────────────────────────────────────────
+const AVAILABLE_FUNCTIONS = [
+  { id: 'view_tickets', label: 'View Tickets', desc: 'See support queue' },
+  { id: 'reply_tickets', label: 'Reply to Tickets', desc: 'Send responses' },
+  { id: 'resolve_tickets', label: 'Resolve Tickets', desc: 'Close tickets' },
+  { id: 'ban_users', label: 'Ban Users', desc: 'Suspend accounts' },
+  { id: 'reset_passwords', label: 'Reset Passwords', desc: 'Reset user credentials' },
+  { id: 'escalate', label: 'Escalate Issues', desc: 'Escalate to senior' },
+  { id: 'view_analytics', label: 'View Analytics', desc: 'Access reporting' },
+  { id: 'manage_content', label: 'Manage Content', desc: 'Edit blog/signals' },
+];
+
+const THEME_OPTIONS = [
+  { id: 'dark', label: 'Dark', bg: '#020617', card: '#0f172a', accent: '#4f46e5' },
+  { id: 'midnight', label: 'Midnight', bg: '#000000', card: '#111111', accent: '#7c3aed' },
+  { id: 'slate', label: 'Slate', bg: '#0f172a', card: '#1e293b', accent: '#0ea5e9' },
+  { id: 'forest', label: 'Forest', bg: '#052e16', card: '#14532d', accent: '#22c55e' },
+];
+
+const FONT_OPTIONS = [
+  { id: 'onest', label: 'Onest', stack: "'Onest', sans-serif" },
+  { id: 'inter', label: 'Inter', stack: "'Inter', sans-serif" },
+  { id: 'mono', label: 'DM Mono', stack: "'DM Mono', monospace" },
+  { id: 'sora', label: 'Sora', stack: "'Sora', sans-serif" },
+];
+
+const MOCK_CC_USERS = [
+  { id: 'CC001', name: 'Jamie Reyes', email: 'jamie@support.io', functions: ['view_tickets', 'reply_tickets', 'resolve_tickets'], status: 'Active' },
+  { id: 'CC002', name: 'Nadia Osei', email: 'nadia@support.io', functions: ['view_tickets', 'reply_tickets'], status: 'Active' },
+];
+
+const MOCK_TASKS = [
+  { id: 1, title: 'Follow up with Alex Thompson on API issue', assignee: 'Jamie Reyes', due: '2023-10-25', status: 'Pending' },
+  { id: 2, title: 'Review billing dispute for Priya Sharma', assignee: 'Nadia Osei', due: '2023-10-24', status: 'Complete' },
+  { id: 3, title: 'Send 2FA resolution email to Sarah Chen', assignee: 'Jamie Reyes', due: '2023-10-26', status: 'Pending' },
+  { id: 4, title: 'Prepare weekly support summary report', assignee: 'Nadia Osei', due: '2023-10-27', status: 'Pending' },
+];
+
+const SettingsSection = ({ bp }) => {
+  const [settingsTab, setSettingsTab] = useState('agents');
+  const [ccUsers, setCcUsers] = useState(MOCK_CC_USERS);
+  const [tasks, setTasks] = useState(MOCK_TASKS);
+  const [showNewAgent, setShowNewAgent] = useState(false);
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [activeTheme, setActiveTheme] = useState('dark');
+  const [activeFont, setActiveFont] = useState('onest');
+  const [newAgent, setNewAgent] = useState({ name: '', email: '', password: '', functions: [] });
+  const [newTask, setNewTask] = useState({ title: '', assignee: '', due: '' });
+  const [showPass, setShowPass] = useState(false);
+
+  const SETTINGS_TABS = [
+    { id: 'agents', label: 'CC Agents' },
+    { id: 'tasks', label: 'Task Scheduler' },
+    { id: 'appearance', label: 'Appearance' },
+  ];
+
+  const toggleAgentFn = (agentId, fnId) => {
+    setCcUsers(p => p.map(u => u.id === agentId ? {
+      ...u, functions: u.functions.includes(fnId) ? u.functions.filter(f => f !== fnId) : [...u.functions, fnId]
+    } : u));
+  };
+
+  const approveTask = id => setTasks(p => p.map(t => t.id === id ? { ...t, status: 'Complete' } : t));
+  const deleteTask = id => setTasks(p => p.filter(t => t.id !== id));
+
+  const handleCreateAgent = () => {
+    if (!newAgent.name || !newAgent.email || !newAgent.password) return;
+    const id = 'CC' + String(ccUsers.length + 1).padStart(3, '0');
+    setCcUsers(p => [...p, { id, name: newAgent.name, email: newAgent.email, functions: newAgent.functions, status: 'Active' }]);
+    setNewAgent({ name: '', email: '', password: '', functions: [] });
+    setShowNewAgent(false);
+  };
+
+  const handleCreateTask = () => {
+    if (!newTask.title || !newTask.assignee) return;
+    setTasks(p => [...p, { id: Date.now(), ...newTask, status: 'Pending' }]);
+    setNewTask({ title: '', assignee: '', due: '' });
+    setShowNewTask(false);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div>
+        <h2 style={{ color: 'white', fontWeight: 700, fontSize: '20px', margin: 0 }}>System Settings</h2>
+        <p style={{ color: C.muted, fontSize: '13px', margin: '4px 0 0' }}>Manage agents, tasks &amp; appearance</p>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '3px', background: C.card, border: `1px solid ${C.border}`, padding: '3px', width: 'fit-content' }}>
+        {SETTINGS_TABS.map(t => (
+          <button key={t.id} onClick={() => setSettingsTab(t.id)} style={{ ...btn, padding: '8px 18px', background: settingsTab === t.id ? C.indigo : 'transparent', color: settingsTab === t.id ? 'white' : C.muted, border: 'none', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* TAB: CC AGENTS */}
+      {settingsTab === 'agents' && (
+        <div style={{ display: 'grid', gridTemplateColumns: bp.isDesktop ? '1fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+          <div style={{ ...cs, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: 0 }}>Customer Care Agents</h3>
+              <button onClick={() => setShowNewAgent(true)} style={{ ...btn, display: 'flex', alignItems: 'center', gap: '6px', background: C.indigo, color: 'white', padding: '7px 13px', fontSize: '11px', border: 'none' }}><Plus size={12} /> New Agent</button>
+            </div>
+            {ccUsers.map((user, idx) => (
+              <div key={user.id} onClick={() => setSelectedAgent(selectedAgent?.id === user.id ? null : user)} style={{ padding: '12px 16px', borderBottom: idx < ccUsers.length - 1 ? `1px solid ${C.border}` : 'none', cursor: 'pointer', background: selectedAgent?.id === user.id ? 'rgba(79,70,229,0.07)' : 'transparent', borderLeft: `3px solid ${selectedAgent?.id === user.id ? C.indigo : 'transparent'}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '34px', height: '34px', background: C.indigo, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: 'white', flexShrink: 0 }}>
+                    {user.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ color: 'white', fontWeight: 700, fontSize: '13px', margin: 0 }}>{user.name}</p>
+                    <p style={{ color: C.muted, fontSize: '11px', margin: '2px 0 0' }}>{user.id} · {user.email}</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 7px', background: 'rgba(16,185,129,0.1)', color: C.greenL, border: `1px solid rgba(16,185,129,0.2)`, textTransform: 'uppercase' }}>{user.status}</span>
+                    <p style={{ color: C.muted, fontSize: '10px', margin: '4px 0 0' }}>{user.functions.length} permissions</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ ...cs, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${C.border}` }}>
+              <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: 0 }}>
+                {selectedAgent ? `Permissions — ${selectedAgent.name}` : 'Select an agent to edit permissions'}
+              </h3>
+            </div>
+            {selectedAgent ? (
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {AVAILABLE_FUNCTIONS.map(fn => {
+                  const agent = ccUsers.find(u => u.id === selectedAgent.id);
+                  const active = agent?.functions.includes(fn.id);
+                  return (
+                    <div key={fn.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: active ? 'rgba(79,70,229,0.07)' : 'rgba(30,41,59,0.4)', border: `1px solid ${active ? 'rgba(79,70,229,0.25)' : C.border}` }}>
+                      <div>
+                        <p style={{ color: active ? 'white' : C.muted, fontSize: '13px', fontWeight: 600, margin: 0 }}>{fn.label}</p>
+                        <p style={{ color: C.muted, fontSize: '11px', margin: '2px 0 0' }}>{fn.desc}</p>
+                      </div>
+                      <button onClick={() => toggleAgentFn(selectedAgent.id, fn.id)} style={{ ...btn, width: '38px', height: '22px', background: active ? C.indigo : C.border, border: 'none', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <div style={{ width: '16px', height: '16px', background: 'white', position: 'absolute', top: '3px', left: active ? '19px' : '3px', transition: 'left 0.2s' }} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: '48px', textAlign: 'center' }}>
+                <ShieldCheck size={28} style={{ color: C.border2, margin: '0 auto 10px', display: 'block' }} />
+                <p style={{ color: C.muted, fontSize: '13px', margin: 0 }}>Click an agent on the left to manage their permissions</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* New Agent Modal */}
+      {showNewAgent && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ ...cs, width: '100%', maxWidth: '480px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '18px 22px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ color: 'white', fontWeight: 700, fontSize: '16px', margin: 0 }}>Create CC Agent</h3>
+              <button onClick={() => setShowNewAgent(false)} style={{ ...btn, background: 'transparent', color: C.muted, padding: '4px', border: 'none' }}><X size={16} /></button>
+            </div>
+            <div style={{ padding: '20px 22px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div><label style={{ ...lbl }}>Full Name</label><input value={newAgent.name} onChange={e => setNewAgent(p => ({ ...p, name: e.target.value }))} placeholder="Jane Smith" style={{ ...inp }} /></div>
+              <div><label style={{ ...lbl }}>Email / User ID</label><input value={newAgent.email} onChange={e => setNewAgent(p => ({ ...p, email: e.target.value }))} placeholder="jane@support.io" style={{ ...inp }} /></div>
+              <div>
+                <label style={{ ...lbl }}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPass ? 'text' : 'password'} value={newAgent.password} onChange={e => setNewAgent(p => ({ ...p, password: e.target.value }))} placeholder="Set initial password..." style={{ ...inp, paddingRight: '44px' }} />
+                  <button onClick={() => setShowPass(p => !p)} style={{ ...btn, position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', color: C.muted, border: 'none', padding: '2px' }}><Eye size={14} /></button>
+                </div>
+              </div>
+              <div>
+                <label style={{ ...lbl }}>Assign Permissions</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {AVAILABLE_FUNCTIONS.map(fn => {
+                    const active = newAgent.functions.includes(fn.id);
+                    return (
+                      <button key={fn.id} onClick={() => setNewAgent(p => ({ ...p, functions: active ? p.functions.filter(f => f !== fn.id) : [...p.functions, fn.id] }))}
+                        style={{ ...btn, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', background: active ? 'rgba(79,70,229,0.08)' : 'rgba(30,41,59,0.4)', border: `1px solid ${active ? 'rgba(79,70,229,0.3)' : C.border}`, color: active ? C.indigoL : C.muted, fontSize: '12px', textAlign: 'left' }}>
+                        <span>{fn.label}</span>
+                        <div style={{ width: '14px', height: '14px', background: active ? C.indigo : 'transparent', border: `2px solid ${active ? C.indigo : C.border2}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {active && <CheckCircle size={9} style={{ color: 'white' }} />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: '14px 22px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowNewAgent(false)} style={{ ...btn, padding: '9px 18px', background: 'transparent', color: C.muted, border: `1px solid ${C.border2}`, fontSize: '13px' }}>Cancel</button>
+              <button onClick={handleCreateAgent} style={{ ...btn, padding: '9px 22px', background: C.indigo, color: 'white', border: 'none', fontSize: '13px' }}>Create Agent</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: TASK SCHEDULER */}
+      {settingsTab === 'tasks' && (
+        <div style={{ ...cs, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: 0 }}>Scheduled Tasks</h3>
+            <button onClick={() => setShowNewTask(true)} style={{ ...btn, display: 'flex', alignItems: 'center', gap: '6px', background: C.indigo, color: 'white', padding: '7px 13px', fontSize: '11px', border: 'none' }}><Plus size={12} /> Schedule Task</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 120px 160px', padding: '8px 16px', background: 'rgba(30,41,59,0.5)', gap: '12px' }}>
+            {['Task', 'Assignee', 'Due Date', 'Status'].map(h => (
+              <span key={h} style={{ color: C.muted, fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
+            ))}
+          </div>
+          {tasks.map((task, idx) => (
+            <div key={task.id} style={{ display: 'grid', gridTemplateColumns: '1fr 160px 120px 160px', padding: '13px 16px', borderBottom: idx < tasks.length - 1 ? `1px solid ${C.border}` : 'none', alignItems: 'center', gap: '12px', background: task.status === 'Complete' ? 'rgba(16,185,129,0.03)' : 'transparent' }}>
+              <p style={{ color: task.status === 'Complete' ? C.muted : 'white', fontSize: '13px', fontWeight: 600, margin: 0, textDecoration: task.status === 'Complete' ? 'line-through' : 'none' }}>{task.title}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '22px', height: '22px', background: C.indigo, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 700, color: 'white', flexShrink: 0 }}>
+                  {task.assignee.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span style={{ color: C.muted, fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.assignee}</span>
+              </div>
+              <span style={{ color: C.muted, fontSize: '11px', fontFamily: 'monospace' }}>{task.due || '—'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {task.status === 'Pending' ? (
+                  <button onClick={() => approveTask(task.id)} style={{ ...btn, display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'rgba(16,185,129,0.1)', color: C.greenL, border: `1px solid rgba(16,185,129,0.25)`, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <CheckCircle size={10} /> Approve
+                  </button>
+                ) : (
+                  <span style={{ fontSize: '10px', fontWeight: 700, padding: '5px 10px', background: 'rgba(16,185,129,0.08)', color: C.greenL, border: `1px solid rgba(16,185,129,0.2)`, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Complete</span>
+                )}
+                <button onClick={() => deleteTask(task.id)} style={{ ...btn, background: 'transparent', color: '#475569', padding: '4px', border: 'none' }}><Trash2 size={12} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* New Task Modal */}
+      {showNewTask && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ ...cs, width: '100%', maxWidth: '420px' }}>
+            <div style={{ padding: '18px 22px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ color: 'white', fontWeight: 700, fontSize: '16px', margin: 0 }}>Schedule Task</h3>
+              <button onClick={() => setShowNewTask(false)} style={{ ...btn, background: 'transparent', color: C.muted, padding: '4px', border: 'none' }}><X size={16} /></button>
+            </div>
+            <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div><label style={{ ...lbl }}>Task Description</label><input value={newTask.title} onChange={e => setNewTask(p => ({ ...p, title: e.target.value }))} placeholder="Describe the task..." style={{ ...inp }} /></div>
+              <div>
+                <label style={{ ...lbl }}>Assign To</label>
+                <select value={newTask.assignee} onChange={e => setNewTask(p => ({ ...p, assignee: e.target.value }))} style={{ ...inp, cursor: 'pointer' }}>
+                  <option value="">Select agent...</option>
+                  {ccUsers.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                </select>
+              </div>
+              <div><label style={{ ...lbl }}>Due Date</label><input type="date" value={newTask.due} onChange={e => setNewTask(p => ({ ...p, due: e.target.value }))} style={{ ...inp, colorScheme: 'dark' }} /></div>
+            </div>
+            <div style={{ padding: '14px 22px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowNewTask(false)} style={{ ...btn, padding: '9px 18px', background: 'transparent', color: C.muted, border: `1px solid ${C.border2}`, fontSize: '13px' }}>Cancel</button>
+              <button onClick={handleCreateTask} style={{ ...btn, padding: '9px 22px', background: C.indigo, color: 'white', border: 'none', fontSize: '13px' }}>Add Task</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: APPEARANCE */}
+      {settingsTab === 'appearance' && (
+        <div style={{ display: 'grid', gridTemplateColumns: bp.isDesktop ? '1fr 1fr' : '1fr', gap: '20px' }}>
+          <div style={{ ...cs, padding: '20px' }}>
+            <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Dashboard Theme</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {THEME_OPTIONS.map(theme => (
+                <button key={theme.id} onClick={() => setActiveTheme(theme.id)} style={{ ...btn, padding: '0', overflow: 'hidden', border: `2px solid ${activeTheme === theme.id ? C.indigo : C.border}`, background: 'transparent', textAlign: 'left' }}>
+                  <div style={{ height: '60px', background: theme.bg, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: '10px', left: '10px', width: '30px', height: '30px', background: theme.card, border: `1px solid ${theme.accent}30` }} />
+                    <div style={{ position: 'absolute', top: '10px', left: '48px', right: '10px', height: '8px', background: theme.accent, opacity: 0.8 }} />
+                    <div style={{ position: 'absolute', top: '24px', left: '48px', right: '20px', height: '5px', background: theme.card }} />
+                    <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', height: '14px', background: theme.card }} />
+                    {activeTheme === theme.id && (
+                      <div style={{ position: 'absolute', top: '6px', right: '6px', width: '16px', height: '16px', background: C.indigo, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CheckCircle size={10} style={{ color: 'white' }} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: '8px 10px', background: C.card }}>
+                    <p style={{ color: activeTheme === theme.id ? C.indigoL : 'white', fontSize: '12px', fontWeight: 700, margin: 0 }}>{theme.label}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p style={{ color: C.muted, fontSize: '11px', margin: '12px 0 0', fontStyle: 'italic' }}>Theme changes apply on next session</p>
+          </div>
+
+          <div style={{ ...cs, padding: '20px' }}>
+            <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Dashboard Font</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {FONT_OPTIONS.map(font => (
+                <button key={font.id} onClick={() => setActiveFont(font.id)} style={{ ...btn, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: activeFont === font.id ? 'rgba(79,70,229,0.08)' : 'rgba(30,41,59,0.4)', border: `1px solid ${activeFont === font.id ? 'rgba(79,70,229,0.35)' : C.border}`, textAlign: 'left' }}>
+                  <div>
+                    <p style={{ color: activeFont === font.id ? 'white' : C.muted, fontSize: '15px', fontWeight: 600, margin: 0, fontFamily: font.stack }}>{font.label}</p>
+                    <p style={{ color: C.muted, fontSize: '11px', margin: '3px 0 0', fontFamily: font.stack }}>The quick brown fox jumps over the lazy dog</p>
+                  </div>
+                  {activeFont === font.id && (
+                    <div style={{ width: '20px', height: '20px', background: C.indigo, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <CheckCircle size={12} style={{ color: 'white' }} />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+            <button style={{ ...btn, marginTop: '16px', width: '100%', background: C.indigo, color: 'white', padding: '11px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none' }}>Apply Font</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 export default function App() {
   const bp = useBreakpoint();
@@ -701,11 +1245,22 @@ export default function App() {
   const OPS = [{ id: 'customer-care', label: 'Customer Care', icon: HeadphonesIcon, badge: openTickets }, { id: 'system-monitor', label: 'System Monitor', icon: Activity }];
   const PAGE_TITLES = { dashboard: 'Overview', users: 'User Accounts', blog: 'Blogpost', marketing: 'Marketing', 'customer-care': 'Customer Care', 'system-monitor': 'System Monitor', settings: 'System Settings' };
 
+  const LOGGED_IN_AGENT = { name: 'Jamie Reyes', id: 'CC001' };
+
   const navBtn = item => (
     <button key={item.id} onClick={() => setActiveTab(item.id)} title={item.label}
       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: collapsed ? '13px 0' : '10px 12px', justifyContent: collapsed ? 'center' : 'flex-start', background: activeTab === item.id ? C.indigo : 'transparent', color: activeTab === item.id ? 'white' : C.muted, border: 'none', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '13px', marginBottom: '2px', position: 'relative', transition: 'background 0.15s' }}>
       <item.icon size={18} style={{ flexShrink: 0 }} />
-      {!collapsed && <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+      {!collapsed && (
+        <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden' }}>
+          <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+          {item.id === 'customer-care' && (
+            <span style={{ display: 'block', fontSize: '10px', fontWeight: 500, color: activeTab === item.id ? 'rgba(255,255,255,0.65)' : '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
+              {LOGGED_IN_AGENT.name}
+            </span>
+          )}
+        </span>
+      )}
       {item.badge > 0 && <span style={{ background: C.red, color: 'white', fontSize: '9px', fontWeight: 700, padding: '1px 5px', position: collapsed ? 'absolute' : 'static', top: collapsed ? '4px' : 'auto', right: collapsed ? '4px' : 'auto', flexShrink: 0 }}>{item.badge}</span>}
     </button>
   );
@@ -725,17 +1280,9 @@ export default function App() {
             <StatCard title="MRR" value="$84,200" change="+18.3%" trend="up" icon={Globe} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: dashMainCols, gap: '20px', alignItems: 'stretch', flex: 1 }}>
+            <GrowthAnalyticsCard />
             <div style={{ ...cs, padding: '20px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '7px' }}><TrendingUp size={15} style={{ color: C.greenL }} /> Growth Analytics</h3>
-                <select style={{ background: C.border, color: '#94a3b8', border: `1px solid ${C.border2}`, padding: '5px 10px', fontFamily: FONT, fontSize: '12px', outline: 'none' }}><option>Last 12 Months</option><option>Last 30 Days</option></select>
-              </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                <LineGraph data={GROWTH_DATA} />
-              </div>
-            </div>
-            <div style={{ ...cs, padding: '20px', display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ color: 'white', fontWeight: 700, fontSize: '14px', margin: '0 0 16px' }}>Recent Activity</h3>
+              <h3 style={{ color: 'white', fontWeight: 700, fontStyle: 'italic', fontSize: '14px', margin: '0 0 16px' }}>Recent Activity</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {[{ text: 'New Enterprise signup: Marcus', time: '2m ago', err: false }, { text: 'Critical Error: Binance API lag', time: '14m ago', err: true }, { text: 'Blog post published: CPI Recap', time: '1h ago', err: false }].map((a, i) => (
                   <div key={i} style={{ display: 'flex', gap: '10px' }}>
@@ -792,43 +1339,11 @@ export default function App() {
 
       case 'blog': return <BlogSection bp={bp} />;
 
-      case 'marketing': return (
-        <div style={{ display: 'grid', gridTemplateColumns: bp.isDesktop ? '2fr 1fr' : '1fr', gap: '24px' }}>
-          <div style={{ ...cs, padding: '24px' }}>
-            <h3 style={{ color: 'white', fontWeight: 700, fontSize: '17px', margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: '8px' }}><Megaphone size={17} style={{ color: C.indigoL }} /> Multi-Channel Broadcast</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div><label style={{ ...lbl }}>Target Audience</label><select style={{ ...inp, cursor: 'pointer' }}><option>All Users (12,842)</option><option>Free Plan Only</option><option>Inactive Users</option></select></div>
-              <div>
-                <label style={{ ...lbl }}>Channel</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {[{ icon: Mail, label: 'Email', active: true }, { icon: AlertCircle, label: 'Push', active: false }, { icon: ShieldCheck, label: 'In-App', active: false }].map(({ icon: Icon, label, active }) => (
-                    <button key={label} style={{ ...btn, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px', padding: '14px 8px', background: active ? 'rgba(99,102,241,0.1)' : 'rgba(30,41,59,0.5)', color: active ? C.indigoL : C.muted, border: `1px solid ${active ? 'rgba(99,102,241,0.3)' : C.border2}`, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.07em' }}><Icon size={20} />{label}</button>
-                  ))}
-                </div>
-              </div>
-              <div><label style={{ ...lbl }}>Message</label><textarea rows={5} placeholder="Enter your announcement..." style={{ ...inp, resize: 'none', display: 'block' }} /></div>
-              <button style={{ ...btn, background: C.indigo, color: 'white', padding: '13px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none' }}>Send Campaign Now</button>
-            </div>
-          </div>
-          <div style={{ ...cs, padding: '20px' }}>
-            <h4 style={{ color: C.muted, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 16px' }}>Campaign Stats</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {[{ label: 'Emails Sent', value: '24,810', change: '+12%', up: true }, { label: 'Open Rate', value: '38.4%', change: '+2.1%', up: true }, { label: 'Click Rate', value: '9.2%', change: '-0.4%', up: false }, { label: 'Unsubscribes', value: '142', change: '+8', up: false }].map((s, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: C.muted, fontSize: '13px' }}>{s.label}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: 'white', fontWeight: 700 }}>{s.value}</span>
-                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', background: s.up ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)', color: s.up ? C.greenL : C.redL }}>{s.change}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
+      case 'marketing': return <MarketingSection bp={bp} />;
 
       case 'customer-care': return <CustomerCareSection bp={bp} />;
       case 'system-monitor': return <SystemMonitorSection bp={bp} />;
+      case 'settings': return <SettingsSection bp={bp} />;
       default: return <div style={{ padding: '48px', textAlign: 'center', color: C.muted, fontStyle: 'italic' }}>Section coming soon...</div>;
     }
   };
