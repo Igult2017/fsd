@@ -144,7 +144,13 @@ const INITIAL_FORM_STATE = {
   ruleBroken: '',
   strategyVersionId: '',
   spreadAtEntry: '',
-  atrAtEntry: ''
+  atrAtEntry: '',
+  exitScreenshot: null,
+  pairCategory: 'Major',
+  consecutiveTradeCount: '',
+  commission: '',
+  postTradeEmotion: 'Neutral',
+  recencyBiasFlag: false
 };
 
 const STEPS = [
@@ -175,6 +181,15 @@ const App = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => updateField('screenshot', reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleExitScreenshotUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => updateField('exitScreenshot', reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -321,43 +336,6 @@ const App = () => {
       {/* ── TOP HEADER ──────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-[#0a1120]/95 backdrop-blur-md border-b border-[#1e2d42]">
 
-        {/* Brand bar */}
-        <div className="max-w-5xl mx-auto px-4 md:px-8 flex items-center justify-between py-3 border-b border-[#1a2638]">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-[#6366f1]/20 border border-[#6366f1]/40 rounded-lg flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-[#6366f1]" />
-            </div>
-            <div>
-              <span className="text-[11px] font-black text-white uppercase tracking-[0.2em]">TradeLog</span>
-              <span className="text-[9px] text-[#3d4f6b] font-semibold ml-2 uppercase tracking-wider">Pro Journal</span>
-            </div>
-          </div>
-
-          {/* Pro Tip — center */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#451a03]/20 border border-[#78350f]/30 rounded-lg">
-            <Sparkles className="w-3 h-3 text-[#fbbf24] shrink-0" />
-            <p className="text-[9px] text-[#d97706] font-medium italic">Complete Decision Architecture before entering trades for maximum discipline.</p>
-          </div>
-
-          {/* Reset button */}
-          <div>
-            {showResetConfirm ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#4c0519]/40 border border-[#881337]/60 rounded-lg">
-                <span className="text-[9px] text-[#fb7185] font-black uppercase tracking-widest mr-1">Sure?</span>
-                <button onClick={resetForm} className="px-3 py-1 bg-[#ef4444] text-white text-[9px] rounded-md hover:bg-[#dc2626] transition-all font-black uppercase tracking-wider shadow-[0_0_8px_rgba(239,68,68,0.4)]">Yes</button>
-                <button onClick={() => setShowResetConfirm(false)} className="px-3 py-1 bg-[#1e2d42] text-[#94a3b8] text-[9px] rounded-md hover:bg-[#2a3a52] transition-all font-black uppercase tracking-wider">No</button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowResetConfirm(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#4c0519]/30 border border-[#881337]/50 rounded-lg hover:bg-[#4c0519]/60 hover:border-[#fb7185]/70 hover:shadow-[0_0_14px_rgba(251,113,133,0.25)] transition-all group"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-[#fb7185] group-hover:rotate-[-45deg] transition-transform duration-300" />
-                <span className="text-[10px] font-black text-[#fb7185] uppercase tracking-widest hidden sm:block">Reset</span>
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Step nav tabs */}
         <div className="max-w-5xl mx-auto px-4 md:px-8 flex items-stretch">
@@ -424,7 +402,7 @@ const App = () => {
             </div>
 
             <div>
-              <SectionHeader icon={Lightbulb} title="Core Thesis" color="amber" badge="NEW" subtitle="What's your edge? Be specific and concise." />
+              <SectionHeader icon={Lightbulb} title="Core Thesis" color="amber" subtitle="What's your edge? Be specific and concise." />
               <div className="grid gap-4">
                 <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
                   <InputField label="Trade Thesis" field="thesis" rows={4} placeholder="Example: Price broke key resistance at 1.0850 with strong volume, expecting continuation to 1.0920 liquidity zone..." />
@@ -452,7 +430,7 @@ const App = () => {
             </div>
 
             <div>
-              <SectionHeader icon={Battery} title="Pre-Entry State Check" color="emerald" badge="NEW" subtitle="Capture your physical and mental state at entry" />
+              <SectionHeader icon={Battery} title="Pre-Entry State Check" color="emerald" subtitle="Capture your physical and mental state at entry" />
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                   <ScoreSlider label="Energy Level" field="energyLevel" />
@@ -486,7 +464,7 @@ const App = () => {
             </div>
 
             <div>
-              <SectionHeader icon={ShieldCheck} title="Rule Governance" color="rose" badge="NEW" subtitle="Binary flags to make rule-breaking explicit" />
+              <SectionHeader icon={ShieldCheck} title="Rule Governance" color="rose" subtitle="Binary flags to make rule-breaking explicit" />
               <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <SelectField label="Setup Fully Valid" field="setupFullyValid" options={['Yes', 'No']} />
@@ -542,13 +520,48 @@ const App = () => {
               </div>
             </div>
 
+            {/* Exit / Post-Trade Chart Screenshot */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="p-1.5 rounded-md bg-[#064e3b]/30 border border-[#065f46]/40">
+                  <Camera className="w-3.5 h-3.5 text-[#34d399]" />
+                </div>
+                <h3 className="text-[10px] font-black text-[#cbd5e1] uppercase tracking-[0.15em]">Exit Chart Screenshot</h3>
+                <span className="px-1.5 py-0.5 bg-[#064e3b]/40 border border-[#065f46]/50 text-[#34d399] text-[8px] font-black uppercase tracking-wide rounded">POST-TRADE</span>
+              </div>
+              <p className="text-[9px] text-[#4b5a6e] font-medium mb-3 ml-9 italic">Capture how price behaved after your exit — essential for review and learning.</p>
+              <div className="h-px bg-[#1e2d42] mb-4" />
+              <div className={`relative group overflow-hidden rounded-none border transition-all ${formData.exitScreenshot ? 'border-[#065f46]/50 bg-[#0a1120]' : 'border-dashed border-[#1e2d42] bg-[#0a1120] hover:border-[#34d399]/40'}`}>
+                <input type="file" className="hidden" id="exit-chart-upload" onChange={handleExitScreenshotUpload} accept="image/*" />
+                {formData.exitScreenshot ? (
+                  <div className="relative group/img">
+                    <img src={formData.exitScreenshot} alt="Exit Chart Evidence" className="w-full h-auto max-h-96 object-contain rounded-none" />
+                    <div className="absolute inset-0 bg-[#080e19]/80 backdrop-blur-sm opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center gap-3 rounded-none">
+                      <label htmlFor="exit-chart-upload" className="p-3 bg-[#10b981] rounded-none cursor-pointer hover:bg-[#059669] transition-all shadow-lg"><RefreshCcw className="w-5 h-5 text-white" /></label>
+                      <button onClick={() => updateField('exitScreenshot', null)} className="p-3 bg-[#ef4444] rounded-none hover:bg-[#dc2626] transition-all shadow-lg"><Trash2 className="w-5 h-5 text-white" /></button>
+                    </div>
+                  </div>
+                ) : (
+                  <label htmlFor="exit-chart-upload" className="flex flex-col items-center justify-center p-12 cursor-pointer">
+                    <div className="w-14 h-14 bg-[#131c2e] rounded-none flex items-center justify-center mb-4 group-hover:scale-105 group-hover:bg-[#10b981]/10 transition-all border border-[#1e2d42]">
+                      <Camera className="w-6 h-6 text-[#3d4f6b] group-hover:text-[#34d399] transition-colors" />
+                    </div>
+                    <span className="text-xs font-semibold text-[#94a3b8] mb-1">upload exit / post-trade chart</span>
+                    <span className="text-[9px] text-[#3d4f6b] font-bold uppercase tracking-wider">compare entry vs exit for review</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
             <div>
               <SectionHeader icon={Crosshair} title="Position Details" color="blue" />
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <InputField label="Screenshot Time" field="screenshotTimestamp" type="time" />
                 <InputField label="Instrument" field="instrument" placeholder="BTCUSD" />
+                <SelectField label="Pair Category" field="pairCategory" options={['Major', 'Minor', 'Exotic', 'Index', 'Crypto', 'Commodity']} />
                 <SelectField label="Direction" field="direction" options={['Long', 'Short']} />
                 <InputField label="Lot Size" field="lotSize" placeholder="0.01" />
+                <InputField label="Trade # Today" field="consecutiveTradeCount" type="number" placeholder="1" />
                 <InputField label="Entry Price" field="entryPrice" type="number" placeholder="0.00" />
                 <InputField label="Stop Loss" field="stopLoss" type="number" />
                 <InputField label="SL Distance (Pips)" field="stopLossDistancePips" type="number" />
@@ -621,7 +634,7 @@ const App = () => {
                 </div>
 
                 <div>
-                  <SectionHeader icon={Layers3} title="Timeframe Context" color="indigo" badge="NEW" subtitle="Simple flags and state descriptions" />
+                  <SectionHeader icon={Layers3} title="Timeframe Context" color="indigo" subtitle="Simple flags and state descriptions" />
                   <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <SelectField label="HTF Bias" field="htfBias" options={['Bull', 'Bear', 'Range']} />
@@ -695,7 +708,7 @@ const App = () => {
             <div className="grid lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
                 <div>
-                  <SectionHeader icon={DoorOpen} title="Exit Causation" color="rose" badge="NEW" subtitle="Why did the trade end?" />
+                  <SectionHeader icon={DoorOpen} title="Exit Causation" color="rose" subtitle="Why did the trade end?" />
                   <div className="p-4 bg-[#0a1120] border border-[#1e2d42] rounded-none space-y-3">
                     <SelectField label="Primary Exit Reason" field="primaryExitReason" options={['Target Hit', 'Stop Hit', 'Time Exit', 'Structure Change', 'News', 'Emotional Exit']} />
                     <InfoCard icon={Target} title="Purpose" description="Tracks exit discipline. Are you hitting targets or getting stopped out?" color="rose" />
@@ -708,6 +721,7 @@ const App = () => {
                     <InputField label="Pips Gained/Lost" field="pipsGainedLost" type="number" />
                     <InputField label="P/L Amount ($)" field="profitLoss" type="number" />
                     <InputField label="Account Balance" field="accountBalance" type="number" />
+                    <InputField label="Commission / Fees ($)" field="commission" type="number" placeholder="e.g., 3.50" />
                   </div>
                 </div>
 
@@ -742,6 +756,13 @@ const App = () => {
                     <SelectField label="Focus/Stress" field="focusStressLevel" options={['Low', 'Medium', 'High']} />
                     <InputField label="Rules Followed %" field="rulesFollowed" type="number" />
                     <InputField label="Confidence (1-5)" field="confidenceLevel" type="number" />
+                    <SelectField label="Post-Trade Emotion" field="postTradeEmotion" options={['Neutral', 'Relieved', 'Euphoric', 'Frustrated', 'Regretful', 'Calm', 'Anxious']} />
+                    <div className="flex items-end">
+                      <label className="flex items-center gap-2.5 p-2.5 rounded-lg bg-[#131c2e] border border-[#2a3347] cursor-pointer hover:border-[#fbbf24]/40 hover:bg-[#451a03]/10 transition-all group w-full">
+                        <input type="checkbox" checked={formData.recencyBiasFlag} onChange={e => updateField('recencyBiasFlag', e.target.checked)} className="w-4 h-4 rounded border-2 border-[#2a3347] bg-[#0e1521] checked:bg-[#f59e0b] checked:border-[#f59e0b] cursor-pointer transition-all shrink-0" />
+                        <span className="text-[11px] font-semibold text-[#94a3b8] group-hover:text-[#cbd5e1] transition-colors leading-tight">Influenced by last trade result (recency bias)</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
