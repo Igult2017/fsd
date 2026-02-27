@@ -129,6 +129,7 @@ const INITIAL_FORM_STATE = {
   htfKeyLevelPresent: 'Yes',
   trendAlignment: 'Yes',
   analysisTFContext: '',
+  higherTFContext: '',
   entryTFContext: '',
   otherConfluences: '',
   multitimeframeAlignment: 'Yes',
@@ -385,6 +386,7 @@ const App = () => {
 
       {/* ── MAIN CONTENT ──────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">
+        <div className="bg-[#0d1526] border border-[#1e2d42] p-6 md:p-8 shadow-2xl shadow-black/40">
 
 
 
@@ -640,8 +642,9 @@ const App = () => {
                       <SelectField label="HTF Bias" field="htfBias" options={['Bull', 'Bear', 'Range']} />
                       <SelectField label="HTF Key Level Present" field="htfKeyLevelPresent" options={['Yes', 'No']} />
                       <SelectField label="Trend Alignment" field="trendAlignment" options={['Yes', 'No']} />
-                      <SelectField label="Multitimeframe Alignment" field="multitimeframeAlignment" options={['Yes', 'No']} />
+                      <SelectField label="MTF Alignment" field="multitimeframeAlignment" options={['Yes', 'No']} />
                     </div>
+                    <InputField label="Higher TF Context" field="higherTFContext" rows={2} placeholder="What's happening on the higher timeframe?" />
                     <InputField label="Analysis TF Context" field="analysisTFContext" rows={2} placeholder="What's happening on analysis timeframe?" />
                     <InputField label="Entry TF Context" field="entryTFContext" rows={2} placeholder="What's happening on entry timeframe?" />
                     <InputField label="Other Confluences" field="otherConfluences" rows={2} placeholder="e.g., Interest rate differentials, USD strength" />
@@ -798,6 +801,7 @@ const App = () => {
             <NavigationButtons />
           </div>
         )}
+        </div>
       </main>
 
       {/* ── Success Modal ─────────────────────────────────────────────── */}
