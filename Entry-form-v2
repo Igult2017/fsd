@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   Camera, 
   TrendingUp, 
-  
   BrainCircuit, 
   Compass,
   ChevronRight,
@@ -260,7 +259,6 @@ const App = () => {
     );
   };
 
-  // ── UPDATED: numbers-only score input (no nodes/track) ──────────────
   const ScoreSlider = ({ label, field }) => {
     const val = formData[field];
     return (
@@ -335,9 +333,7 @@ const App = () => {
     <div style={{ fontFamily: "'Inter', sans-serif" }} className="min-h-screen bg-[#080e19]">
 
       {/* ── TOP HEADER ──────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-[#0a1120]/95 backdrop-blur-md border-b border-[#1e2d42]">
-
-
+      <header className="sticky top-4 z-40 bg-[#0a1120]/95 backdrop-blur-md border-b border-[#1e2d42]">
         {/* Step nav tabs */}
         <div className="max-w-5xl mx-auto px-4 md:px-8 flex items-stretch">
           {STEPS.map((item, idx) => {
@@ -355,10 +351,8 @@ const App = () => {
                       : 'text-[#3d4f6b] hover:bg-[#1e2d42]/40 hover:text-[#4b5a6e]'
                   }`}
               >
-                {/* Active bottom border */}
                 {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6366f1]" />}
 
-                {/* Step number / check */}
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black border shrink-0 transition-all
                   ${isActive
                     ? 'bg-[#6366f1] border-[#6366f1] text-white shadow-[0_0_8px_rgba(99,102,241,0.5)]'
@@ -374,7 +368,6 @@ const App = () => {
                   <div className={`text-[8px] font-semibold uppercase tracking-wide ${isActive ? 'text-[#6366f1]/70' : 'text-[#2d3f55]'}`}>{item.desc}</div>
                 </div>
 
-                {/* Divider between tabs */}
                 {idx < STEPS.length - 1 && (
                   <div className="absolute right-0 top-1/4 bottom-1/4 w-px bg-[#1a2638]" />
                 )}
@@ -387,8 +380,6 @@ const App = () => {
       {/* ── MAIN CONTENT ──────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">
         <div className="bg-[#0d1526] border border-[#1e2d42] p-6 md:p-8 shadow-2xl shadow-black/40">
-
-
 
         {/* ── STEP 1 ───────────────────────────────────────────────── */}
         {step === 1 && (
@@ -522,7 +513,6 @@ const App = () => {
               </div>
             </div>
 
-            {/* Exit / Post-Trade Chart Screenshot */}
             <div>
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="p-1.5 rounded-md bg-[#064e3b]/30 border border-[#065f46]/40">
@@ -804,7 +794,6 @@ const App = () => {
         </div>
       </main>
 
-      {/* ── Success Modal ─────────────────────────────────────────────── */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080e19]/90 backdrop-blur-sm">
           <div className="bg-[#0e1521] backdrop-blur-xl border border-[#1e2d42] rounded-none p-8 max-w-md w-full text-center shadow-2xl">
