@@ -71,7 +71,14 @@ import {
   BarChart3,
   Command,
   FileText,
-  History
+  History,
+  Save,
+  Crosshair,
+  Microscope,
+  DoorOpen,
+  Gauge,
+  Boxes,
+  Layers3,
 } from 'lucide-react';
 
 // --- Mock Data ---
@@ -1317,24 +1324,614 @@ const SessionsList = ({ sessions, onDeleteSession }) => {
   );
 };
 
+// ─── Journal: 4-Step Trade Entry Wizard ───────────────────────────────────────
+
+const JOURNAL_INITIAL = {
+  screenshot: null, screenshotTimestamp: '', instrument: '', direction: 'Long',
+  lotSize: '', entryPrice: '', stopLoss: '', stopLossDistancePips: '',
+  takeProfit: '', takeProfitDistancePips: '', entryTime: '', exitTime: '',
+  tradeDuration: '', dayOfWeek: 'Monday', outcome: 'Win', profitLoss: '',
+  accountBalance: '', orderType: 'Market', riskPercent: '', entryTF: '5M',
+  analysisTF: '1HR', contextTF: '1D', marketRegime: 'Trending',
+  trendDirection: 'Bullish', volatilityState: 'Normal', liquidity: 'High',
+  newsEnvironment: 'Clear', entryTimeUTC: '', sessionPhase: 'Open',
+  sessionName: 'London', timingContext: 'Impulse', candlePattern: '',
+  indicatorState: '', marketAlignment: 3, setupClarity: 3, entryPrecision: 3,
+  confluence: 3, timingQuality: 3, primarySignals: '', secondarySignals: '',
+  keyLevelRespect: 'Yes', keyLevelType: 'Support', momentumValidity: 'Strong',
+  targetLogicClarity: 'High', plannedEntry: '', plannedSL: '', plannedTP: '',
+  actualEntry: '', actualSL: '', actualTP: '', pipsGainedLost: '', mae: '',
+  mfe: '', monetaryRisk: '', potentialReward: '', plannedRR: '', achievedRR: '',
+  riskHeat: 'Low', entryMethod: 'Market', exitStrategy: '', breakEvenApplied: false,
+  trailingStopApplied: false, managementType: 'Rule-based', confidenceLevel: 3,
+  emotionalState: 'Calm', focusStressLevel: 'Low', rulesFollowed: 100,
+  worthRepeating: true, whatWorked: '', whatFailed: '', adjustments: '', notes: '',
+  thesis: '', trigger: '', invalidationLogic: '', setupTag: 'Breakout',
+  expectedBehavior: '', tradeGrade: 'A - Textbook', directionalBias: 'Long',
+  liquidityTargets: '', impulseCheckFOMO: false, impulseCheckRevenge: false,
+  impulseCheckBored: false, impulseCheckEmotional: false,
+  primaryExitReason: 'Target Hit', htfBias: 'Bull', htfKeyLevelPresent: 'Yes',
+  trendAlignment: 'Yes', analysisTFContext: '', higherTFContext: '',
+  entryTFContext: '', otherConfluences: '', multitimeframeAlignment: 'Yes',
+  openTradesCount: '', totalRiskOpen: '', correlatedExposure: 'No',
+  energyLevel: 3, focusLevel: 3, externalDistraction: 'No', confidenceAtEntry: 3,
+  setupFullyValid: 'Yes', anyRuleBroken: 'No', ruleBroken: '', strategyVersionId: '',
+  spreadAtEntry: '', atrAtEntry: '', exitScreenshot: null, pairCategory: 'Major',
+  consecutiveTradeCount: '', commission: '', postTradeEmotion: 'Neutral',
+  recencyBiasFlag: false,
+};
+
+const JOURNAL_STEPS = [
+  { id: 1, label: 'Decision',  icon: Brain,      desc: 'Thesis & Logic' },
+  { id: 2, label: 'Execution', icon: Crosshair,  desc: 'Core Data' },
+  { id: 3, label: 'Context',   icon: Compass,    desc: 'Market State' },
+  { id: 4, label: 'Review',    icon: Microscope, desc: 'Performance' },
+];
+
 const TradeEntryForm = () => {
-  const [formData, setFormData] = React.useState({ thesis: '', instrument: '', whatWorked: '' });
-  return (
-    <div className="max-w-6xl mx-auto p-8">
-      <div className="bg-slate-900 border border-slate-800 p-8 rounded-md">
-        <h2 className="text-sm font-semibold text-white mb-4">Trade Journal Entry</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-slate-400 block mb-2">Trade Thesis</label>
-            <textarea value={formData.thesis} onChange={(e) => setFormData({...formData, thesis: e.target.value})} rows={4} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-md text-white text-sm" placeholder="Why are you taking this trade?" />
+  const [step, setStep] = React.useState(1);
+  const [formData, setFormData] = React.useState(JOURNAL_INITIAL);
+  const [showSuccess, setShowSuccess] = React.useState(false);
+
+  const upd = (field, val) => setFormData(p => ({ ...p, [field]: val }));
+
+  const handleImg = (field) => (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => upd(field, reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const reset = () => { setFormData(JOURNAL_INITIAL); setStep(1); setShowSuccess(false); };
+
+  // ── shared sub-components ──────────────────────────────────
+  const inputCls = `w-full px-3 py-2.5 rounded-md border border-slate-700 bg-slate-800/60 text-slate-200 text-sm placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all`;
+  const labelCls = `block text-[10px] font-black text-slate-500 uppercase tracking-[0.15em] mb-1.5`;
+
+  const SectionHeader = ({ icon: Icon, title, color = 'indigo', subtitle }) => {
+    const colours = {
+      indigo:  { bg: 'bg-indigo-500/10',  border: 'border-indigo-500/30',  text: 'text-indigo-400' },
+      amber:   { bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   text: 'text-amber-400'  },
+      emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400'},
+      rose:    { bg: 'bg-rose-500/10',    border: 'border-rose-500/30',    text: 'text-rose-400'   },
+      violet:  { bg: 'bg-violet-500/10',  border: 'border-violet-500/30',  text: 'text-violet-400' },
+      blue:    { bg: 'bg-blue-500/10',    border: 'border-blue-500/30',    text: 'text-blue-400'   },
+    };
+    const c = colours[color] || colours.indigo;
+    return (
+      <div className="mb-5">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className={`p-1.5 rounded-md ${c.bg} border ${c.border}`}>
+            <Icon size={13} className={c.text} />
           </div>
-          <div>
-            <label className="text-xs font-bold text-slate-400 block mb-2">Instrument</label>
-            <input value={formData.instrument} onChange={(e) => setFormData({...formData, instrument: e.target.value})} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-md text-white text-sm" placeholder="BTCUSD" />
-          </div>
-          <button onClick={() => alert('Trade saved!')} className="px-6 py-3 bg-indigo-600 text-white text-xs font-bold rounded-md">Save Entry</button>
+          <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.15em]">{title}</h3>
+        </div>
+        {subtitle && <p className="text-[9px] text-slate-600 ml-9 italic">{subtitle}</p>}
+        <div className="h-px bg-slate-800 mt-3" />
+      </div>
+    );
+  };
+
+  const Field = ({ label, field, type = 'text', placeholder = '', rows }) => (
+    <div>
+      <label className={labelCls}>{label}</label>
+      {rows
+        ? <textarea rows={rows} className={`${inputCls} resize-none`} placeholder={placeholder} value={formData[field] || ''} onChange={e => upd(field, e.target.value)} />
+        : <input type={type} className={inputCls} placeholder={placeholder} value={formData[field] || ''} onChange={e => upd(field, e.target.value)} />
+      }
+    </div>
+  );
+
+  const Select = ({ label, field, options }) => (
+    <div>
+      <label className={labelCls}>{label}</label>
+      <div className="relative">
+        <select className={`${inputCls} appearance-none pr-8 cursor-pointer`} value={formData[field] || options[0]} onChange={e => upd(field, e.target.value)}>
+          {options.map(o => <option key={o} value={o} className="bg-slate-900">{o}</option>)}
+        </select>
+        <ChevronRight size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none rotate-90" />
+      </div>
+    </div>
+  );
+
+  const Slider = ({ label, field }) => (
+    <div className="flex items-center justify-between gap-4">
+      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</label>
+      <div className="flex items-center gap-1.5">
+        {[1,2,3,4,5].map(n => (
+          <button key={n} onClick={() => upd(field, n)}
+            className={`w-8 h-8 rounded-md text-[11px] font-black border transition-all ${n === formData[field] ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-slate-800 border-slate-700 text-slate-500 hover:border-indigo-500/50'}`}>
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const Checkbox = ({ label, field, color = 'rose' }) => {
+    const colours = { rose: 'hover:border-rose-500/40', indigo: 'hover:border-indigo-500/40', emerald: 'hover:border-emerald-500/40', amber: 'hover:border-amber-500/40' };
+    return (
+      <label className={`flex items-center gap-2.5 p-2.5 rounded-md bg-slate-800/40 border border-slate-700 cursor-pointer ${colours[color] || colours.rose} transition-all`}>
+        <input type="checkbox" checked={!!formData[field]} onChange={e => upd(field, e.target.checked)}
+          className="w-4 h-4 rounded border-2 border-slate-600 bg-slate-800 checked:bg-rose-500 checked:border-rose-500 cursor-pointer transition-all" />
+        <span className="text-[11px] font-semibold text-slate-400">{label}</span>
+      </label>
+    );
+  };
+
+  const InfoCard = ({ icon: Icon, title, desc, color = 'blue' }) => {
+    const colours = {
+      blue:    'border-blue-500/20 bg-blue-500/5 text-blue-400',
+      emerald: 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400',
+      rose:    'border-rose-500/20 bg-rose-500/5 text-rose-400',
+      violet:  'border-violet-500/20 bg-violet-500/5 text-violet-400',
+      amber:   'border-amber-500/20 bg-amber-500/5 text-amber-400',
+      orange:  'border-orange-500/20 bg-orange-500/5 text-orange-400',
+    };
+    const cls = colours[color] || colours.blue;
+    return (
+      <div className={`flex items-start gap-2 p-2.5 rounded-md border ${cls}`}>
+        <Icon size={11} className={`mt-0.5 shrink-0 ${cls.split(' ')[2]}`} />
+        <div>
+          <p className="text-[8px] font-black uppercase tracking-wider text-slate-500 mb-0.5">{title}</p>
+          <p className={`text-[9px] leading-relaxed italic font-medium ${cls.split(' ')[2]}`}>{desc}</p>
         </div>
       </div>
+    );
+  };
+
+  const ImgUpload = ({ field, id, label, accentColor = 'indigo' }) => {
+    const accent = accentColor === 'emerald' ? 'border-emerald-500/40 hover:border-emerald-500/60' : 'border-indigo-500/40 hover:border-indigo-500/60';
+    return (
+      <div className={`relative group overflow-hidden rounded-md border transition-all ${formData[field] ? 'border-slate-700 bg-slate-800/30' : `border-dashed border-slate-700 bg-slate-800/20 ${accent}`}`}>
+        <input type="file" className="hidden" id={id} onChange={handleImg(field)} accept="image/*" />
+        {formData[field] ? (
+          <div className="relative group/img">
+            <img src={formData[field]} alt="Chart" className="w-full h-auto max-h-72 object-contain" />
+            <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center gap-3">
+              <label htmlFor={id} className="p-2.5 bg-indigo-600 rounded-md cursor-pointer hover:bg-indigo-500 transition-all"><RefreshCcw size={14} className="text-white" /></label>
+              <button onClick={() => upd(field, null)} className="p-2.5 bg-red-600 rounded-md hover:bg-red-500 transition-all"><Trash2 size={14} className="text-white" /></button>
+            </div>
+          </div>
+        ) : (
+          <label htmlFor={id} className="flex flex-col items-center justify-center p-10 cursor-pointer">
+            <div className="w-12 h-12 bg-slate-800 rounded-md flex items-center justify-center mb-3 border border-slate-700 group-hover:border-indigo-500/50 transition-all">
+              <Camera size={20} className="text-slate-500 group-hover:text-indigo-400 transition-colors" />
+            </div>
+            <span className="text-xs font-semibold text-slate-400 mb-1">{label}</span>
+            <span className="text-[9px] text-slate-600 font-bold uppercase tracking-wider">PNG · JPG up to 10MB</span>
+          </label>
+        )}
+      </div>
+    );
+  };
+
+  const NavButtons = () => (
+    <div className="flex justify-between items-center pt-6 mt-6 border-t border-slate-800">
+      <button onClick={() => setStep(s => Math.max(1, s - 1))}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-xs uppercase tracking-wider transition-all ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}>
+        <ChevronLeft size={14} /> Back
+      </button>
+      {step < 4 ? (
+        <button onClick={() => setStep(s => Math.min(4, s + 1))}
+          className="group flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 transition-all">
+          Continue <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      ) : (
+        <button onClick={() => setShowSuccess(true)}
+          className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 transition-all">
+          <Save size={14} /> Save Entry
+        </button>
+      )}
+    </div>
+  );
+
+  // ── step-tab header ────────────────────────────────────────────────────────
+  const StepHeader = () => (
+    <div className="flex items-stretch border-b border-slate-800 mb-8 -mx-6 px-6">
+      {JOURNAL_STEPS.map((s, idx) => {
+        const isActive = step === s.id;
+        const isDone   = step > s.id;
+        return (
+          <button key={s.id} onClick={() => setStep(s.id)}
+            className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-3.5 transition-all ${isActive ? 'text-white' : isDone ? 'text-indigo-400/60 hover:text-slate-300' : 'text-slate-600 hover:text-slate-400'}`}>
+            {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />}
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black border shrink-0 transition-all ${isActive ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_8px_rgba(99,102,241,0.5)]' : isDone ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+              {isDone ? <CheckCircle2 size={11} /> : s.id}
+            </div>
+            <div className="text-left hidden sm:block">
+              <div className={`text-[10px] font-black uppercase tracking-wider leading-none mb-0.5 ${isActive ? 'text-white' : ''}`}>{s.label}</div>
+              <div className={`text-[8px] font-semibold uppercase tracking-wide ${isActive ? 'text-indigo-400/70' : 'text-slate-600'}`}>{s.desc}</div>
+            </div>
+            {idx < JOURNAL_STEPS.length - 1 && <div className="absolute right-0 top-1/4 bottom-1/4 w-px bg-slate-800/80" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-md p-6 md:p-8 shadow-2xl shadow-black/30">
+        <StepHeader />
+
+        {/* ── STEP 1: Decision ───────────────────────────────── */}
+        {step === 1 && (
+          <div className="space-y-8">
+            <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-md flex items-start gap-3">
+              <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-[9px] font-black text-amber-400 uppercase tracking-wide mb-1">Why This Matters</p>
+                <p className="text-[9px] text-amber-400/70 leading-relaxed italic font-medium">Most traders lose because they enter on impulse. This section enforces pre-trade clarity and prevents emotional decisions.</p>
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Lightbulb} title="Core Thesis" color="amber" subtitle="What's your edge? Be specific and concise." />
+              <div className="grid gap-4">
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Field label="Trade Thesis" field="thesis" rows={4} placeholder="Price broke key resistance at 1.0850 with strong volume, expecting continuation to 1.0920 liquidity zone..." />
+                  <InfoCard icon={Target} title="Purpose" desc="Forces clarity. If you can't articulate your edge in 2-3 sentences, you don't have one." color="blue" />
+                </div>
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Field label="Entry Trigger" field="trigger" rows={3} placeholder="15M engulfing candle close above 1.0850 with RSI break above 60..." />
+                  <InfoCard icon={Zap} title="Purpose" desc="Defines your edge. Separates systematic entries from random impulse trades." color="emerald" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Shield} title="Risk Framework" color="amber" />
+              <div className="grid gap-4">
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Field label="Invalidation Logic" field="invalidationLogic" rows={3} placeholder="If price closes below 1.0830 on 15M, thesis invalid..." />
+                  <InfoCard icon={AlertTriangle} title="Purpose" desc="Rule-based exits. Pre-define failure before emotion kicks in." color="rose" />
+                </div>
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Field label="Expected Behavior" field="expectedBehavior" rows={3} placeholder="Expect immediate bullish momentum, hold above 1.0850..." />
+                  <InfoCard icon={Eye} title="Purpose" desc="Early failure detection. Know within minutes if your trade is working or dying." color="violet" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Battery} title="Pre-Entry State Check" color="emerald" subtitle="Capture your physical and mental state at entry" />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-4">
+                  <Slider label="Energy Level" field="energyLevel" />
+                  <Slider label="Focus Level" field="focusLevel" />
+                  <Slider label="Confidence at Entry" field="confidenceAtEntry" />
+                  <Select label="External Distraction" field="externalDistraction" options={['No', 'Yes']} />
+                  <InfoCard icon={Focus} title="Purpose" desc="State matters. Low energy/focus correlates with poor execution." color="emerald" />
+                </div>
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-4">
+                  <Field label="Open Trades Count" field="openTradesCount" type="number" placeholder="0" />
+                  <Field label="Total Risk Open (%)" field="totalRiskOpen" type="number" placeholder="2.5" />
+                  <Select label="Correlated Exposure" field="correlatedExposure" options={['No', 'Yes']} />
+                  <InfoCard icon={Briefcase} title="Purpose" desc="Portfolio awareness prevents over-leverage and correlated blowups." color="blue" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Layers} title="Classification & Quality" color="amber" />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Field label="Strategy Version ID" field="strategyVersionId" placeholder="e.g., v2.1, SMC-A, Breakout-R3" />
+                  <Select label="Setup Tag" field="setupTag" options={['Breakout', 'Reversal', 'Continuation', 'Range Bound', 'Trend Following', 'Mean Reversion', 'Momentum', 'Pullback']} />
+                  <InfoCard icon={LayoutGrid} title="Purpose" desc="Track which setups perform best over time." color="blue" />
+                </div>
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Select label="Trade Grade" field="tradeGrade" options={['A - Textbook', 'B - Solid', 'C - Acceptable', 'D - Marginal', 'F - Poor']} />
+                  <InfoCard icon={Award} title="Purpose" desc="Selectivity. Only take A/B setups. Track if you're cherry-picking best opportunities." color="amber" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={ShieldCheck} title="Rule Governance" color="rose" />
+              <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Select label="Setup Fully Valid" field="setupFullyValid" options={['Yes', 'No']} />
+                  <Select label="Any Rule Broken?" field="anyRuleBroken" options={['No', 'Yes']} />
+                </div>
+                {formData.anyRuleBroken === 'Yes' && <Field label="Rule Broken (ID/Name)" field="ruleBroken" placeholder="e.g., Risk > 2%, Entered during news, No confluence" />}
+                <InfoCard icon={AlertTriangle} title="Purpose" desc="Makes discipline visible. If rules are broken, you can identify patterns in poor execution." color="rose" />
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Brain} title="Impulse Control Check" color="amber" subtitle="These are RED FLAGS — check any that apply" />
+              <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                <div className="grid md:grid-cols-2 gap-3">
+                  <Checkbox label="Entering due to FOMO (fear of missing out)" field="impulseCheckFOMO" />
+                  <Checkbox label="Revenge trading after a loss" field="impulseCheckRevenge" />
+                  <Checkbox label="Trading out of boredom / need for action" field="impulseCheckBored" />
+                  <Checkbox label="Emotionally compromised (angry, euphoric, anxious)" field="impulseCheckEmotional" />
+                </div>
+                <InfoCard icon={Flame} title="Purpose" desc="Prevents emotional entries. If ANY box is checked, reconsider the trade." color="orange" />
+              </div>
+            </div>
+
+            <NavButtons />
+          </div>
+        )}
+
+        {/* ── STEP 2: Execution ──────────────────────────────── */}
+        {step === 2 && (
+          <div className="space-y-8">
+            <div>
+              <SectionHeader icon={Camera} title="Entry Chart Screenshot" color="blue" subtitle="Upload your trade setup chart for evidence" />
+              <ImgUpload field="screenshot" id="chart-upload" label="Upload trade setup screenshot" accentColor="indigo" />
+            </div>
+            <div>
+              <SectionHeader icon={Camera} title="Exit Chart Screenshot" color="emerald" subtitle="Capture how price behaved after your exit" />
+              <ImgUpload field="exitScreenshot" id="exit-chart-upload" label="Upload exit / post-trade chart" accentColor="emerald" />
+            </div>
+
+            <div>
+              <SectionHeader icon={Crosshair} title="Position Details" color="blue" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <Field label="Screenshot Time" field="screenshotTimestamp" type="time" />
+                <Field label="Instrument" field="instrument" placeholder="BTCUSD" />
+                <Select label="Pair Category" field="pairCategory" options={['Major', 'Minor', 'Exotic', 'Index', 'Crypto', 'Commodity']} />
+                <Select label="Direction" field="direction" options={['Long', 'Short']} />
+                <Field label="Lot Size" field="lotSize" placeholder="0.01" />
+                <Field label="Trade # Today" field="consecutiveTradeCount" type="number" placeholder="1" />
+                <Field label="Entry Price" field="entryPrice" type="number" placeholder="0.00" />
+                <Field label="Stop Loss" field="stopLoss" type="number" />
+                <Field label="SL Distance (Pips)" field="stopLossDistancePips" type="number" />
+                <Field label="Take Profit" field="takeProfit" type="number" />
+                <Field label="TP Distance (Pips)" field="takeProfitDistancePips" type="number" />
+                <Field label="Risk %" field="riskPercent" type="number" />
+                <Select label="Order Type" field="orderType" options={['Market', 'Limit', 'Stop', 'Stop-Limit']} />
+                <Select label="Outcome" field="outcome" options={['Win', 'Loss', 'BE']} />
+                <Field label="Spread at Entry" field="spreadAtEntry" type="number" placeholder="1.2" />
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Clock} title="Timing & Duration" color="blue" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <Field label="Entry Date/Time" field="entryTime" type="datetime-local" />
+                <Field label="Exit Date/Time" field="exitTime" type="datetime-local" />
+                <Select label="Day of Week" field="dayOfWeek" options={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']} />
+                <Field label="Trade Duration" field="tradeDuration" placeholder="2h 30m" />
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={LayoutGrid} title="Timeframe Analysis" color="blue" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Select label="Entry TF" field="entryTF" options={['1M', '3M', '5M', '15M']} />
+                <Select label="Analysis TF" field="analysisTF" options={['15M', '30MIN', '1HR', '2HR', '4HR']} />
+                <Select label="Context TF" field="contextTF" options={['1W', '1D', '4HR']} />
+              </div>
+            </div>
+
+            <div>
+              <SectionHeader icon={Zap} title="Entry & Management" color="blue" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Select label="Entry Method" field="entryMethod" options={['Market', 'Limit', 'Stop']} />
+                <Field label="Exit Strategy" field="exitStrategy" placeholder="Describe exit approach" />
+                <Select label="Management Type" field="managementType" options={['Rule-based', 'Discretionary', 'Hybrid']} />
+                <Select label="Risk Heat" field="riskHeat" options={['Low', 'Medium', 'High']} />
+                <label className="flex items-center gap-2.5 p-2.5 rounded-md bg-slate-800/40 border border-slate-700 cursor-pointer hover:border-indigo-500/40 transition-all">
+                  <input type="checkbox" checked={formData.breakEvenApplied} onChange={e => upd('breakEvenApplied', e.target.checked)} className="w-4 h-4 rounded border-2 border-slate-600 bg-slate-800 checked:bg-indigo-500 checked:border-indigo-500 cursor-pointer transition-all" />
+                  <span className="text-xs font-semibold text-slate-400">Break-Even Applied</span>
+                </label>
+                <label className="flex items-center gap-2.5 p-2.5 rounded-md bg-slate-800/40 border border-slate-700 cursor-pointer hover:border-indigo-500/40 transition-all">
+                  <input type="checkbox" checked={formData.trailingStopApplied} onChange={e => upd('trailingStopApplied', e.target.checked)} className="w-4 h-4 rounded border-2 border-slate-600 bg-slate-800 checked:bg-indigo-500 checked:border-indigo-500 cursor-pointer transition-all" />
+                  <span className="text-xs font-semibold text-slate-400">Trailing Stop Applied</span>
+                </label>
+              </div>
+            </div>
+
+            <NavButtons />
+          </div>
+        )}
+
+        {/* ── STEP 3: Context ───────────────────────────────── */}
+        {step === 3 && (
+          <div className="space-y-8">
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="space-y-8">
+                <div>
+                  <SectionHeader icon={Layers} title="Market Environment" color="indigo" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Select label="Market Regime" field="marketRegime" options={['Trending', 'Ranging']} />
+                    <Select label="Trend Direction" field="trendDirection" options={['Bullish', 'Bearish', 'Sideways']} />
+                    <Select label="Volatility" field="volatilityState" options={['Low', 'Normal', 'High']} />
+                    <Select label="Liquidity" field="liquidity" options={['Low', 'Normal', 'High']} />
+                    <Select label="News Environment" field="newsEnvironment" options={['Clear', 'Minor', 'Major']} />
+                    <Select label="Session Phase" field="sessionPhase" options={['Open', 'Mid', 'Close']} />
+                    <Field label="ATR at Entry" field="atrAtEntry" type="number" placeholder="0.0045" />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={Layers} title="Timeframe Context" color="indigo" subtitle="Flags and state descriptions per TF" />
+                  <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Select label="HTF Bias" field="htfBias" options={['Bull', 'Bear', 'Range']} />
+                      <Select label="HTF Key Level Present" field="htfKeyLevelPresent" options={['Yes', 'No']} />
+                      <Select label="Trend Alignment" field="trendAlignment" options={['Yes', 'No']} />
+                      <Select label="MTF Alignment" field="multitimeframeAlignment" options={['Yes', 'No']} />
+                    </div>
+                    <Field label="Higher TF Context" field="higherTFContext" rows={2} placeholder="What's happening on the higher timeframe?" />
+                    <Field label="Analysis TF Context" field="analysisTFContext" rows={2} placeholder="What's happening on analysis timeframe?" />
+                    <Field label="Entry TF Context" field="entryTFContext" rows={2} placeholder="What's happening on entry timeframe?" />
+                    <Field label="Other Confluences" field="otherConfluences" rows={2} placeholder="e.g., Interest rate differentials, USD strength" />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                  <Field label="Liquidity Targets & Bias" field="liquidityTargets" rows={3} placeholder="Where are major liquidity pools? Stop hunts? Key psychological levels?" />
+                  <InfoCard icon={Target} title="Purpose" desc="Identifies where smart money is positioned and key reaction zones." color="blue" />
+                </div>
+
+                <div>
+                  <SectionHeader icon={Clock} title="Session Timing" color="indigo" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Entry Time (UTC)" field="entryTimeUTC" type="time" />
+                    <Select label="Session" field="sessionName" options={['London', 'New York', 'Tokyo', 'Sydney', 'Overlap']} />
+                    <Select label="Timing Context" field="timingContext" options={['Impulse', 'Correction', 'Consolidation']} />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={Activity} title="Technical Signals" color="indigo" />
+                  <div className="space-y-4">
+                    <Field label="Candle Pattern" field="candlePattern" placeholder="e.g., Engulfing, Doji" />
+                    <Field label="Indicator State" field="indicatorState" placeholder="e.g., RSI 70, MACD cross" />
+                    <Field label="Primary Signals" field="primarySignals" rows={2} placeholder="Main technical confirmations" />
+                    <Field label="Secondary Signals" field="secondarySignals" rows={2} placeholder="Supporting technical factors" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div>
+                  <SectionHeader icon={Gauge} title="Setup Quality Scores" color="indigo" />
+                  <div className="p-5 bg-slate-800/20 border border-slate-800 rounded-md space-y-5">
+                    <Slider label="Market Alignment" field="marketAlignment" />
+                    <Slider label="Setup Clarity" field="setupClarity" />
+                    <Slider label="Entry Precision" field="entryPrecision" />
+                    <Slider label="Confluence" field="confluence" />
+                    <Slider label="Timing Quality" field="timingQuality" />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={Target} title="Key Level Analysis" color="indigo" />
+                  <div className="space-y-4">
+                    <Select label="Key Level Respect" field="keyLevelRespect" options={['Yes', 'No', 'Partial']} />
+                    <Select label="Key Level Type" field="keyLevelType" options={['Support', 'Resistance', 'Pivot', 'Fib Level']} />
+                    <Select label="Momentum Validity" field="momentumValidity" options={['Strong', 'Moderate', 'Weak']} />
+                    <Select label="Target Logic Clarity" field="targetLogicClarity" options={['High', 'Medium', 'Low']} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <NavButtons />
+          </div>
+        )}
+
+        {/* ── STEP 4: Review ─────────────────────────────────── */}
+        {step === 4 && (
+          <div className="space-y-8">
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <div>
+                  <SectionHeader icon={DoorOpen} title="Exit Causation" color="rose" subtitle="Why did the trade end?" />
+                  <div className="p-4 bg-slate-800/20 border border-slate-800 rounded-md space-y-3">
+                    <Select label="Primary Exit Reason" field="primaryExitReason" options={['Target Hit', 'Stop Hit', 'Time Exit', 'Structure Change', 'News', 'Emotional Exit']} />
+                    <InfoCard icon={Target} title="Purpose" desc="Tracks exit discipline. Are you hitting targets or getting stopped out?" color="rose" />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={TrendingUp} title="Performance Data" color="violet" />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Field label="Pips Gained/Lost" field="pipsGainedLost" type="number" />
+                    <Field label="P/L Amount ($)" field="profitLoss" type="number" />
+                    <Field label="Account Balance" field="accountBalance" type="number" />
+                    <Field label="Commission / Fees ($)" field="commission" type="number" placeholder="3.50" />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={Target} title="Planning vs Execution" color="violet" />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Field label="Planned Entry" field="plannedEntry" type="number" />
+                    <Field label="Planned SL" field="plannedSL" type="number" />
+                    <Field label="Planned TP" field="plannedTP" type="number" />
+                    <Field label="Actual Entry" field="actualEntry" type="number" />
+                    <Field label="Actual SL" field="actualSL" type="number" />
+                    <Field label="Actual TP" field="actualTP" type="number" />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={Activity} title="Trade Metrics" color="violet" />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Field label="MAE (Max Adverse)" field="mae" placeholder="-15 pips" />
+                    <Field label="MFE (Max Favorable)" field="mfe" placeholder="+45 pips" />
+                    <Field label="Monetary Risk" field="monetaryRisk" type="number" />
+                    <Field label="Potential Reward" field="potentialReward" type="number" />
+                    <Field label="Planned R:R" field="plannedRR" placeholder="1:2" />
+                    <Field label="Achieved R:R" field="achievedRR" placeholder="1:1.5" />
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={BrainCircuit} title="Psychological State" color="violet" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Select label="Emotional State" field="emotionalState" options={['Calm', 'Anxious', 'FOMO', 'Confident', 'Fearful', 'Neutral']} />
+                    <Select label="Focus/Stress" field="focusStressLevel" options={['Low', 'Medium', 'High']} />
+                    <Field label="Rules Followed %" field="rulesFollowed" type="number" />
+                    <Field label="Confidence (1-5)" field="confidenceLevel" type="number" />
+                    <Select label="Post-Trade Emotion" field="postTradeEmotion" options={['Neutral', 'Relieved', 'Euphoric', 'Frustrated', 'Regretful', 'Calm', 'Anxious']} />
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-md bg-slate-800/40 border border-slate-700 cursor-pointer hover:border-amber-500/40 transition-all">
+                      <input type="checkbox" checked={formData.recencyBiasFlag} onChange={e => upd('recencyBiasFlag', e.target.checked)} className="w-4 h-4 rounded border-2 border-slate-600 bg-slate-800 checked:bg-amber-500 checked:border-amber-500 cursor-pointer transition-all shrink-0" />
+                      <span className="text-[11px] font-semibold text-slate-400 leading-tight">Influenced by last trade result (recency bias)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <SectionHeader icon={CheckCircle2} title="Trade Assessment" color="violet" />
+                  <div className="space-y-4">
+                    <label className="flex items-center gap-2.5 p-3 rounded-md bg-slate-800/40 border border-slate-700 cursor-pointer hover:border-emerald-500/30 transition-all">
+                      <input type="checkbox" checked={formData.worthRepeating} onChange={e => upd('worthRepeating', e.target.checked)} className="w-4 h-4 rounded border-2 border-slate-600 bg-slate-800 checked:bg-emerald-500 checked:border-emerald-500 cursor-pointer transition-all" />
+                      <span className="text-xs font-semibold text-slate-400">Worth Repeating This Setup</span>
+                    </label>
+                    <Field label="Additional Notes" field="notes" rows={3} placeholder="Any other observations or comments..." />
+                  </div>
+                </div>
+              </div>
+
+              {/* Reflections sidebar */}
+              <div className="p-5 bg-slate-800/20 border border-slate-800 rounded-md space-y-5">
+                <SectionHeader icon={Microscope} title="Trade Reflections" color="violet" />
+                <div>
+                  <label className="block text-[9px] font-black text-emerald-400 uppercase tracking-wider mb-1.5">What Worked</label>
+                  <textarea className={`${inputCls} resize-none`} rows={4} placeholder="What did you execute well?" value={formData.whatWorked} onChange={e => upd('whatWorked', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black text-rose-400 uppercase tracking-wider mb-1.5">What Failed</label>
+                  <textarea className={`${inputCls} resize-none`} rows={4} placeholder="What went wrong?" value={formData.whatFailed} onChange={e => upd('whatFailed', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black text-blue-400 uppercase tracking-wider mb-1.5">Future Adjustments</label>
+                  <textarea className={`${inputCls} resize-none`} rows={4} placeholder="What will you change next time?" value={formData.adjustments} onChange={e => upd('adjustments', e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <NavButtons />
+          </div>
+        )}
+      </div>
+
+      {/* Success Modal */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 rounded-md p-8 max-w-md w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-5 relative">
+              <CheckCircle2 size={28} className="text-emerald-400" />
+              <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping" />
+            </div>
+            <h3 className="text-sm font-black text-white mb-2 uppercase tracking-wider">Trade Logged Successfully</h3>
+            <p className="text-slate-400 text-xs mb-6 italic">Your complete decision architecture and trade data have been recorded.</p>
+            <button onClick={reset} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-600/20">
+              Continue Trading
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1841,9 +2438,17 @@ const App = () => {
     ];
   }, [currentSessionData]);
 
+  React.useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,600;1,700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+    return () => { try { document.head.removeChild(link); } catch(e) {} };
+  }, []);
+
+
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,600;1,700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`
         *, body { font-family: 'IBM Plex Sans', sans-serif !important; }
         .font-mono { font-family: 'IBM Plex Mono', monospace !important; }
