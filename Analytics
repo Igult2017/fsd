@@ -143,7 +143,7 @@ export default function TradingDashboard() {
               { id: 'rules-adherence', label: 'Rules Adherence',  value: '94%',    color: '#f87171', iconBg: 'rgba(248,113,113,0.12)', iconPath: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
             ].map(k => (
               <div key={k.id} onClick={() => handleCardClick(k.id)}
-                style={{ background: '#0d1117', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)' }}
+                style={{ background: '#0f152d', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)' }}
                 className={`p-5 shadow-2xl cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 ${activeCard === k.id ? 'card-active' : ''}`}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
                   <div style={{ background: k.iconBg, borderRadius: '12px', padding: '10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
