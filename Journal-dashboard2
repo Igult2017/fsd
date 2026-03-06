@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Activity } from 'lucide-react';
 
-// ─── Sidebar Icons ────────────────────────────────────────────────────────────
 const SI = {
   Dashboard: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
   Journal: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="13" y2="11"/></svg>,
@@ -18,219 +17,137 @@ const SI = {
   Accounts: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   Settings: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
   ChevronRight: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  Close: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  FsdAi: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="6" r="1.5"/><circle cx="19" cy="6" r="1.5"/><circle cx="5" cy="18" r="1.5"/><circle cx="19" cy="18" r="1.5"/><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="21" r="1.5"/><line x1="12" y1="9.5" x2="5" y2="6"/><line x1="12" y1="9.5" x2="19" y2="6"/><line x1="12" y1="14.5" x2="5" y2="18"/><line x1="12" y1="14.5" x2="19" y2="18"/><line x1="12" y1="9.5" x2="12" y2="3"/><line x1="12" y1="14.5" x2="12" y2="21"/></svg>,
+  TfMetrics: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/></svg>,
 };
 
 const NAV_SECTIONS = [
-  {
-    section: null,
-    items: [
-      { id: 'dashboard', label: 'Dashboard', icon: SI.Dashboard },
-      { id: 'journal', label: 'Journal', icon: SI.Journal },
-      { id: 'metrics', label: 'Metrics', icon: SI.Metrics },
-      { id: 'calendar', label: 'Calendar', icon: SI.Calendar },
-      { id: 'strategy', label: 'Strategy Audit', icon: SI.Strategy },
-      { id: 'drawdown', label: 'Drawdown', icon: SI.Drawdown },
-      { id: 'vault', label: 'Trade Vault', icon: SI.Vault },
-      { id: 'leaderboard', label: 'Leaderboard', icon: SI.Leaderboard },
-      { id: 'sync', label: 'Sync Trade Copier', icon: SI.Sync, badge: 'NEW', badgeColor: 'bg-cyan-400 text-[#060b14]' },
-    ]
-  },
-  {
-    section: 'Live Trading',
-    items: [
-      { id: 'sessions', label: 'Sessions', icon: SI.Sessions, arrow: true },
-      { id: 'create', label: 'Create Session', icon: SI.CreateSession },
-    ]
-  },
-  {
-    section: 'Account',
-    items: [
-      { id: 'addaccount', label: 'Add Account', icon: SI.AddAccount },
-      { id: 'accounts', label: 'Accounts', icon: SI.Accounts },
-    ]
-  },
-  {
-    section: null,
-    items: [
-      { id: 'settings', label: 'Settings', icon: SI.Settings },
-    ]
-  },
+  { section: null, items: [
+    { id: 'fsdai', label: 'FSD AI', icon: SI.FsdAi },
+    { id: 'dashboard', label: 'Dashboard', icon: SI.Dashboard },
+    { id: 'journal', label: 'Journal', icon: SI.Journal },
+    { id: 'metrics', label: 'Metrics', icon: SI.Metrics },
+    { id: 'tfmetrics', label: 'TF Metrics', icon: SI.TfMetrics },
+    { id: 'calendar', label: 'Calendar', icon: SI.Calendar },
+    { id: 'strategy', label: 'Strategy Audit', icon: SI.Strategy },
+    { id: 'drawdown', label: 'Drawdown', icon: SI.Drawdown },
+    { id: 'vault', label: 'Trade Vault', icon: SI.Vault },
+    { id: 'leaderboard', label: 'Leaderboard', icon: SI.Leaderboard },
+    { id: 'sync', label: 'Sync Trade Copier', icon: SI.Sync, badge: 'NEW' },
+  ]},
+  { section: 'Live Trading', items: [
+    { id: 'sessions', label: 'Sessions', icon: SI.Sessions, arrow: true },
+    { id: 'create', label: 'Create Session', icon: SI.CreateSession },
+  ]},
+  { section: 'Account', items: [
+    { id: 'addaccount', label: 'Add Account', icon: SI.AddAccount },
+    { id: 'accounts', label: 'Accounts', icon: SI.Accounts },
+  ]},
+  { section: null, items: [
+    { id: 'settings', label: 'Settings', icon: SI.Settings },
+  ]},
 ];
 
-// ─── Sidebar Component ────────────────────────────────────────────────────────
-const Sidebar = ({ activeNav, setActiveNav, open }) => (
-  <aside style={{
-    fontFamily: "'Montserrat', sans-serif",
-    width: open ? '220px' : '0px',
-    minWidth: open ? '220px' : '0px',
-    height: '100%',
-    overflowY: open ? 'auto' : 'hidden',
-    overflowX: 'hidden',
-    background: '#07090f',
-    borderRight: open ? '1px solid rgba(255,255,255,0.06)' : 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    flexShrink: 0,
-    transition: 'width 0.25s ease, min-width 0.25s ease',
-    opacity: open ? 1 : 0,
-  }}>
-
-    {/* Nav sections — FSD AI is part of the same flow */}
-    <nav style={{ flex: 1, padding: '10px 10px 4px', overflowY: 'auto' }}>
-
-      {/* FSD AI — first item, same container as nav */}
-      <button
-        onClick={() => setActiveNav('fsdai')}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '9px 10px', borderRadius: 10, marginBottom: 6,
-          background: activeNav === 'fsdai' ? 'rgba(56,189,248,0.08)' : 'transparent',
-          border: activeNav === 'fsdai' ? '1px solid rgba(56,189,248,0.18)' : '1px solid transparent',
-          cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left',
-          fontFamily: "'Montserrat', sans-serif",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.3)'; }}
-        onMouseLeave={e => { if (activeNav !== 'fsdai') { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.boxShadow = 'none'; }}}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ color: activeNav === 'fsdai' ? '#38bdf8' : 'rgba(100,116,139,0.8)', flexShrink: 0, display: 'flex' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="2.5"/>
-              <circle cx="5" cy="6" r="1.5"/><circle cx="19" cy="6" r="1.5"/>
-              <circle cx="5" cy="18" r="1.5"/><circle cx="19" cy="18" r="1.5"/>
-              <circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="21" r="1.5"/>
-              <line x1="12" y1="9.5" x2="5" y2="6"/><line x1="12" y1="9.5" x2="19" y2="6"/>
-              <line x1="12" y1="14.5" x2="5" y2="18"/><line x1="12" y1="14.5" x2="19" y2="18"/>
-              <line x1="12" y1="9.5" x2="12" y2="3"/><line x1="12" y1="14.5" x2="12" y2="21"/>
-            </svg>
-          </span>
-          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.06em', color: activeNav === 'fsdai' ? '#e2e8f0' : 'rgba(148,163,184,0.75)', fontFamily: "'Montserrat', sans-serif" }}>FSD AI</span>
-        </div>
-
-      </button>
-
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '4px 4px 8px' }} />
-
-
-      {NAV_SECTIONS.map((group, gi) => (
-        <div key={gi} style={{ marginBottom: group.section ? 4 : 0 }}>
-          {group.section && (
-            <p style={{ fontSize: 9, fontWeight: 900, color: 'rgba(100,116,139,0.6)', letterSpacing: '0.18em', textTransform: 'uppercase', padding: '14px 10px 6px', marginBottom: 2 }}>
-              {group.section}
-            </p>
-          )}
-          {!group.section && gi > 0 && (
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '10px 4px 10px' }} />
-          )}
-          {group.items.map(item => {
-            const isActive = activeNav === item.id;
-            return (
-              <button key={item.id} onClick={() => setActiveNav(item.id)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '9px 10px', borderRadius: 10, marginBottom: 2,
-                  background: isActive ? 'rgba(56,189,248,0.08)' : 'transparent',
-                  border: isActive ? '1px solid rgba(56,189,248,0.18)' : '1px solid transparent',
-                  color: isActive ? '#7dd3fc' : 'rgba(148,163,184,0.7)',
-                  cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left',
-                  fontFamily: "'Montserrat', sans-serif",
-                }}>
-                <span style={{ color: isActive ? '#38bdf8' : 'rgba(100,116,139,0.8)', flexShrink: 0, display: 'flex' }}>
-                  <item.icon />
-                </span>
-                <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.06em', flex: 1, color: isActive ? '#e2e8f0' : 'rgba(148,163,184,0.75)', fontFamily: "'Montserrat', sans-serif" }}>
-                  {item.label}
-                </span>
-                {item.badge && (
-                  <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.12em', padding: '2px 6px', borderRadius: 4, background: '#22d3ee', color: '#020617', textTransform: 'uppercase', fontFamily: "'Montserrat', sans-serif" }}>
-                    {item.badge}
-                  </span>
-                )}
-                {item.arrow && (
-                  <span style={{ color: 'rgba(100,116,139,0.5)', display: 'flex' }}><SI.ChevronRight /></span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      ))}
-    </nav>
-
-    {/* User footer */}
-    <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, cursor: 'pointer', transition: 'background 0.15s' }}>
-        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#38bdf8,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, color: '#fff', flexShrink: 0, fontFamily: "'Montserrat', sans-serif" }}>
-          JD
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, color: '#e2e8f0', margin: 0, fontFamily: "'Montserrat', sans-serif" }}>John Doe</p>
-          <p style={{ fontSize: 8, fontWeight: 900, color: 'rgba(100,116,139,0.7)', margin: 0, letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: "'Montserrat', sans-serif" }}>Pro Member</p>
-        </div>
-        <SI.Settings />
-      </div>
-    </div>
-  </aside>
+const NavButton = ({ item, isActive, onClick, showLabels }) => (
+  <button onClick={onClick} style={{
+    width: '100%', display: 'flex', alignItems: 'center',
+    justifyContent: showLabels ? 'flex-start' : 'center',
+    gap: 10, padding: '9px 8px', borderRadius: 10, marginBottom: 2,
+    background: isActive ? 'rgba(56,189,248,0.08)' : 'transparent',
+    border: isActive ? '1px solid rgba(56,189,248,0.18)' : '1px solid transparent',
+    cursor: 'pointer', transition: 'all 0.15s', fontFamily: "'Montserrat',sans-serif",
+  }}
+    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}>
+    <span style={{ color: isActive ? '#38bdf8' : 'rgba(100,116,139,0.8)', flexShrink: 0, display: 'flex' }}><item.icon /></span>
+    {showLabels && <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.06em', flex: 1, color: isActive ? '#e2e8f0' : 'rgba(148,163,184,0.75)', whiteSpace: 'nowrap' }}>{item.label}</span>}
+    {showLabels && item.badge && <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.12em', padding: '2px 6px', borderRadius: 4, background: '#22d3ee', color: '#020617', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{item.badge}</span>}
+    {showLabels && item.arrow && <span style={{ color: 'rgba(100,116,139,0.5)', display: 'flex' }}><SI.ChevronRight /></span>}
+  </button>
 );
 
-// ─── KPI Icons ────────────────────────────────────────────────────────────────
-const Icons = {
-  PnL: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="1" x2="12" y2="23"/>
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-    </svg>
-  ),
-  WinRate: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>
-    </svg>
-  ),
-  Expectancy: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/>
-    </svg>
-  ),
-  Trades: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-    </svg>
-  ),
-  ProfitFactor: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/>
-    </svg>
-  ),
-  AvgTrade: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-    </svg>
-  )
+const Sidebar = ({ activeNav, setActiveNav, open, isMobile, onClose }) => {
+  const showLabels = isMobile || open;
+  const sidebarStyle = isMobile ? {
+    position: 'fixed', top: 0, left: open ? 0 : '-280px', bottom: 0, width: 260,
+    zIndex: 50, transition: 'left 0.3s ease', background: '#07090f',
+    borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column',
+    overflowY: 'auto', overflowX: 'hidden', fontFamily: "'Montserrat',sans-serif",
+  } : {
+    width: open ? 220 : 56, minWidth: open ? 220 : 56, height: '100%',
+    overflowY: 'auto', overflowX: 'hidden', background: '#07090f',
+    borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column',
+    flexShrink: 0, transition: 'width 0.25s ease, min-width 0.25s ease',
+    fontFamily: "'Montserrat',sans-serif",
+  };
+
+  return (
+    <>
+      {isMobile && open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)' }} />}
+      <aside style={sidebarStyle}>
+        {isMobile && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 12px 0' }}>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(148,163,184,0.6)', cursor: 'pointer', padding: 6, borderRadius: 8, display: 'flex' }}><SI.Close /></button>
+          </div>
+        )}
+        <nav style={{ flex: 1, padding: '10px 8px 4px', overflowY: 'auto' }}>
+          {NAV_SECTIONS.map((group, gi) => (
+            <div key={gi} style={{ marginBottom: group.section ? 4 : 0 }}>
+              {gi > 0 && !group.section && <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '8px 4px' }} />}
+              {showLabels && group.section && <p style={{ fontSize: 9, fontWeight: 900, color: 'rgba(100,116,139,0.6)', letterSpacing: '0.18em', textTransform: 'uppercase', padding: '12px 10px 6px', margin: 0, whiteSpace: 'nowrap' }}>{group.section}</p>}
+              {group.items.map(item => (
+                <NavButton key={item.id} item={item} isActive={activeNav === item.id} showLabels={showLabels}
+                  onClick={() => { setActiveNav(item.id); if (isMobile) onClose(); }} />
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div style={{ padding: '12px 8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: showLabels ? 'flex-start' : 'center', gap: 10, padding: 8, borderRadius: 10, cursor: 'pointer' }}>
+            <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#38bdf8,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900, color: '#fff', flexShrink: 0 }}>JD</div>
+            {showLabels && <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 11, fontWeight: 900, color: '#e2e8f0', margin: 0, whiteSpace: 'nowrap' }}>John Doe</p>
+              <p style={{ fontSize: 8, fontWeight: 900, color: 'rgba(100,116,139,0.7)', margin: 0, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Pro Member</p>
+            </div>}
+            {showLabels && <SI.Settings />}
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+// ─── KPI ───────────────────────────────────────────────────────────────────────
+const KPI_ICONS = {
+  PnL: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+  WinRate: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>,
+  Expectancy: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>,
+  Trades: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>,
+  ProfitFactor: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>,
+  AvgTrade: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
 };
 
 const STATS = [
-  { id: 'pnl', label: 'TOTAL P&L', value: '+$1,142', icon: Icons.PnL, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  { id: 'winrate', label: 'WIN RATE', value: '60%', icon: Icons.WinRate, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-  { id: 'rexpect', label: 'R EXPECTANCY', value: '1.42R', icon: Icons.Expectancy, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-  { id: 'tradecount', label: 'TRADES', value: '12', icon: Icons.Trades, color: 'text-slate-400', bg: 'bg-slate-500/10' },
-  { id: 'pfactor', label: 'PROFIT FACTOR', value: '2.45', icon: Icons.ProfitFactor, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  { id: 'avgtrade', label: 'AVG TRADE', value: '$228.40', icon: Icons.AvgTrade, color: 'text-rose-400', bg: 'bg-rose-500/10' },
+  { id: 'pnl', label: 'TOTAL P&L', value: '+$1,142', Icon: KPI_ICONS.PnL, color: '#34d399', bg: 'rgba(16,185,129,0.1)' },
+  { id: 'winrate', label: 'WIN RATE', value: '60%', Icon: KPI_ICONS.WinRate, color: '#818cf8', bg: 'rgba(99,102,241,0.1)' },
+  { id: 'rexpect', label: 'R EXPECTANCY', value: '1.42R', Icon: KPI_ICONS.Expectancy, color: '#fbbf24', bg: 'rgba(245,158,11,0.1)' },
+  { id: 'tradecount', label: 'TRADES', value: '12', Icon: KPI_ICONS.Trades, color: '#94a3b8', bg: 'rgba(100,116,139,0.1)' },
+  { id: 'pfactor', label: 'PROFIT FACTOR', value: '2.45', Icon: KPI_ICONS.ProfitFactor, color: '#c084fc', bg: 'rgba(168,85,247,0.1)' },
+  { id: 'avgtrade', label: 'AVG TRADE', value: '$228.40', Icon: KPI_ICONS.AvgTrade, color: '#fb7185', bg: 'rgba(244,63,94,0.1)' },
 ];
 
 const StatCard = ({ stat }) => (
-  <div className="bg-[#0d1117] border border-white/[0.05] p-3 rounded-2xl flex flex-col items-center justify-center space-y-2 shadow-sm">
-    <div className={`${stat.bg} p-1 rounded text-xs ${stat.color}`}><stat.icon /></div>
-    <div className="text-center w-full">
-      <h3 className="flex items-center justify-center font-black leading-none whitespace-nowrap">
-        <span className="text-[10px] text-white tracking-tight">{stat.label}</span>
-        <span className="text-[10px] text-white font-black mx-1">:</span>
-        <span className={`text-[10px] tracking-tight ${stat.color === 'text-slate-400' ? 'text-white' : stat.color}`}>{stat.value}</span>
-      </h3>
+  <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.05)', padding: 12, borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+    <div style={{ background: stat.bg, padding: 6, borderRadius: 6, color: stat.color, display: 'flex' }}><stat.Icon /></div>
+    <div style={{ textAlign: 'center' }}>
+      <p style={{ fontSize: 9, color: 'rgba(148,163,184,0.7)', margin: '0 0 2px', letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{stat.label}</p>
+      <p style={{ fontSize: 13, fontWeight: 900, color: stat.color, margin: 0 }}>{stat.value}</p>
     </div>
   </div>
 );
 
+// ─── Chart ────────────────────────────────────────────────────────────────────
 const LINE_DATA = {
   DAILY: [
     { label: '09:00', pnl: 20 }, { label: '09:30', pnl: 80 }, { label: '10:00', pnl: 140 },
@@ -241,384 +158,281 @@ const LINE_DATA = {
     { label: '16:30', pnl: 590 }, { label: '17:00', pnl: 540 },
   ],
   WEEKLY: [
-    { label: 'Mon', pnl: 200 }, { label: 'Tue', pnl: 350 }, { label: 'Wed', pnl: 290 },
-    { label: 'Thu', pnl: 480 }, { label: 'Fri', pnl: 600 }, { label: 'Sat', pnl: 550 },
-    { label: 'Sun', pnl: 700 },
+    { label: 'Mon', pnl: 200 }, { label: 'Tue', pnl: 350 }, { label: 'Wed', pnl: 280 },
+    { label: 'Thu', pnl: 500 }, { label: 'Fri', pnl: 620 }, { label: 'Sat', pnl: 580 }, { label: 'Sun', pnl: 700 },
   ],
   MONTHLY: [
-    { label: 'W1', pnl: 300 }, { label: 'W2', pnl: 800 }, { label: 'W3', pnl: 600 },
-    { label: 'W4', pnl: 1100 }, { label: 'W5', pnl: 950 },
-  ]
+    { label: 'Wk1', pnl: 300 }, { label: 'Wk2', pnl: 550 }, { label: 'Wk3', pnl: 480 },
+    { label: 'Wk4', pnl: 820 }, { label: 'Wk5', pnl: 1100 },
+  ],
 };
 
-// Catmull-Rom to cubic bezier path
-function catmullRomPath(points) {
-  if (points.length < 2) return '';
-  let d = `M ${points[0].x},${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(i - 1, 0)];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[Math.min(i + 2, points.length - 1)];
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
-    d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+function catmullRomPath(pts) {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(i-1,0)], p1 = pts[i], p2 = pts[i+1], p3 = pts[Math.min(i+2,pts.length-1)];
+    const cp1x = p1.x+(p2.x-p0.x)/6, cp1y = p1.y+(p2.y-p0.y)/6;
+    const cp2x = p2.x-(p3.x-p1.x)/6, cp2y = p2.y-(p3.y-p1.y)/6;
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
   }
   return d;
 }
 
-const NeonLineChart = ({ data, view }) => {
-  const W = 600, H = 260;
-  const padL = 36, padR = 16, padT = 20, padB = 32;
-  const innerW = W - padL - padR;
-  const innerH = H - padT - padB;
-
-  const minVal = 0;
-  const maxVal = Math.max(...data.map(d => d.pnl)) * 1.15;
-
-  const pts = data.map((d, i) => ({
-    x: padL + (i / (data.length - 1)) * innerW,
-    y: padT + innerH - ((d.pnl - minVal) / (maxVal - minVal)) * innerH,
-    label: d.label,
-    pnl: d.pnl,
-  }));
-
+const NeonLineChart = ({ data }) => {
+  const W=600, H=240, PL=36, PR=16, PT=18, PB=30;
+  const vals = data.map(d=>d.pnl);
+  const minV=Math.min(...vals), maxV=Math.max(...vals), range=maxV-minV||1;
+  const toX = i => PL+(i/(data.length-1))*(W-PL-PR);
+  const toY = v => PT+(1-(v-minV)/range)*(H-PT-PB);
+  const pts = data.map((d,i)=>({x:toX(i),y:toY(d.pnl)}));
   const linePath = catmullRomPath(pts);
-  const areaPath = linePath + ` L ${pts[pts.length-1].x},${padT + innerH} L ${pts[0].x},${padT + innerH} Z`;
-
-  // Grid lines (4 horizontal)
-  const gridLines = [0.25, 0.5, 0.75, 1].map(t => ({
-    y: padT + innerH * (1 - t),
-    val: Math.round(minVal + (maxVal - minVal) * t),
-  }));
-
-  const lastPt = pts[pts.length - 1];
-
+  const areaPath = linePath+` L ${pts[pts.length-1].x} ${H-PB} L ${pts[0].x} ${H-PB} Z`;
+  const last = pts[pts.length-1];
+  const labelIdxs = data.length<=7 ? data.map((_,i)=>i) : [0,Math.floor(data.length*.2),Math.floor(data.length*.4),Math.floor(data.length*.6),Math.floor(data.length*.8),data.length-1];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" style={{ overflow: 'visible' }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" style={{display:'block'}} preserveAspectRatio="none">
       <defs>
+        <filter id="glow"><feGaussianBlur stdDeviation="4" result="b1"/><feGaussianBlur stdDeviation="8" result="b2"/><feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         <linearGradient id="neonFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.45" />
-          <stop offset="60%" stopColor="#4f46e5" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0" />
+          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.35"/>
+          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0"/>
         </linearGradient>
-        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="3.5" result="blur1" />
-          <feGaussianBlur stdDeviation="7" result="blur2" />
-          <feMerge>
-            <feMergeNode in="blur2"/>
-            <feMergeNode in="blur1"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-        <filter id="dotGlow">
-          <feGaussianBlur stdDeviation="3" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
       </defs>
-
-      {/* Horizontal dashed grid */}
-      {gridLines.map((g, i) => (
-        <g key={i}>
-          <line x1={padL} y1={g.y} x2={W - padR} y2={g.y}
-            stroke="rgba(99,120,180,0.18)" strokeWidth="1" strokeDasharray="3 6" />
-          <text x={padL - 6} y={g.y + 4} textAnchor="end"
-            fill="rgba(99,120,180,0.45)" fontSize="8" fontFamily="Montserrat,sans-serif" fontWeight="900">
-            {g.val > 999 ? `${(g.val/1000).toFixed(1)}k` : g.val}
-          </text>
-        </g>
-      ))}
-
-      {/* Area fill */}
-      <path d={areaPath} fill="url(#neonFill)" />
-
-      {/* Glow line (thick, blurred) */}
-      <path d={linePath} fill="none" stroke="#7c6fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"
-        style={{ filter: 'blur(6px)', opacity: 0.55 }} />
-
-      {/* Core neon line */}
-      <path d={linePath} fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-        filter="url(#glow)" />
-
-      {/* Bright inner line */}
-      <path d={linePath} fill="none" stroke="#c4b5fd" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* X-axis labels */}
-      {pts.filter((_, i) => i % Math.ceil(pts.length / 6) === 0 || i === pts.length - 1).map((p, i) => (
-        <text key={i} x={p.x} y={H - 6} textAnchor="middle"
-          fill="rgba(99,120,180,0.5)" fontSize="8" fontFamily="Montserrat,sans-serif" fontWeight="900">
-          {p.label}
-        </text>
-      ))}
-
-      {/* End dot with glow */}
-      <circle cx={lastPt.x} cy={lastPt.y} r="7" fill="#1e1b4b" stroke="#7c6fff" strokeWidth="1.5"
-        style={{ filter: 'drop-shadow(0 0 6px #7c6fff)' }} />
-      <circle cx={lastPt.x} cy={lastPt.y} r="3.5" fill="#c4b5fd"
-        style={{ filter: 'drop-shadow(0 0 4px #c4b5fd)' }} />
+      <rect x="0" y="0" width={W} height={H} fill="#080d18"/>
+      {[0.25,0.5,0.75,1].map((t,i)=><line key={i} x1={PL} y1={PT+(1-t)*(H-PT-PB)} x2={W-PR} y2={PT+(1-t)*(H-PT-PB)} stroke="rgba(99,120,180,0.15)" strokeWidth="1" strokeDasharray="4 4"/>)}
+      {[0,1,2,3].map(i=>{const v=minV+(i/3)*range; return <text key={i} x={PL-5} y={toY(v)+4} textAnchor="end" fontSize="9" fill="rgba(100,116,139,0.6)" fontFamily="Montserrat,sans-serif" fontWeight="900">{v>=1000?`${(v/1000).toFixed(1)}k`:Math.round(v)}</text>;})}
+      {labelIdxs.map(i=><text key={i} x={toX(i)} y={H-PB+16} textAnchor="middle" fontSize="9" fill="rgba(100,116,139,0.6)" fontFamily="Montserrat,sans-serif" fontWeight="900">{data[i].label}</text>)}
+      <path d={areaPath} fill="url(#neonFill)"/>
+      <path d={linePath} fill="none" stroke="#7c6fff" strokeWidth="6" strokeOpacity="0.2" filter="url(#glow)" strokeLinecap="round"/>
+      <path d={linePath} fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d={linePath} fill="none" stroke="#c4b5fd" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"/>
+      <circle cx={last.x} cy={last.y} r="8" fill="#a78bfa" opacity="0.2"/>
+      <circle cx={last.x} cy={last.y} r="5" fill="#080d18" stroke="#a78bfa" strokeWidth="2"/>
+      <circle cx={last.x} cy={last.y} r="2" fill="#c4b5fd"/>
     </svg>
   );
 };
 
 const TRADES = [
-  { id: 1, ticker: 'EUR/USD', date: '2023-10-24 09:30', type: 'LONG', pnl: 735.00, status: 'profit' },
-  { id: 2, ticker: 'GBP/JPY', date: '2023-10-24 10:15', type: 'SHORT', pnl: 310.00, status: 'profit' },
-  { id: 3, ticker: 'XAU/USD', date: '2023-10-25 11:45', type: 'LONG', pnl: -300.00, status: 'loss' },
-  { id: 4, ticker: 'USD/CHF', date: '2023-10-26 14:20', type: 'LONG', pnl: 424.00, status: 'profit' },
-  { id: 5, ticker: 'BTC/USD', date: '2023-10-27 16:10', type: 'SHORT', pnl: 120.00, status: 'profit' },
-  { id: 6, ticker: 'AUD/USD', date: '2023-10-27 18:45', type: 'LONG', pnl: -150.00, status: 'loss' },
-  { id: 7, ticker: 'USD/JPY', date: '2023-10-28 08:30', type: 'SHORT', pnl: 540.00, status: 'profit' },
-  { id: 8, ticker: 'ETH/USD', date: '2023-10-28 10:00', type: 'LONG', pnl: 215.00, status: 'profit' },
+  { id:1, ticker:'EUR/USD', date:'2023-10-24 09:15', type:'LONG', pnl:320, status:'profit' },
+  { id:2, ticker:'GBP/JPY', date:'2023-10-24 11:30', type:'SHORT', pnl:185, status:'profit' },
+  { id:3, ticker:'XAU/USD', date:'2023-10-25 14:00', type:'SHORT', pnl:210, status:'loss' },
+  { id:4, ticker:'USD/CHF', date:'2023-10-26 14:20', type:'LONG', pnl:424, status:'profit' },
+  { id:5, ticker:'BTC/USD', date:'2023-10-27 16:10', type:'SHORT', pnl:120, status:'profit' },
+  { id:6, ticker:'AUD/USD', date:'2023-10-27 18:45', type:'LONG', pnl:150, status:'loss' },
+  { id:7, ticker:'USD/JPY', date:'2023-10-28 08:30', type:'SHORT', pnl:540, status:'profit' },
+  { id:8, ticker:'ETH/USD', date:'2023-10-28 10:00', type:'LONG', pnl:215, status:'profit' },
 ];
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-// ─── Main App ─────────────────────────────────────────────────────────────────
+// ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [view, setView] = useState('DAILY');
   const [activeNav, setActiveNav] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const heatmapDays = useMemo(() => {
-    return Array.from({ length: 31 }, (_, i) => {
-      const day = i + 1;
-      let status = 'none';
-      if ([24, 26, 27, 28].includes(day)) status = 'profit';
-      if ([25, 29].includes(day)) status = 'loss';
-      return { day, status };
-    });
+  useEffect(() => {
+    const check = () => {
+      const mob = window.innerWidth < 768;
+      setIsMobile(mob);
+      if (mob) setSidebarOpen(false);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
-  const currentData = LINE_DATA[view];
+  const heatmapDays = useMemo(() => Array.from({length:31},(_,i)=>{
+    const day=i+1, status=[24,26,27,28].includes(day)?'profit':[25,29].includes(day)?'loss':'none';
+    return {day,status};
+  }), []);
 
   return (
-    <div className="bg-[#010409] text-slate-300 antialiased font-black" style={{ fontFamily: '"Montserrat", sans-serif', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ fontFamily:'"Montserrat",sans-serif', height:'100dvh', overflow:'hidden', display:'flex', flexDirection:'column', background:'#010409', color:'#cbd5e1' }}>
       <style>{`
-        * { font-family: 'Montserrat', sans-serif !important; font-weight: 900 !important; letter-spacing: 0.02em; }
-        svg text { font-family: 'Montserrat', sans-serif !important; font-weight: 900 !important; }
-        button, span, p, h1, h2, h3, h4, td, th { font-family: 'Montserrat', sans-serif !important; font-weight: 900 !important; }
-        ::-webkit-scrollbar { display: none; }
-        * { scrollbar-width: none; -ms-overflow-style: none; }
+        *{font-family:'Montserrat',sans-serif!important;font-weight:900!important;letter-spacing:.02em;box-sizing:border-box;}
+        svg text{font-family:'Montserrat',sans-serif!important;}
+        ::-webkit-scrollbar{display:none;}
+        *{scrollbar-width:none;-ms-overflow-style:none;}
       `}</style>
       {(() => {
-        if (typeof document !== 'undefined' && !document.getElementById('montserrat-font')) {
-          const link = document.createElement('link');
-          link.id = 'montserrat-font';
-          link.rel = 'stylesheet';
-          link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap';
-          document.head.appendChild(link);
+        if (typeof document!=='undefined'&&!document.getElementById('mf')) {
+          const l=document.createElement('link');l.id='mf';l.rel='stylesheet';
+          l.href='https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap';
+          document.head.appendChild(l);
         }
         return null;
       })()}
 
-      {/* ── Full-width Header ── */}
-      <header style={{
-        height: 54, flexShrink: 0, width: '100%',
-        background: '#07090f',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', gap: 16, zIndex: 10,
-      }}>
-        {/* Left: logo + nav icons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#6d28d9,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <polygon points="12,2 22,20 2,20" fill="white" opacity="0.9"/>
-              </svg>
+      {/* ── Header ── */}
+      <header style={{ height:54, flexShrink:0, background:'#07090f', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 12px', gap:8, zIndex:30 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0, overflow:'hidden' }}>
+          {/* Logo */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+            <div style={{ width:28, height:28, borderRadius:8, background:'linear-gradient(135deg,#6d28d9,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polygon points="12,2 22,20 2,20" fill="white" opacity="0.9"/></svg>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#fff', letterSpacing: '0.18em', textTransform: 'uppercase' }}>FSDZONES</span>
+            <span style={{ fontSize:12, fontWeight:900, color:'#fff', letterSpacing:'0.18em', textTransform:'uppercase', whiteSpace:'nowrap' }}>FSDZONES</span>
           </div>
-          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)' }} />
-          <button onClick={() => setSidebarOpen(o => !o)} style={{ background: 'none', border: 'none', color: 'rgba(148,163,184,0.6)', cursor: 'pointer', padding: 4, display: 'flex', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(148,163,184,0.6)'}>
+          <div style={{ width:1, height:20, background:'rgba(255,255,255,0.08)', flexShrink:0 }} />
+          {/* Hamburger */}
+          <button onClick={() => isMobile ? setMobileOpen(o=>!o) : setSidebarOpen(o=>!o)}
+            style={{ background:'none', border:'none', color:'rgba(148,163,184,0.6)', cursor:'pointer', padding:6, display:'flex', borderRadius:8, flexShrink:0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <button style={{ background: 'none', border: 'none', color: 'rgba(99,102,241,0.8)', cursor: 'pointer', padding: 4, display: 'flex' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12,2 20,7 4,7"/></svg>
-          </button>
-          <button style={{ background: 'none', border: 'none', color: 'rgba(99,102,241,0.8)', cursor: 'pointer', padding: 4, display: 'flex' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </button>
+          {/* Find buttons — hidden on mobile */}
+          <div style={{ display:'flex', alignItems:'center', gap:4, overflow:'hidden' }}>
+            {[
+              { icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12,2 20,7 4,7"/></svg>, label:'Find a Broker' },
+              { icon:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, label:'Find a Prop Firm' },
+            ].map((b,i) => (
+              <button key={i} style={{ background:'none', border:'none', color:'rgba(99,102,241,0.8)', cursor:'pointer', padding:'4px 8px', display:'flex', alignItems:'center', gap:6, borderRadius:8, transition:'all .15s', whiteSpace:'nowrap', fontSize:10, fontWeight:900, letterSpacing:'0.08em' }}
+                onMouseEnter={e=>{e.currentTarget.style.color='#a5b4fc';e.currentTarget.style.background='rgba(99,102,241,0.08)';}}
+                onMouseLeave={e=>{e.currentTarget.style.color='rgba(99,102,241,0.8)';e.currentTarget.style.background='none';}}>
+                {b.icon}
+                <span style={{ display: isMobile ? 'none' : 'inline' }}>{b.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        {/* Right: action icons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', marginRight: 8 }} />
+
+        {/* Right icons */}
+        <div style={{ display:'flex', alignItems:'center', gap:2, flexShrink:0 }}>
+          {!isMobile && <div style={{ width:1, height:20, background:'rgba(255,255,255,0.08)', marginRight:4 }} />}
           {[
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>,
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-          ].map((icon, i) => (
-            <button key={i} style={{ background: 'none', border: 'none', color: 'rgba(148,163,184,0.55)', cursor: 'pointer', padding: '6px', borderRadius: 8, display: 'flex', transition: 'all 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(148,163,184,0.55)'}>
-              {icon}
+            { svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>, hide:isMobile },
+            { svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>, hide:false },
+            { svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>, hide:isMobile },
+            { svg:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>, hide:isMobile },
+          ].map((b,i) => !b.hide && (
+            <button key={i} style={{ background:'none', border:'none', color:'rgba(148,163,184,0.55)', cursor:'pointer', padding:6, borderRadius:8, display:'flex', transition:'all .15s' }}
+              onMouseEnter={e=>e.currentTarget.style.color='#e2e8f0'}
+              onMouseLeave={e=>e.currentTarget.style.color='rgba(148,163,184,0.55)'}>
+              {b.svg}
             </button>
           ))}
-          <button style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg,#6d28d9,#7c3aed)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 4 }}>
+          <button style={{ width:30, height:30, borderRadius:8, background:'linear-gradient(135deg,#6d28d9,#7c3aed)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', marginLeft:4 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </button>
-          <button style={{ background: 'none', border: 'none', color: 'rgba(148,163,184,0.55)', cursor: 'pointer', padding: '6px', borderRadius: 8, display: 'flex', transition: 'all 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(148,163,184,0.55)'}>
+          {!isMobile && <button style={{ background:'none', border:'none', color:'rgba(148,163,184,0.55)', cursor:'pointer', padding:6, borderRadius:8, display:'flex' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-          </button>
+          </button>}
         </div>
       </header>
 
-      {/* ── Below header: sidebar + content side by side ── */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      {/* ── Body ── */}
+      <div style={{ flex:1, display:'flex', overflow:'hidden', position:'relative' }}>
+        <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} open={isMobile ? mobileOpen : sidebarOpen} isMobile={isMobile} onClose={()=>setMobileOpen(false)} />
 
-        {/* Sidebar */}
-        <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} open={sidebarOpen} />
+        <main style={{ flex:1, overflowY:'auto', padding: isMobile ? '10px 10px 32px' : '14px 16px 32px', minWidth:0 }}>
+          <div style={{ maxWidth:1280, margin:'0 auto', display:'flex', flexDirection:'column', gap:12 }}>
 
-        {/* Main content */}
-        <main className="flex-1 p-4 md:p-6 selection:bg-indigo-500/30" style={{ overflowY: 'auto', flex: 1 }}>
-        <div className="max-w-7xl mx-auto space-y-3">
+            {/* KPI Grid */}
+            <div style={{ display:'grid', gridTemplateColumns:`repeat(${isMobile?2:window.innerWidth<900?3:6},1fr)`, gap:8 }}>
+              {STATS.map(s=><StatCard key={s.id} stat={s}/>)}
+            </div>
 
-          {/* KPI Row */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {STATS.map((stat) => <StatCard key={stat.id} stat={stat} />)}
-          </div>
-
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Line Chart */}
-            <div className="lg:col-span-7 bg-[#080d18] border border-white/10 p-5 rounded-2xl shadow-xl flex flex-col relative overflow-hidden">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 flex items-center justify-center bg-sky-500/10 rounded text-sky-400 border border-sky-500/20">
-                    <Activity size={16} strokeWidth={3} />
+            {/* Chart + Perf Mix */}
+            <div style={{ display:'grid', gridTemplateColumns: window.innerWidth>=900 ? '7fr 5fr' : '1fr', gap:12 }}>
+              {/* Equity Curve */}
+              <div style={{ background:'#080d18', border:'1px solid rgba(255,255,255,0.1)', padding:16, borderRadius:16, display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, flexWrap:'wrap', gap:8 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <div style={{ width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(56,189,248,0.1)', borderRadius:8, color:'#38bdf8', border:'1px solid rgba(56,189,248,0.2)' }}><Activity size={16} strokeWidth={3}/></div>
+                    <h2 style={{ fontSize:11, fontWeight:900, color:'#38bdf8', textTransform:'uppercase', letterSpacing:'0.2em', margin:0 }}>EQUITY CURVE</h2>
                   </div>
-                  <div>
-                    <h2 className="text-[11px] font-black text-sky-400 uppercase tracking-[0.2em] leading-none mb-1">PROFIT DISTRIBUTION</h2>
-                    <p className="text-[8px] text-slate-600 font-black tracking-[0.1em]">{view} PERFORMANCE METRICS</p>
+                  <div style={{ display:'flex', background:'#161b22', padding:4, borderRadius:6, border:'1px solid rgba(255,255,255,0.05)' }}>
+                    {['DAILY','WEEKLY','MONTHLY'].map(v=>(
+                      <button key={v} onClick={()=>setView(v)} style={{ padding:'5px 10px', fontSize:8, fontWeight:900, borderRadius:4, border:'none', cursor:'pointer', letterSpacing:'0.15em', transition:'all .15s', background:view===v?'#38bdf8':'transparent', color:view===v?'#fff':'rgba(100,116,139,0.7)', boxShadow:view===v?'0 0 12px rgba(56,189,248,0.4)':'none' }}>{v}</button>
+                    ))}
                   </div>
                 </div>
-                <div className="flex bg-[#161b22] p-1 rounded-sm border border-white/5">
-                  {['DAILY', 'WEEKLY', 'MONTHLY'].map(v => (
-                    <button key={v} onClick={() => setView(v)}
-                      className={`px-3 py-1.5 text-[8px] font-black rounded-sm transition-all tracking-widest ${
-                        view === v ? 'bg-sky-500 text-white shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'text-slate-600 hover:text-slate-400'
-                      }`}>
-                      {v}
-                    </button>
+                <div style={{ height:220, width:'100%' }}>
+                  <NeonLineChart data={LINE_DATA[view]}/>
+                </div>
+                <div style={{ position:'absolute', bottom:0, right:0, width:180, height:180, background:'rgba(56,189,248,0.04)', filter:'blur(70px)', pointerEvents:'none' }}/>
+              </div>
+
+              {/* Performance Mix */}
+              <div style={{ background:'#0d1117', border:'1px solid rgba(255,255,255,0.1)', padding:20, borderRadius:16 }}>
+                <h2 style={{ fontSize:11, fontWeight:900, color:'#38bdf8', marginBottom:18, textTransform:'uppercase', letterSpacing:'0.2em' }}>PERFORMANCE MIX</h2>
+                {[{label:'PROFIT RATIO',val:'65%',color:'#10b981'},{label:'LOSS RATIO',val:'35%',color:'#f43f5e'}].map(m=>(
+                  <div key={m.label} style={{ marginBottom:18 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                      <span style={{ fontSize:9, color:'rgba(100,116,139,0.7)', letterSpacing:'0.15em', textTransform:'uppercase' }}>{m.label}</span>
+                      <span style={{ fontSize:9, color:m.color }}>{m.val}</span>
+                    </div>
+                    <div style={{ height:2, background:'#161b22', borderRadius:4 }}><div style={{ height:'100%', width:m.val, background:m.color, borderRadius:4 }}/></div>
+                  </div>
+                ))}
+                <div style={{ marginTop:20, paddingTop:18, borderTop:'1px solid rgba(255,255,255,0.05)' }}>
+                  <p style={{ fontSize:9, color:'rgba(100,116,139,0.5)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:12 }}>PAIR VOLUME / FREQUENCY</p>
+                  {[['EUR/USD','85%',18],['GBP/JPY','60%',12],['BTC/USD','50%',10],['XAU/USD','40%',8]].map(([t,w,c])=>(
+                    <div key={t} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                      <span style={{ fontSize:10, color:'#fff', width:54, fontStyle:'italic', flexShrink:0 }}>{t}</span>
+                      <div style={{ flex:1, height:2, background:'#161b22', borderRadius:4, overflow:'hidden' }}><div style={{ height:'100%', width:w, background:'#38bdf8', borderRadius:4 }}/></div>
+                      <span style={{ fontSize:9, color:'rgba(100,116,139,0.5)', width:16, textAlign:'right', flexShrink:0 }}>{c}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-
-              <div className="h-[280px] w-full z-10">
-                <NeonLineChart data={currentData} view={view} />
-              </div>
-              <div className="absolute bottom-0 right-0 w-64 h-64 bg-sky-500/5 blur-[100px] pointer-events-none" />
             </div>
 
-            {/* Performance Mix */}
-            <div className="lg:col-span-5 bg-[#0d1117] border border-white/10 p-5 rounded-2xl shadow-xl">
-              <h2 className="text-[11px] font-black text-sky-400 mb-6 uppercase tracking-[0.2em]">PERFORMANCE MIX</h2>
-              <div className="space-y-6">
-                {[
-                  { label: 'PROFIT RATIO', val: '65%', color: 'bg-emerald-500', text: 'text-emerald-400' },
-                  { label: 'LOSS RATIO', val: '35%', color: 'bg-rose-500', text: 'text-rose-400' }
-                ].map(mix => (
-                  <div key={mix.label} className="space-y-2">
-                    <div className="flex justify-between text-[9px] font-black tracking-[0.15em]">
-                      <span className="text-slate-500">{mix.label}</span>
-                      <span className={mix.text}>{mix.val}</span>
-                    </div>
-                    <div className="h-0.5 w-full bg-[#161b22] rounded-full">
-                      <div className={`h-full ${mix.color} rounded-full`} style={{ width: mix.val }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
-                <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-4">PAIR VOLUME / FREQUENCY</p>
-                {['EUR/USD', 'GBP/JPY', 'BTC/USD', 'XAU/USD'].map(t => (
-                  <div key={t} className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-white w-16 tracking-tighter italic">{t}</span>
-                    <div className="flex-1 h-0.5 bg-[#161b22] rounded-full overflow-hidden">
-                      <div className="h-full bg-sky-500 rounded-full" style={{ width: t === 'EUR/USD' ? '85%' : t === 'GBP/JPY' ? '60%' : t === 'BTC/USD' ? '50%' : '40%' }}></div>
-                    </div>
-                    <span className="text-[9px] font-black text-slate-600 tabular-nums w-4 text-right">{t === 'EUR/USD' ? '18' : '12'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Trade Log & Calendar */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div className="lg:col-span-7 bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden shadow-xl flex flex-col">
-              <div className="p-4 border-b border-white/10 flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-400 italic">RECENT TRADE LOG</span>
-                <Activity size={14} strokeWidth={3} className="text-sky-400 opacity-30" />
-              </div>
-              <div className="overflow-x-auto flex-1">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-[#161b22]/50 text-[8px] text-slate-600 uppercase font-black">
-                    <tr>
-                      <th className="px-5 py-3 tracking-[0.2em]">INSTRUMENT</th>
-                      <th className="px-5 py-3 text-center tracking-[0.2em]">ACTION</th>
-                      <th className="px-5 py-3 text-right tracking-[0.2em]">NET P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {TRADES.map(t => (
-                      <tr key={t.id} className="group hover:bg-white/[0.01] transition-colors">
-                        <td className="px-5 py-3">
-                          <div className="font-black text-white text-[11px] tracking-tight">{t.ticker}</div>
-                          <div className="text-[8px] font-black text-slate-600 tabular-nums tracking-widest uppercase">{t.date}</div>
-                        </td>
-                        <td className="px-5 py-3 text-center">
-                          <span className={`inline-block px-3 py-0.5 rounded-sm text-[8px] font-black tracking-[0.2em] ${t.type === 'LONG' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/10' : 'bg-rose-500/10 text-rose-400 border border-rose-500/10'}`}>
-                            {t.type}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <span className={`font-black text-[11px] tabular-nums tracking-tight ${t.status === 'profit' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {t.status === 'profit' ? '+' : '-'}${Math.abs(t.pnl).toFixed(2)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5 bg-[#0d1117] border border-white/10 p-5 rounded-2xl shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 flex items-center justify-center bg-sky-500/10 rounded text-sky-400 border border-sky-500/10">
-                    <Activity size={14} strokeWidth={3} />
-                  </div>
-                  <h2 className="text-[11px] font-black text-sky-400 uppercase tracking-[0.2em]">ACTIVITY</h2>
+            {/* Trade Log + Calendar */}
+            <div style={{ display:'grid', gridTemplateColumns: window.innerWidth>=900 ? '7fr 5fr' : '1fr', gap:12 }}>
+              {/* Trade Log */}
+              <div style={{ background:'#0d1117', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+                <div style={{ padding:'12px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:11, fontWeight:900, color:'#38bdf8', textTransform:'uppercase', letterSpacing:'0.2em', fontStyle:'italic' }}>RECENT TRADE LOG</span>
+                  <Activity size={14} strokeWidth={3} style={{ color:'#38bdf8', opacity:.3 }}/>
+                </div>
+                <div style={{ overflowX:'auto' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse', minWidth:260 }}>
+                    <thead style={{ background:'rgba(22,27,34,0.5)' }}>
+                      <tr>{['INSTRUMENT','ACTION','NET P&L'].map((h,i)=>(
+                        <th key={h} style={{ padding:'8px 14px', fontSize:8, color:'rgba(100,116,139,0.6)', textTransform:'uppercase', letterSpacing:'0.2em', textAlign:i===1?'center':i===2?'right':'left', whiteSpace:'nowrap' }}>{h}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody>
+                      {TRADES.map(t=>(
+                        <tr key={t.id} style={{ borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding:'8px 14px' }}>
+                            <div style={{ fontSize:11, fontWeight:900, color:'#fff' }}>{t.ticker}</div>
+                            <div style={{ fontSize:8, color:'rgba(100,116,139,0.6)', letterSpacing:'0.1em', textTransform:'uppercase', marginTop:2 }}>{t.date}</div>
+                          </td>
+                          <td style={{ padding:'8px 14px', textAlign:'center' }}>
+                            <span style={{ display:'inline-block', padding:'2px 8px', borderRadius:4, fontSize:8, fontWeight:900, letterSpacing:'0.2em', background:t.type==='LONG'?'rgba(16,185,129,0.1)':'rgba(244,63,94,0.1)', color:t.type==='LONG'?'#34d399':'#fb7185', border:`1px solid ${t.type==='LONG'?'rgba(16,185,129,0.15)':'rgba(244,63,94,0.15)'}` }}>{t.type}</span>
+                          </td>
+                          <td style={{ padding:'8px 14px', textAlign:'right', fontSize:11, fontWeight:900, color:t.status==='profit'?'#34d399':'#fb7185' }}>
+                            {t.status==='profit'?'+':'-'}${Math.abs(t.pnl).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <div className="text-center font-black text-white text-[10px] mb-4 uppercase tracking-[0.3em]">OCTOBER 2023</div>
-              <div className="grid grid-cols-7 gap-1.5">
-                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-                  <div key={`header-${d}`} className="text-[8px] font-black text-slate-700 text-center tracking-tighter">{d[0]}</div>
-                ))}
-                {heatmapDays.map(d => (
-                  <div key={`day-${d.day}`} className={`aspect-square flex items-center justify-center rounded-sm text-[10px] font-black border transition-all tabular-nums ${
-                    d.status === 'profit' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' :
-                    d.status === 'loss' ? 'bg-rose-500/20 text-rose-400 border-rose-500/20' :
-                    'bg-[#161b22] text-slate-700 border-transparent opacity-40'
-                  }`}>
-                    {d.day}
-                  </div>
-                ))}
+
+              {/* Activity Calendar */}
+              <div style={{ background:'#0d1117', border:'1px solid rgba(255,255,255,0.1)', padding:20, borderRadius:16 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+                  <div style={{ width:28, height:28, background:'rgba(56,189,248,0.1)', border:'1px solid rgba(56,189,248,0.1)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', color:'#38bdf8' }}><Activity size={14} strokeWidth={3}/></div>
+                  <h2 style={{ fontSize:11, fontWeight:900, color:'#38bdf8', textTransform:'uppercase', letterSpacing:'0.2em', margin:0 }}>ACTIVITY</h2>
+                </div>
+                <p style={{ textAlign:'center', fontSize:10, color:'#fff', letterSpacing:'0.3em', textTransform:'uppercase', marginBottom:12 }}>OCTOBER 2023</p>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
+                  {['S','M','T','W','T','F','S'].map((d,i)=><div key={i} style={{ fontSize:8, color:'rgba(55,65,81,0.8)', textAlign:'center', paddingBottom:4 }}>{d}</div>)}
+                  {heatmapDays.map(d=>(
+                    <div key={d.day} style={{ aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:4, fontSize:9, fontWeight:900, border:'1px solid transparent', background:d.status==='profit'?'rgba(16,185,129,0.2)':d.status==='loss'?'rgba(244,63,94,0.2)':'rgba(22,27,34,0.8)', color:d.status==='profit'?'#34d399':d.status==='loss'?'#fb7185':'rgba(55,65,81,0.8)', borderColor:d.status==='profit'?'rgba(16,185,129,0.2)':d.status==='loss'?'rgba(244,63,94,0.2)':'transparent', opacity:d.status==='none'?0.5:1 }}>{d.day}</div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-        </div>
-      </main>
+          </div>
+        </main>
       </div>
     </div>
   );
