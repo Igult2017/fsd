@@ -29,7 +29,7 @@ export default function TradingDashboard() {
         <div className={`p-2 bg-${color}-500/10`}>
           <Icon className={`w-5 h-5 text-${color}-400`} />
         </div>
-        <h2 className={`text-[11px] font-black uppercase tracking-[0.15em] text-${color}-400/90 font-sans`}>{title}</h2>
+        <h2 className={`text-[11px] font-black uppercase tracking-[0.15em] text-${color}-400/90 font-montserrat`}>{title}</h2>
       </div>
       {desc && <p className="text-slate-400 text-xs font-medium leading-relaxed">{desc}</p>}
     </div>
@@ -114,7 +114,7 @@ export default function TradingDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 p-8 selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#020617] text-slate-200 p-8 selection:bg-blue-500/30 font-montserrat">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
         .font-poppins { font-family: 'Poppins', sans-serif; }
@@ -152,11 +152,10 @@ export default function TradingDashboard() {
                     </svg>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '9px', letterSpacing: '0.12em', color: '#475569', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>{k.label}</span>
-                </div>
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ fontSize: '22px', fontWeight: 900, color: k.color, fontFamily: 'Outfit, sans-serif', letterSpacing: '-0.02em' }}>{k.value}</span>
+                  <span style={{ fontSize: '9px', letterSpacing: '0.12em', color: '#475569', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif' }}>{k.label}</span>
+                  <span style={{ fontSize: '9px', letterSpacing: '0.12em', color: '#475569', fontWeight: 700, fontFamily: 'Montserrat, sans-serif' }}> : </span>
+                  <span style={{ fontSize: '9px', letterSpacing: '0.05em', fontWeight: 900, color: k.color, fontFamily: 'Outfit, sans-serif' }}>{k.value}</span>
                 </div>
               </div>
             ))}
@@ -516,9 +515,9 @@ export default function TradingDashboard() {
               <div className="p-5 scroll-section">
                 <div className="space-y-3">
                   {[
-                    { name: 'EURUSD • H1 • London',    wr: 100 },
-                    { name: 'NAS100 • H1 • New York',  wr: 52 },
-                    { name: 'XAUUSD • M15 • London',   wr: 48 },
+                    { name: 'EURUSD / H1 / London',   wr: 100 },
+                    { name: 'NAS100 / H1 / New York', wr: 52 },
+                    { name: 'XAUUSD / M15 / London',  wr: 48 },
                   ].map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-4 bg-slate-800/20 border border-slate-800/40 hover:border-blue-500/40 hover:bg-slate-800/40 transition-all cursor-pointer group">
                       <div className="flex items-center gap-3">
@@ -802,10 +801,10 @@ export default function TradingDashboard() {
               <CardHeader icon={Activity} title="Instrument x Session — Impact on Win" desc="Win/Loss rate per asset and session." />
               <div className="p-5 scroll-section space-y-3">
                 {[
-                  { pair: 'EURUSD — London',   wr: 100, loss: 0 },
-                  { pair: 'NAS100 — New York', wr: 50,  loss: 50 },
-                  { pair: 'XAUUSD — London',   wr: 67,  loss: 33 },
-                  { pair: 'GBPUSD — London',   wr: 75,  loss: 25 },
+                  { pair: 'EURUSD / H1 / London',       wr: 100, loss: 0 },
+                  { pair: 'NAS100 / H1 / New York',     wr: 50,  loss: 50 },
+                  { pair: 'XAUUSD / M15 / London',      wr: 67,  loss: 33 },
+                  { pair: 'GBPUSD / H1 / London',       wr: 75,  loss: 25 },
                 ].map((item, idx) => (
                   <div key={idx} className="hover:bg-slate-800/20 p-3 rounded transition-colors">
                     <div className="text-sm font-semibold text-emerald-400 mb-2">{item.pair}</div>
@@ -827,10 +826,10 @@ export default function TradingDashboard() {
               <CardHeader icon={Activity} title="Asset + Strategy + Session + Condition — Impact on Win" desc="Full matrix win rate." />
               <div className="p-5 scroll-section space-y-3">
                 {[
-                  { combo: 'EURUSD — H1 — London — Trend',   win: 100, loss: 0 },
-                  { combo: 'NAS100 — H1 — New York — Range', win: 50,  loss: 50 },
-                  { combo: 'XAUUSD — M15 — London — Volatile',win: 40, loss: 60 },
-                  { combo: 'GBPJPY — M5 — Tokyo — Trend',    win: 67,  loss: 33 },
+                  { combo: 'EURUSD / H1 / London / Trend',     win: 100, loss: 0 },
+                  { combo: 'NAS100 / H1 / New York / Range',   win: 50,  loss: 50 },
+                  { combo: 'XAUUSD / M15 / London / Volatile',win: 40,  loss: 60 },
+                  { combo: 'GBPJPY / M5 / Tokyo / Trend',      win: 67,  loss: 33 },
                 ].map((item, idx) => (
                   <div key={idx} className="hover:bg-slate-800/20 p-3 rounded transition-colors">
                     <div className="text-[11px] font-semibold text-blue-400 mb-2">{item.combo}</div>
@@ -961,72 +960,110 @@ export default function TradingDashboard() {
 
             {/* Drawdown */}
             <div onClick={() => handleCardClick('drawdown')} className={cardBase('drawdown', 'rose')}>
-              <CardHeader icon={TrendingDown} title="Drawdown" desc="Monthly and max drawdown tracking." color="rose" />
-              <div className="p-5 space-y-3 scroll-section">
-                <ImpactStat label="Absolute Max DD" value="$300" highlight="text-blue-400" />
-                <ImpactStat label="% Max DD" value="0.30%" highlight="text-blue-400" />
-                <ImpactStat label="Current DD" value="0.30%" highlight="text-blue-400" />
-                <div className="w-full bg-slate-800/50 h-px mt-2">
-                  <div className="bg-rose-500 h-full" style={{ width: '30%' }} />
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-rose-500/10 rounded-xl"><TrendingDown className="w-4 h-4 text-rose-400" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-rose-400/80">Drawdown</span>
                 </div>
-                <div className="pt-3 border-t border-white/5">
-                  <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-2">Monthly DD</p>
-                  <div className="flex justify-between items-center py-2 px-3 bg-slate-950/40 border border-white/5">
-                    <span className="text-[10px] font-bold text-blue-400 uppercase">FEB 2026</span>
-                    <span className="text-xs font-black text-amber-500">0.30% (-$300)</span>
+                <div className="space-y-4">
+                  {[
+                    { label: 'Max DD', value: '$300', sub: '0.30%', color: 'text-rose-400' },
+                    { label: 'Current DD', value: '0.30%', sub: '-$300', color: 'text-amber-400' },
+                    { label: 'Cumulative', value: '$102,100', sub: 'balance', color: 'text-emerald-400' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between items-center py-3 px-4 bg-slate-950/50 rounded-xl border border-white/5">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{item.label}</span>
+                      <div className="text-right">
+                        <div className={`text-sm font-black ${item.color}`}>{item.value}</div>
+                        <div className="text-[9px] text-slate-600 mt-0.5">{item.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-2">
+                    <div className="flex justify-between text-[9px] text-slate-600 mb-1.5 uppercase tracking-wider">
+                      <span>DD Used</span><span>30%</span>
+                    </div>
+                    <div className="w-full bg-slate-800/60 rounded-full h-px">
+                      <div className="bg-rose-500 h-full rounded-full" style={{ width: '30%' }} />
+                    </div>
                   </div>
-                  <div className="mt-2 text-xs text-slate-400">Cumulative: <span className="text-white font-bold">$102,100</span></div>
+                  <div className="flex justify-between items-center pt-1 px-1">
+                    <span className="text-[9px] text-slate-600 uppercase tracking-wider">Feb 2026</span>
+                    <span className="text-[10px] font-bold text-amber-400">0.30% (-$300)</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Avg Win/Loss */}
             <div onClick={() => handleCardClick('avg-wl')} className={cardBase('avg-wl')}>
-              <CardHeader icon={BarChart3} title="Average Win / Loss" desc="Average size of winning vs losing trades." />
-              <div className="p-5 space-y-4 scroll-section">
-                <div className="flex justify-between items-center hover:bg-slate-800/20 p-2 rounded">
-                  <div>
-                    <div className="text-xs text-slate-500 mb-1">Average Win</div>
-                    <div className="text-base font-bold text-blue-400 italic">$1,050</div>
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-blue-500/10 rounded-xl"><BarChart3 className="w-4 h-4 text-blue-400" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-400/80">Avg Win / Loss</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-xl p-4 text-center">
+                    <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">Avg Win</div>
+                    <div className="text-lg font-semibold text-emerald-400">$1,050</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-slate-500 mb-1">Average Loss</div>
-                    <div className="text-base font-bold text-blue-400 italic">$300</div>
+                  <div className="bg-rose-500/8 border border-rose-500/20 rounded-xl p-4 text-center">
+                    <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">Avg Loss</div>
+                    <div className="text-lg font-semibold text-rose-400">$300</div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center p-2 border-t border-white/5">
-                  <span className="text-sm font-semibold text-slate-400">Win/Loss Ratio</span>
-                  <span className="text-base font-bold text-blue-400 italic">3.5</span>
+                <div className="bg-slate-950/50 rounded-xl border border-white/5 p-4 mb-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] text-slate-500 uppercase tracking-wider">Win / Loss Ratio</span>
+                    <span className="text-sm font-semibold text-blue-400">3.5</span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <StatBadge value="2" label="Wins"   color="emerald" />
-                  <StatBadge value="1" label="Losses" color="rose" />
+                  <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-xl p-3 text-center">
+                    <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Wins</div>
+                    <div className="text-xl font-semibold text-emerald-400">2</div>
+                  </div>
+                  <div className="bg-rose-500/8 border border-rose-500/20 rounded-xl p-3 text-center">
+                    <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Losses</div>
+                    <div className="text-xl font-semibold text-rose-400">1</div>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Win/Loss Streaks */}
             <div onClick={() => handleCardClick('streaks')} className={cardBase('streaks', 'purple')}>
-              <CardHeader icon={Activity} title="Win / Loss Streaks" desc="Longest consecutive winning and losing sequences." color="purple" />
-              <div className="p-5 space-y-4 scroll-section">
-                <div className="flex justify-between items-center p-3 bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10">
-                  <span className="text-sm font-semibold text-emerald-400">Longest Win Streak</span>
-                  <span className="text-2xl font-black text-blue-400 italic">2</span>
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-purple-500/10 rounded-xl"><Activity className="w-4 h-4 text-purple-400" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-400/80">Streaks</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-rose-500/5 border border-rose-500/20 hover:bg-rose-500/10">
-                  <span className="text-sm font-semibold text-rose-400">Longest Loss Streak</span>
-                  <span className="text-2xl font-black text-blue-400 italic">1</span>
-                </div>
-                <div className="pt-3 border-t border-white/5">
-                  <div className="text-xs text-slate-500 mb-2">Current Streak</div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 text-center p-3 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20">
-                      <div className="text-xs text-rose-400 mb-1">Status</div>
-                      <div className="text-lg font-black text-blue-400 italic">loss</div>
+                <div className="space-y-3 mb-4">
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex justify-between items-center">
+                    <div>
+                      <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Longest Win</div>
+                      <div className="text-[10px] font-bold text-emerald-400/70">Streak</div>
                     </div>
-                    <div className="flex-1 text-center p-3 bg-slate-800/30 border border-slate-700/40 hover:bg-slate-800/50">
-                      <div className="text-xs text-slate-500 mb-1">Count</div>
-                      <div className="text-lg font-black text-blue-400 italic">1</div>
+                    <div className="text-2xl font-semibold text-emerald-400">2</div>
+                  </div>
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 flex justify-between items-center">
+                    <div>
+                      <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Longest Loss</div>
+                      <div className="text-[10px] font-bold text-rose-400/70">Streak</div>
+                    </div>
+                    <div className="text-2xl font-semibold text-rose-400">1</div>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-slate-950/50 p-4">
+                  <div className="text-[9px] text-slate-600 uppercase tracking-wider mb-3">Current Streak</div>
+                  <div className="flex gap-3">
+                    <div className="flex-1 rounded-lg bg-rose-500/10 border border-rose-500/20 p-3 text-center">
+                      <div className="text-[9px] text-slate-500 uppercase mb-1">Status</div>
+                      <div className="text-sm font-black text-rose-400 italic">loss</div>
+                    </div>
+                    <div className="flex-1 rounded-lg bg-slate-800/40 border border-slate-700/30 p-3 text-center">
+                      <div className="text-[9px] text-slate-500 uppercase mb-1">Count</div>
+                      <div className="text-sm font-black text-white">1</div>
                     </div>
                   </div>
                 </div>
@@ -1035,19 +1072,24 @@ export default function TradingDashboard() {
 
             {/* Recovery Performance */}
             <div onClick={() => handleCardClick('recovery')} className={cardBase('recovery')}>
-              <CardHeader icon={RefreshCcw} title="Recovery Performance" desc="Tracks your ability to bounce back after losses." />
-              <div className="p-5 space-y-3 scroll-section">
-                <div className="text-xs text-slate-400 uppercase tracking-wide">Win Rate After Loss</div>
-                <div className="text-4xl font-black text-blue-400">0%</div>
-                <div className="text-xs text-slate-500">0 wins out of 0 trades</div>
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <div className="hover:bg-slate-800/20 p-2 rounded">
-                    <div className="text-xs text-slate-400 uppercase">Trades After Loss</div>
-                    <div className="text-2xl font-bold text-blue-400">0</div>
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-cyan-500/10 rounded-xl"><RefreshCcw className="w-4 h-4 text-cyan-400" /></div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-cyan-400/80">Recovery</span>
+                </div>
+                <div className="flex flex-col items-center justify-center mb-6">
+                  <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">Win Rate After Loss</div>
+                  <div className="text-3xl font-semibold text-cyan-400 mb-1">0%</div>
+                  <div className="text-[9px] text-slate-600">0 wins / 0 trades</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-slate-950/50 border border-white/5 p-4 text-center">
+                    <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">After Loss</div>
+                    <div className="text-xl font-semibold text-cyan-400">0</div>
                   </div>
-                  <div className="hover:bg-slate-800/20 p-2 rounded">
-                    <div className="text-xs text-slate-400 uppercase">Wins</div>
-                    <div className="text-2xl font-bold text-emerald-400">0</div>
+                  <div className="rounded-xl bg-slate-950/50 border border-white/5 p-4 text-center">
+                    <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">Wins</div>
+                    <div className="text-xl font-semibold text-emerald-400">0</div>
                   </div>
                 </div>
               </div>
@@ -1158,7 +1200,7 @@ export default function TradingDashboard() {
                       <circle cx="80" cy="80" r="70" fill="none" stroke="#10b981" strokeWidth="12" strokeDasharray="440" strokeDashoffset="436.48" className="drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]" strokeLinecap="round" />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-3xl font-black text-emerald-400">0.8%</div>
+                      <div className="text-xl font-semibold text-emerald-400">0.8%</div>
                       <div className="text-xs text-slate-500 uppercase tracking-wider">Risk</div>
                     </div>
                   </div>
@@ -1184,7 +1226,7 @@ export default function TradingDashboard() {
             <div className="p-5 border-b border-slate-800/40 bg-slate-900/20">
               <div className="flex items-center gap-3">
                 <Activity className="w-5 h-5 text-blue-400" />
-                <h2 className="text-sm font-black uppercase tracking-wide text-blue-400 font-sans">Strategy Performance — Impact on Win in Bullish, Bearish and Ranging Markets</h2>
+                <h2 className="text-sm font-black uppercase tracking-wide text-blue-400 font-montserrat">Strategy Performance — Impact on Win in Bullish, Bearish and Ranging Markets</h2>
               </div>
             </div>
             <div className="p-5 overflow-x-auto">
@@ -1229,7 +1271,7 @@ export default function TradingDashboard() {
                 <div className="p-2 bg-cyan-500/10">
                   <Calendar className="w-5 h-5 text-cyan-400" />
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-wide text-cyan-400 font-sans">Setup Occurrence Frequency — Per Day / Week / Month / Year</h2>
+                <h2 className="text-sm font-black uppercase tracking-wide text-cyan-400 font-montserrat">Setup Occurrence Frequency — Per Day / Week / Month / Year</h2>
               </div>
             </div>
             <div className="p-5 overflow-x-auto">
