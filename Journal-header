@@ -1,0 +1,206 @@
+import React, { useState, useEffect } from "react";
+
+export default function App() {
+  const [activeNav, setActiveNav] = useState("HOME");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navItems = ["HOME", "ASSETS", "FREE JOURNAL", "TSC", "ECONOMIC CALENDAR", "BLOG"];
+
+  // Close menu on resize if screen becomes large
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <>
+      {/* Import Montserrat from Google Fonts */}
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap');
+          
+          /* Custom scrollbar for mobile menu if needed */
+          .mobile-menu::-webkit-scrollbar {
+            width: 4px;
+          }
+          .mobile-menu::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+          }
+        `}
+      </style>
+      
+      <div style={{ 
+        fontFamily: "'Montserrat', sans-serif", 
+        background: "#111", 
+        minHeight: "100vh",
+        position: "relative"
+      }}>
+        {/* Main nav bar */}
+        <header style={{
+          background: "#0d0d0d",
+          borderBottom: "1px solid #1e1e1e",
+          padding: "15px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          height: "70px",
+          boxSizing: "border-box"
+        }}>
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "baseline", cursor: "pointer" }} onClick={() => setActiveNav("HOME")}>
+            <span style={{ 
+              fontSize: "20px", 
+              fontWeight: "900", 
+              color: "#fff", 
+              letterSpacing: "-0.02em" 
+            }}>
+              FSDZONES
+            </span>
+            <span style={{ 
+              fontSize: "20px", 
+              fontWeight: "900", 
+              color: "#4da8f0",
+              letterSpacing: "-0.02em"
+            }}>
+              .COM
+            </span>
+          </div>
+
+          {/* Desktop Nav links (Hidden on mobile/tablet) */}
+          <nav style={{ 
+            display: "none", 
+            alignItems: "center", 
+            gap: "24px",
+          }} className="desktop-only">
+            <style>{`
+              @media (min-width: 1025px) {
+                .desktop-only { display: flex !important; }
+                .mobile-toggle { display: none !important; }
+              }
+            `}</style>
+            {navItems.map((item) => (
+              <a
+                key={item}
+                href="#"
+                onClick={(e) => { e.preventDefault(); setActiveNav(item); }}
+                style={{
+                  color: activeNav === item ? "#fff" : "#555",
+                  textDecoration: "none",
+                  fontSize: "11px",
+                  fontWeight: "800",
+                  letterSpacing: "0.08em",
+                  paddingBottom: "4px",
+                  borderBottom: activeNav === item ? "2px solid #4da8f0" : "2px solid transparent",
+                  transition: "color 0.15s, border-color 0.15s",
+                  whiteSpace: "nowrap"
+                }}
+                onMouseEnter={(e) => { 
+                  if (activeNav !== item) e.currentTarget.style.color = "#ccc"; 
+                }}
+                onMouseLeave={(e) => { 
+                  e.currentTarget.style.color = activeNav === item ? "#fff" : "#555"; 
+                }}
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="mobile-toggle"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#fff",
+              cursor: "pointer",
+              padding: "5px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "5px",
+              zIndex: 110
+            }}
+          >
+            <div style={{ 
+              width: "25px", 
+              height: "2px", 
+              background: "#fff", 
+              transition: "0.3s",
+              transform: isMenuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"
+            }} />
+            <div style={{ 
+              width: "25px", 
+              height: "2px", 
+              background: "#fff", 
+              opacity: isMenuOpen ? 0 : 1,
+              transition: "0.3s"
+            }} />
+            <div style={{ 
+              width: "25px", 
+              height: "2px", 
+              background: "#fff", 
+              transition: "0.3s",
+              transform: isMenuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none"
+            }} />
+          </button>
+        </header>
+
+        {/* Mobile Menu Overlay */}
+        <div style={{
+          position: "fixed",
+          top: "70px",
+          left: 0,
+          width: "100%",
+          height: isMenuOpen ? "calc(100vh - 70px)" : "0",
+          background: "#0d0d0d",
+          zIndex: 90,
+          overflowY: "auto",
+          transition: "0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          visibility: isMenuOpen ? "visible" : "hidden",
+          opacity: isMenuOpen ? 1 : 0,
+          borderTop: "1px solid #1e1e1e"
+        }} className="mobile-menu">
+          <nav style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            padding: "40px 20px",
+            gap: "20px"
+          }}>
+            {navItems.map((item) => (
+              <a
+                key={item}
+                href="#"
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  setActiveNav(item); 
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  color: activeNav === item ? "#4da8f0" : "#fff",
+                  textDecoration: "none",
+                  fontSize: "18px",
+                  fontWeight: "900",
+                  letterSpacing: "0.05em",
+                  padding: "10px 0",
+                  borderBottom: "1px solid #1a1a1a",
+                  transition: "0.2s"
+                }}
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </>
+  );
+}
