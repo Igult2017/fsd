@@ -1,0 +1,994 @@
+import React, { useState } from 'react';
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap');`;
+
+const P = {
+  bg:'#0D0F1C', bg2:'#121526', bg3:'#171A30',
+  line:'#1E2240', line2:'#252848',
+  dim:'#6A7299', muted:'#8A93B8', body:'#B0B8D4',
+  bright:'#D8DCF0', white:'#EEF0FA',
+  green:'#4AE88A', greenDim:'#1A3A30',
+  red:'#E84A4A',   redDim:'#3A1A1A',
+  amber:'#E8B84A', amberDim:'#3A2E1A',
+  cyan:'#4AE8D8',  cyanDim:'#1A3A38',
+};
+
+const pColor = v => v >= 65 ? P.green : v >= 50 ? P.amber : P.red;
+
+const Mono = ({ children, size=11, color=P.muted, weight=400, upper=true, spacing='0.14em', style={}, className='' }) => (
+  <span className={className} style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:size, color, fontWeight:weight,
+    letterSpacing:spacing, textTransform:upper?'uppercase':'none', ...style }}>{children}</span>
+);
+const Cond = ({ children, size=14, color=P.bright, weight=600, upper=true, style={}, className='' }) => (
+  <span className={className} style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:size, color, fontWeight:weight,
+    letterSpacing:'0.06em', textTransform:upper?'uppercase':'none', lineHeight:1, ...style }}>{children}</span>
+);
+const Num = ({ children, size=17, color=P.green, style={} }) => (
+  <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:size, color, fontWeight:700,
+    letterSpacing:'0.02em', lineHeight:1, ...style }}>{children}</span>
+);
+
+const Corner = ({ size=6, color=P.dim, pos }) => {
+  const s = { position:'absolute', width:size, height:size };
+  const b = {
+    tl:{ top:0,left:0,  borderTop:`1px solid ${color}`,borderLeft:`1px solid ${color}` },
+    tr:{ top:0,right:0, borderTop:`1px solid ${color}`,borderRight:`1px solid ${color}` },
+    bl:{ bottom:0,left:0,  borderBottom:`1px solid ${color}`,borderLeft:`1px solid ${color}` },
+    br:{ bottom:0,right:0, borderBottom:`1px solid ${color}`,borderRight:`1px solid ${color}` },
+  };
+  return <div style={{...s,...b[pos]}} />;
+};
+
+const Panel = ({ title, accent=P.green, tag, children, style={} }) => (
+  <div style={{ background:P.bg2, border:`1px solid ${P.line2}`, position:'relative', ...style }}>
+    <Corner pos="tl" color={accent}/><Corner pos="tr" color={accent}/>
+    <Corner pos="bl" color={P.line2}/><Corner pos="br" color={P.line2}/>
+    <div style={{ borderBottom:`1px solid ${P.line2}`, padding:'7px 12px', background:P.bg3,
+      display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <div style={{ width:2, height:12, background:accent, flexShrink:0 }} />
+        <Cond size={11} color={P.bright} weight={700}>{title}</Cond>
+      </div>
+      {tag && <Mono size={8} color={P.dim}>{tag}</Mono>}
+    </div>
+    <div style={{ padding:12 }}>{children}</div>
+  </div>
+);
+
+const Divider = ({ label }) => (
+  <div style={{ display:'flex', alignItems:'center', gap:12, margin:'2px 0' }}>
+    <div style={{ flex:1, height:1, background:`linear-gradient(to right,transparent,${P.line2})` }} />
+    <Mono size={9} color={P.dim}>{label}</Mono>
+    <div style={{ flex:1, height:1, background:`linear-gradient(to left,transparent,${P.line2})` }} />
+  </div>
+);
+
+const SubLabel = ({ children }) => (
+  <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, color:P.muted,
+    textTransform:'uppercase', letterSpacing:'0.18em',
+    borderTop:`1px solid ${P.line}`, paddingTop:7, marginTop:9, marginBottom:5 }}>{children}</div>
+);
+
+const DR = ({ label, value, vc }) => (
+  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+    padding:'5px 0', borderBottom:`1px solid ${P.line}` }}>
+    <Mono size={10} color={P.body}>{label}</Mono>
+    <Mono size={11} color={vc||P.bright} weight={500}>{value}</Mono>
+  </div>
+);
+
+const Bar = ({ label, pct, sub }) => (
+  <div style={{ marginBottom:8 }}>
+    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:3 }}>
+      <Mono size={10} color={P.body}>{label}</Mono>
+      <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+        {sub && <Mono size={9} color={P.muted}>{sub}</Mono>}
+        <Num size={17} color={pColor(pct)}>{pct}<span style={{fontSize:9,opacity:0.6}}>%</span></Num>
+      </div>
+    </div>
+    <div style={{ height:2, background:P.line2 }}>
+      <div style={{ height:'100%', width:`${pct}%`, background:pColor(pct), opacity:0.85 }} />
+    </div>
+  </div>
+);
+
+const YN = ({ label, yes, no }) => (
+  <div style={{ display:'flex', borderBottom:`1px solid ${P.line}`, alignItems:'stretch' }}>
+    <div style={{ flex:1, padding:'5px 7px', borderRight:`1px solid ${P.line}` }}>
+      <Mono size={10} color={P.body}>{label}</Mono>
+    </div>
+    <div style={{ width:52, padding:'3px 5px', borderRight:`1px solid ${P.line}`, textAlign:'center' }}>
+      <Mono size={7} color={P.dim} style={{ display:'block', marginBottom:1 }}>YES</Mono>
+      <Cond size={13} color={pColor(yes)} weight={700}>{yes}%</Cond>
+    </div>
+    <div style={{ width:52, padding:'3px 5px', textAlign:'center' }}>
+      <Mono size={7} color={P.dim} style={{ display:'block', marginBottom:1 }}>NO</Mono>
+      <Cond size={13} color={pColor(no)} weight={700}>{no}%</Cond>
+    </div>
+  </div>
+);
+
+const Multi = ({ label, options }) => (
+  <div style={{ marginBottom:6 }}>
+    {label && <Mono size={9} color={P.muted} style={{ display:'block', marginBottom:4 }}>{label}</Mono>}
+    <div style={{ display:'grid', gridTemplateColumns:`repeat(${options.length},1fr)`, gap:1, background:P.line }}>
+      {options.map((o,i) => (
+        <div key={i} style={{ background:P.bg2, padding:'5px 4px', textAlign:'center' }}>
+          <Mono size={8} color={P.muted} style={{ display:'block', marginBottom:1 }}>{o.label}</Mono>
+          <Cond size={13} color={pColor(o.pct)} weight={700}>{o.pct}%</Cond>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const ScoreRow = ({ label, scores }) => (
+  <div style={{ marginBottom:6 }}>
+    <Mono size={9} color={P.muted} style={{ display:'block', marginBottom:4 }}>{label}</Mono>
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:1, background:P.line }}>
+      {scores.map((s,i) => (
+        <div key={i} style={{ background:P.bg2, padding:'5px 3px', textAlign:'center' }}>
+          <Mono size={8} color={P.muted} style={{ display:'block' }}>{s.score}</Mono>
+          <Cond size={13} color={pColor(s.pct)} weight={700}>{s.pct}%</Cond>
+          <div style={{ height:1, background:P.line2, marginTop:2 }}>
+            <div style={{ width:`${s.pct}%`, height:'100%', background:pColor(s.pct) }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const SplitBar = ({ label, win, loss }) => (
+  <div style={{ marginBottom:9 }}>
+    <Mono size={10} color={P.body} style={{ display:'block', marginBottom:3 }}>{label}</Mono>
+    <div style={{ height:2, display:'flex', gap:1 }}>
+      <div style={{ flex:win,  background:P.green, opacity:0.8 }} />
+      <div style={{ flex:loss, background:P.red,   opacity:0.8 }} />
+    </div>
+    <div style={{ display:'flex', justifyContent:'space-between', marginTop:2 }}>
+      <Mono size={7} color={P.green}>{win}% WIN</Mono>
+      <Mono size={7} color={loss > 0 ? P.red : P.dim}>{loss}% LOSS</Mono>
+    </div>
+  </div>
+);
+
+const Scroll = ({ children }) => (
+  <div style={{ maxHeight:400, overflowY:'auto', paddingRight:2 }} className="scroll-body">{children}</div>
+);
+
+const EquityChart = () => {
+  const [view, setView] = useState('WEEKLY');
+  const data = {
+    DAILY:  { pts:[[0,148],[75,132],[150,138],[225,115],[300,98],[375,82],[450,64],[525,44],[600,20]],
+               labs:['9AM','11AM','1PM','3PM','5PM','7PM','9PM','11PM'] },
+    WEEKLY: { pts:[[0,160],[150,128],[300,108],[450,68],[600,20]], labs:['MON','TUE','WED','THU','FRI'] },
+    MONTHLY:{ pts:[[0,168],[150,118],[300,138],[450,68],[600,20]], labs:['NOV','DEC','JAN','FEB','MAR'] },
+  };
+  const d=data[view]; const H=160; const W=600;
+  const path=d.pts.reduce((a,[x,y],i)=>{
+    if(i===0) return `M${x},${y}`;
+    const [px,py]=d.pts[i-1]; const cx=px+(x-px)/2;
+    return `${a} C${cx},${py} ${cx},${y} ${x},${y}`;
+  },'');
+  const fill=`${path} L${d.pts[d.pts.length-1][0]},${H} L0,${H} Z`;
+  const last=d.pts[d.pts.length-1];
+  return (
+    <div style={{ background:P.bg2, border:`1px solid ${P.line2}`, position:'relative' }}>
+      <Corner pos="tl" color={P.cyan}/><Corner pos="tr" color={P.cyan}/>
+      <Corner pos="bl" color={P.line2}/><Corner pos="br" color={P.line2}/>
+      <div style={{ borderBottom:`1px solid ${P.line2}`, padding:'7px 12px', background:P.bg3,
+        display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ width:2, height:12, background:P.cyan }} />
+          <Cond size={11} color={P.bright} weight={700}>Equity Curve</Cond>
+        </div>
+        <div style={{ display:'flex', gap:1 }}>
+          {['DAILY','WEEKLY','MONTHLY'].map(v=>(
+            <button key={v} onClick={()=>setView(v)} style={{
+              fontFamily:"'Share Tech Mono',monospace", fontSize:8, letterSpacing:'0.12em',
+              textTransform:'uppercase', padding:'3px 9px',
+              border:`1px solid ${view===v?P.cyan:P.line2}`,
+              background:view===v?`${P.cyan}18`:'transparent',
+              color:view===v?P.cyan:P.muted, cursor:'pointer', outline:'none' }}>{v}</button>
+          ))}
+        </div>
+        <div style={{ display:'flex', gap:18 }}>
+          {[['BALANCE','$102,100',P.green],['RETURN','+2.1%',P.green],['START','$100,000',P.body]].map(([l,v,c],i)=>(
+            <div key={i} style={{ textAlign:'right' }}>
+              <Mono size={7} color={P.dim} style={{ display:'block' }}>{l}</Mono>
+              <Cond size={15} color={c} weight={700}>{v}</Cond>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding:'12px 14px 10px' }}>
+        <div style={{ display:'flex', gap:8 }}>
+          <div style={{ display:'flex', flexDirection:'column', justifyContent:'space-between', paddingRight:6, paddingBottom:18 }}>
+            {['102.1K','101.5K','100.8K','100.0K'].map((l,i)=><Mono key={i} size={7} color={P.dim}>{l}</Mono>)}
+          </div>
+          <div style={{ flex:1 }}>
+            <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="cg2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={P.cyan} stopOpacity="0.18"/>
+                  <stop offset="100%" stopColor={P.cyan} stopOpacity="0.01"/>
+                </linearGradient>
+              </defs>
+              {[0,0.33,0.66,1].map((p,i)=>(
+                <line key={i} x1="0" y1={p*H} x2={W} y2={p*H} stroke={P.line} strokeWidth="1"/>
+              ))}
+              <path d={fill} fill="url(#cg2)"/>
+              <path d={path} fill="none" stroke={P.cyan} strokeWidth="1.5"/>
+              <circle cx={last[0]} cy={last[1]} r="4" fill={P.bg2} stroke={P.cyan} strokeWidth="1.5"/>
+              <circle cx={last[0]} cy={last[1]} r="1.5" fill={P.cyan}/>
+            </svg>
+            <div style={{ display:'flex', justifyContent:'space-between', marginTop:4 }}>
+              {d.labs.map((l,i)=><Mono key={i} size={7} color={P.dim}>{l}</Mono>)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function Dashboard() {
+  const [strat, setStrat] = useState('ALL STRATEGIES');
+
+  const css = `
+    ${FONTS}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:${P.bg};}
+    .dash{font-family:'Barlow',sans-serif;background:${P.bg};color:${P.body};min-height:100vh;}
+    .dash::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);}
+
+    /* ── KPI Strip ── */
+    .kpi-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:8px 20px;background:${P.bg};border-bottom:1px solid ${P.line2};}
+    .kpi-cell{background:${P.bg2};border:1px solid ${P.line2};padding:10px 14px 12px;position:relative;overflow:hidden;}
+    .kpi-cell::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+    .kpi-pos::before{background:linear-gradient(to right,${P.green},transparent);}
+    .kpi-neg::before{background:linear-gradient(to right,${P.red},transparent);}
+    .kpi-neu::before{background:linear-gradient(to right,${P.line2},transparent);}
+
+    /* ── Layout ── */
+    .page{padding:14px 20px;display:flex;flex-direction:column;gap:12px;}
+    .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    .g2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+
+    /* ── Tables ── */
+    .scroll-body{max-height:420px;overflow-y:auto;}
+    .scroll-body::-webkit-scrollbar{width:2px;}
+    .scroll-body::-webkit-scrollbar-thumb{background:${P.line2};}
+    .dtable{width:100%;border-collapse:collapse;}
+    .dtable th{font-family:'Share Tech Mono',monospace;font-size:9px;color:${P.dim};text-transform:uppercase;
+      letter-spacing:0.16em;padding:7px 11px;text-align:left;border-bottom:1px solid ${P.line2};font-weight:400;}
+    .dtable td{font-family:'Share Tech Mono',monospace;font-size:10px;padding:8px 11px;
+      border-bottom:1px solid ${P.line};color:${P.bright};}
+    .dtable tr:last-child td{border-bottom:none;}
+    .dn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.05em;}
+    select{font-family:'Share Tech Mono',monospace;font-size:9px;background:${P.bg};
+      border:1px solid ${P.line2};color:${P.body};padding:4px 9px;letter-spacing:0.12em;
+      text-transform:uppercase;outline:none;cursor:pointer;}
+
+    /* ── Tablet ≤ 1024px ── */
+    @media(max-width:1024px){
+      .page{padding:10px 14px;gap:10px;}
+      .g4{grid-template-columns:repeat(2,1fr);}
+      .g3{grid-template-columns:1fr;}
+      .g2{grid-template-columns:repeat(2,1fr);}
+      .kpi-strip{grid-template-columns:repeat(4,1fr);}
+      .kpi-cell:nth-child(n+5){}
+      .scroll-body{max-height:320px;}
+      .equity-ruin-grid{grid-template-columns:1fr !important;}
+      .strat-grid{grid-template-columns:1fr !important;}
+    }
+
+    /* ── Mobile ≤ 640px ── */
+    @media(max-width:640px){
+      .page{padding:8px 10px;gap:8px;}
+      .g4{grid-template-columns:1fr;}
+      .g3{grid-template-columns:1fr;}
+      .g2{grid-template-columns:1fr;}
+
+      /* KPI strip wraps to 2-col on mobile */
+      .kpi-strip{grid-template-columns:repeat(2,1fr);padding:8px 10px;}
+      .kpi-cell:last-child{grid-column:1/-1;}
+
+      .scroll-body{max-height:none;}
+      .dtable th,.dtable td{padding:6px 8px;font-size:9px;}
+      .equity-ruin-grid{grid-template-columns:1fr !important;}
+      .strat-grid{grid-template-columns:1fr !important;}
+    }
+  `;
+
+  return (
+    <div className="dash">
+      <style>{css}</style>
+
+      {/* ── KPI Strip ── */}
+      <div className="kpi-strip">
+        {[
+          {l:'Total P&L',      v:'+$2,100', s:'this period',  cls:'kpi-pos'},
+          {l:'Win Rate',       v:'67%',     s:'2W · 1L',      cls:'kpi-pos'},
+          {l:'R Expectancy',   v:'2.83',    s:'per trade',    cls:'kpi-pos'},
+          {l:'Trades',         v:'3',       s:'this period',  cls:'kpi-neu'},
+          {l:'Profit Factor',  v:'8.00',    s:'gross ratio',  cls:'kpi-pos'},
+          {l:'Avg R:R',        v:'1:2.5',   s:'achieved',     cls:'kpi-neu'},
+          {l:'Rules Adherence',v:'94%',     s:'followed',     cls:'kpi-pos'},
+        ].map((k,i)=>(
+          <div key={i} className={`kpi-cell ${k.cls}`}>
+            <Mono size={8} color={P.muted} className="kpi-label" style={{ display:'block', marginBottom:6, letterSpacing:'0.16em' }}>{k.l}</Mono>
+            <Cond size={26}
+              color={k.cls==='kpi-pos' ? P.green : k.cls==='kpi-neg' ? P.red : P.bright}
+              weight={700}
+              className="kpi-value"
+              style={{ display:'block', lineHeight:1, marginBottom:5 }}>{k.v}</Cond>
+            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <div style={{ width:16, height:1, background: k.cls==='kpi-pos' ? P.greenDim : k.cls==='kpi-neg' ? P.redDim : P.line2 }}/>
+              <Mono size={8} color={P.dim} className="kpi-sub">{k.s}</Mono>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="page">
+
+        <Divider label="Core Quality Metrics"/>
+        <div className="g4">
+
+          {/* Market Regime */}
+          <Panel title="Market Regime — Impact on Win" accent={P.cyan} tag="REGIME · VOLATILITY">
+            <Bar label="Trending" pct={67}/>
+            <Bar label="Ranging"  pct={38}/>
+            <Bar label="Volatile" pct={44}/>
+            <SubLabel>Volatility State — Impact on Win</SubLabel>
+            <Bar label="Low"    pct={58}/>
+            <Bar label="Normal" pct={67}/>
+            <Bar label="High"   pct={39}/>
+          </Panel>
+
+          {/* Execution Precision */}
+          <Panel title="Execution Precision — Impact on Win" accent={P.amber} tag="SCORE → WIN%">
+            <Scroll>
+              <ScoreRow label="Entry Precision"   scores={[{score:'4.5',pct:70},{score:'4.0',pct:62},{score:'3.5',pct:51},{score:'3.0',pct:38}]}/>
+              <ScoreRow label="Timing Quality"    scores={[{score:'4.5',pct:72},{score:'4.0',pct:65},{score:'3.5',pct:54},{score:'3.0',pct:41}]}/>
+              <ScoreRow label="Market Alignment"  scores={[{score:'4.5',pct:75},{score:'4.0',pct:68},{score:'3.5',pct:57},{score:'3.0',pct:44}]}/>
+              <ScoreRow label="Setup Clarity"     scores={[{score:'4.5',pct:70},{score:'4.0',pct:63},{score:'3.5',pct:55},{score:'3.0',pct:43}]}/>
+              <ScoreRow label="Confluence Score"  scores={[{score:'4.5',pct:73},{score:'4.0',pct:66},{score:'3.5',pct:58},{score:'3.0',pct:45}]}/>
+              <ScoreRow label="Signal Validation" scores={[{score:'4.5',pct:71},{score:'4.0',pct:64},{score:'3.5',pct:53},{score:'3.0',pct:42}]}/>
+              <SubLabel>Planned vs Actual (Avg Pips)</SubLabel>
+              <DR label="Entry Deviation" value="+0.8 pips" vc={P.green}/>
+              <DR label="SL Deviation"    value="−0.3 pips" vc={P.amber}/>
+              <DR label="TP Deviation"    value="+1.2 pips" vc={P.green}/>
+              <SubLabel>Breakeven Applied — Impact</SubLabel>
+              <div style={{ marginBottom:6 }}>
+                <Mono size={8} color={P.dim} style={{ display:'block', marginBottom:4 }}>Impact on Loss</Mono>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:1, background:P.line }}>
+                  {[['YES','39%',P.green],['NO','61%',P.red]].map(([l,v,c],i)=>(
+                    <div key={i} style={{ background:P.bg2, padding:'5px 4px', textAlign:'center' }}>
+                      <Mono size={7} color={P.dim} style={{ display:'block' }}>{l}</Mono>
+                      <Cond size={13} color={c} weight={700}>{v}</Cond>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom:8 }}>
+                <Mono size={8} color={P.dim} style={{ display:'block', marginBottom:4 }}>Impact on Profit</Mono>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:1, background:P.line }}>
+                  {[['YES','56%',P.green],['NO','44%',P.amber]].map(([l,v,c],i)=>(
+                    <div key={i} style={{ background:P.bg2, padding:'5px 4px', textAlign:'center' }}>
+                      <Mono size={7} color={P.dim} style={{ display:'block' }}>{l}</Mono>
+                      <Cond size={13} color={c} weight={700}>{v}</Cond>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <Multi label="Management Type — Impact on Win"
+                options={[{label:'Rule-Based',pct:64},{label:'Discret.',pct:51},{label:'Hybrid',pct:58}]}/>
+            </Scroll>
+          </Panel>
+
+          {/* Clarity & Confluence */}
+          <Panel title="Clarity & Confluence — Impact on Win" accent={P.green} tag="CONFLUENCE">
+            <Scroll>
+              <Multi label="Clarity Level — Impact on Win" options={[{label:'High',pct:69},{label:'Low',pct:46}]}/>
+              <DR label="Setup Clarity Avg — Impact on Win" value="68%" vc={P.green}/>
+              <DR label="Confluence Avg — Impact on Win"   value="66%" vc={P.green}/>
+              <SubLabel>Yes / No — Impact on Win</SubLabel>
+              <YN label="MTF Alignment"         yes={70} no={43}/>
+              <YN label="Trend Alignment"       yes={72} no={45}/>
+              <YN label="HTF Key Level Present" yes={74} no={48}/>
+              <YN label="Key Level Respect"     yes={69} no={44}/>
+              <SubLabel>Key Level Type — Impact on Win</SubLabel>
+              <Multi label="" options={[{label:'Support',pct:63},{label:'Resist.',pct:60},{label:'Supply',pct:55},{label:'Demand',pct:67}]}/>
+              <YN label="Momentum: Strong" yes={71} no={46}/>
+              <ScoreRow label="Momentum Score — Impact on Win"
+                scores={[{score:'4.5',pct:73},{score:'4.0',pct:65},{score:'3.5',pct:56},{score:'3.0',pct:42}]}/>
+              <YN label="Target Logic" yes={68} no={47}/>
+              <Multi label="Timing Context — Impact on Win" options={[{label:'Good',pct:66},{label:'Poor',pct:41}]}/>
+              <Multi label="Order Type — Impact on Win"     options={[{label:'Limit',pct:67},{label:'Market',pct:52},{label:'Stop',pct:49}]}/>
+            </Scroll>
+          </Panel>
+
+          {/* Psychology & Discipline */}
+          <Panel title="Psychology & Discipline — Impact on Win" accent={P.red} tag="PSYCHOLOGY">
+            <Scroll>
+              <Multi label="Rules Followed — Impact on Win/Loss" options={[{label:'High',pct:71},{label:'Low',pct:38}]}/>
+              <Multi label="Confidence — Impact on Win/Loss"     options={[{label:'High',pct:69},{label:'Low',pct:42}]}/>
+              <Multi label="Energy Level — Impact on Win/Loss"   options={[{label:'High',pct:65},{label:'Low',pct:44}]}/>
+              <Multi label="Focus Level — Impact on Win"         options={[{label:'High',pct:70},{label:'Low',pct:43}]}/>
+              <Multi label="Confidence at Entry — Impact on Win" options={[{label:'High',pct:68},{label:'Low',pct:46}]}/>
+              <Multi label="Emotional State — Impact on Win"     options={[{label:'Calm',pct:66},{label:'Emotional',pct:39}]}/>
+              <SubLabel>Yes / No — Impact on Win</SubLabel>
+              <YN label="External Distraction" yes={41} no={64}/>
+              <YN label="Setup Fully Valid"     yes={72} no={37}/>
+              <YN label="Any Rule Broken"       yes={35} no={68}/>
+              <YN label="FOMO Trades"           yes={28} no={66}/>
+              <YN label="Revenge Trades"        yes={24} no={65}/>
+              <YN label="Boredom Trades"        yes={33} no={64}/>
+              <YN label="Emotional Trades"      yes={31} no={67}/>
+              <SubLabel>Edge States</SubLabel>
+              <Multi label="Emotional Edge — Impact on Win" options={[{label:'Stable',pct:69},{label:'Unstable',pct:36}]}/>
+              <Multi label="Focus State — Impact on Win"    options={[{label:'Focused',pct:71},{label:'Unfocused',pct:40}]}/>
+            </Scroll>
+          </Panel>
+        </div>
+
+        <Divider label="Direction · Setup · Exit · Governance"/>
+        <div className="g4">
+
+          {/* Direction & Bias */}
+          <Panel title="Direction & Bias — Impact on Win" accent={P.amber} tag="DIRECTION">
+            <Scroll>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Direction</SubLabel>
+              <Bar label="Long  (2 trades)" pct={75}/>
+              <Bar label="Short (1 trade)"  pct={50}/>
+              <SubLabel>HTF Bias — Impact on Win</SubLabel>
+              <Bar label="Bull"  pct={75}/>
+              <Bar label="Bear"  pct={40}/>
+              <Bar label="Range" pct={32}/>
+              <SubLabel>Directional Bias — Impact on Win</SubLabel>
+              <Bar label="Long Bias"  pct={70}/>
+              <Bar label="Short Bias" pct={45}/>
+            </Scroll>
+          </Panel>
+
+          {/* Setup Tags & Trade Grade */}
+          <Panel title="Setup Tags & Trade Grade — Impact on Win" accent={P.amber} tag="SETUP · GRADE">
+            <Scroll>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Setup Tag — Impact on Win</SubLabel>
+              <Bar label="Breakout     (4)" pct={74}/>
+              <Bar label="Reversal     (6)" pct={51}/>
+              <Bar label="Continuation (5)" pct={68}/>
+              <Bar label="Pullback     (8)" pct={63}/>
+              <Bar label="Momentum     (5)" pct={71}/>
+              <SubLabel>Trade Grade — Impact on Win</SubLabel>
+              <Bar label="A — Textbook"    pct={90}/>
+              <Bar label="B — Solid"       pct={70}/>
+              <Bar label="C — Acceptable"  pct={50}/>
+              <Bar label="D — Marginal"    pct={25}/>
+              <Bar label="F — Poor"        pct={10}/>
+            </Scroll>
+          </Panel>
+
+          {/* Exit Causation */}
+          <Panel title="Exit Causation — Impact on Win" accent={P.red} tag="EXIT ANALYSIS">
+            <Scroll>
+              {[
+                {l:'Target Hit',       ct:2,pct:67,r:'3.20'},
+                {l:'Stop Hit',         ct:1,pct:33,r:'−1.00'},
+                {l:'Emotional Exit',   ct:0,pct:0, r:'0.00'},
+                {l:'Structure Change', ct:0,pct:0, r:'0.00'},
+                {l:'Time Exit',        ct:0,pct:0, r:'0.00'},
+                {l:'News',             ct:0,pct:0, r:'0.00'},
+              ].map((x,i)=>(
+                <div key={i} style={{ marginBottom:8 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:3 }}>
+                    <Mono size={9} color={P.muted}>{x.l} <span style={{color:P.dim}}>({x.ct})</span></Mono>
+                    <div style={{ display:'flex', gap:8, alignItems:'baseline' }}>
+                      <Mono size={8} color={P.dim}>{x.r}R</Mono>
+                      <Num size={17} color={pColor(x.pct)}>{x.pct}<span style={{fontSize:9,opacity:0.6}}>%</span></Num>
+                    </div>
+                  </div>
+                  <div style={{ height:2, background:P.line2 }}>
+                    <div style={{ height:'100%', width:`${x.pct||1}%`, background:pColor(x.pct), opacity:0.85 }}/>
+                  </div>
+                </div>
+              ))}
+              <SubLabel>Planned vs Achieved R:R</SubLabel>
+              <DR label="Avg Planned R:R"  value="1:2.8"/>
+              <DR label="Avg Achieved R:R" value="1:2.5" vc={P.green}/>
+              <DR label="R:R Slippage"     value="−0.3R"  vc={P.amber}/>
+            </Scroll>
+          </Panel>
+
+          {/* Rule Governance */}
+          <Panel title="Rule Governance — Impact on Win" accent={P.cyan} tag="COMPLIANCE">
+            <Scroll>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Compliance — Impact on Win</SubLabel>
+              <YN label="Setup Fully Valid" yes={72} no={37}/>
+              <YN label="Any Rule Broken"   yes={35} no={68}/>
+              <YN label="Worth Repeating"   yes={71} no={44}/>
+              <SubLabel>Impulse Control — Impact on Win</SubLabel>
+              <YN label="FOMO Trades"      yes={28} no={66}/>
+              <YN label="Revenge Trades"   yes={24} no={65}/>
+              <YN label="Boredom Trades"   yes={33} no={64}/>
+              <YN label="Emotional Trades" yes={31} no={67}/>
+              <SubLabel>Portfolio State at Entry</SubLabel>
+              <DR label="Avg Open Trades"     value="1.2"/>
+              <DR label="Avg Total Risk Open" value="1.8%"/>
+              <DR label="Correlated Exposure" value="33% Yes" vc={P.amber}/>
+            </Scroll>
+          </Panel>
+        </div>
+
+        <Divider label="Advanced Analytics"/>
+        <div className="g3">
+
+          {/* News & Catalyst */}
+          <Panel title="News & Catalyst — Impact on Win" accent={P.amber} tag="FUNDAMENTAL">
+            {[
+              {l:'High Impact',   wr:29,r:'−0.80'},
+              {l:'Medium Impact', wr:44,r:'0.60'},
+              {l:'Low Impact',    wr:55,r:'1.40'},
+              {l:'None / Clean',  wr:67,r:'2.83'},
+            ].map((x,i)=><Bar key={i} label={x.l} pct={x.wr} sub={x.r+'R'}/>)}
+          </Panel>
+
+          {/* ATF Clusters */}
+          <Panel title="ATF + Session + Instrument — Impact on Win" accent={P.green} tag="ASSET · TF · SESSION">
+            <SplitBar label="EURUSD / H1 / London"   win={100} loss={0}/>
+            <SplitBar label="NAS100 / H1 / New York"  win={52}  loss={48}/>
+            <SplitBar label="XAUUSD / M15 / London"   win={48}  loss={52}/>
+            <div style={{ borderTop:`1px solid ${P.line}`, paddingTop:8, textAlign:'center' }}>
+              <Mono size={8} color={P.dim}>+ 12 Other Active Clusters</Mono>
+            </div>
+          </Panel>
+
+          {/* Session */}
+          <Panel title="Session — Impact on Win" accent={P.cyan} tag="SESSION · PHASE">
+            <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>By Session Name</SubLabel>
+            <Bar label="London"     pct={70}/>
+            <Bar label="New York"   pct={55}/>
+            <Bar label="NY Overlap" pct={38}/>
+            <Bar label="Tokyo"      pct={31}/>
+            <Bar label="Sydney"     pct={24}/>
+            <SubLabel>By Session Phase</SubLabel>
+            <Bar label="Open"  pct={72}/>
+            <Bar label="Mid"   pct={40}/>
+            <Bar label="Close" pct={25}/>
+          </Panel>
+        </div>
+
+        <Divider label="Day · Duration · Risk Sizing"/>
+        <div className="g3">
+
+          {/* Day of Week */}
+          <Panel title="Day of Week — Impact on Win" accent={P.amber} tag="WIN% · R EXPECTANCY">
+            {[
+              {day:'Monday',   wr:67,r:'2.10R'},
+              {day:'Tuesday',  wr:80,r:'3.40R'},
+              {day:'Wednesday',wr:55,r:'1.60R'},
+              {day:'Thursday', wr:70,r:'2.80R'},
+              {day:'Friday',   wr:40,r:'0.80R'},
+            ].map((x,i)=><Bar key={i} label={x.day} pct={x.wr} sub={x.r}/>)}
+          </Panel>
+
+          {/* Duration & Timing */}
+          <Panel title="Duration & Timing — Impact on Win" accent={P.cyan} tag="HOLD TIME">
+            <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Duration Bucket — Impact on Win</SubLabel>
+            <Bar label="0–30 min   (3)" pct={50}/>
+            <Bar label="30–120 min (6)" pct={75}/>
+            <Bar label="2–8 hrs    (8)" pct={63}/>
+            <Bar label="8+ hrs     (4)" pct={41}/>
+            <SubLabel>Timing Context — Impact on Win</SubLabel>
+            <Bar label="Impulse"       pct={75}/>
+            <Bar label="Correction"    pct={45}/>
+            <Bar label="Consolidation" pct={30}/>
+          </Panel>
+
+          {/* Risk & Position Sizing */}
+          <Panel title="Risk & Position Sizing — Impact on Win" accent={P.amber} tag="HEAT ANALYSIS">
+            <DR label="Avg Risk %"           value="1.1%"/>
+            <DR label="Max Risk %"           value="2.0%"/>
+            <DR label="Min Risk %"           value="0.5%"/>
+            <DR label="Avg Lot Size"         value="0.35"/>
+            <DR label="Avg SL Distance"      value="18 pips"/>
+            <DR label="Avg TP Distance"      value="52 pips"/>
+            <DR label="Avg Spread at Entry"  value="1.4 pips"/>
+            <DR label="Avg ATR at Entry"     value="0.0048"/>
+            <DR label="Avg Monetary Risk"    value="$215"/>
+            <DR label="Avg Potential Reward" value="$620"/>
+            <SubLabel>Risk Heat — Impact on Win</SubLabel>
+            <Bar label="Low Heat"    pct={80}/>
+            <Bar label="Medium Heat" pct={55}/>
+            <Bar label="High Heat"   pct={26}/>
+          </Panel>
+        </div>
+
+        <Divider label="MAE / MFE · Candle Patterns · Execution"/>
+        <div className="g3">
+
+          {/* MAE / MFE */}
+          <Panel title="MAE / MFE Analysis" accent={P.cyan} tag="ENTRY QUALITY">
+            <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>MAE — Adverse Excursion</SubLabel>
+            <DR label="Avg MAE"   value="−12 pip" vc={P.red}/>
+            <DR label="Worst MAE" value="−22 pip" vc={P.red}/>
+            <DR label="MAE > SL"  value="0 trades" vc={P.green}/>
+            <div style={{ margin:'6px 0 10px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+                <Mono size={7} color={P.dim}>Avg MAE as % of SL</Mono>
+                <Mono size={7} color={P.red}>67%</Mono>
+              </div>
+              <div style={{ height:2, background:P.line2 }}>
+                <div style={{ width:'67%', height:'100%', background:P.red, opacity:0.7 }}/>
+              </div>
+            </div>
+            <SubLabel>MFE — Favourable Excursion</SubLabel>
+            <DR label="Avg MFE"  value="+48 pip" vc={P.green}/>
+            <DR label="Best MFE" value="+87 pip" vc={P.green}/>
+            <DR label="Avg Capture Rate" value="68% of MFE" vc={P.cyan}/>
+            <div style={{ margin:'6px 0 10px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+                <Mono size={7} color={P.dim}>Avg MFE captured</Mono>
+                <Mono size={7} color={P.cyan}>68%</Mono>
+              </div>
+              <div style={{ height:2, background:P.line2 }}>
+                <div style={{ width:'68%', height:'100%', background:P.cyan, opacity:0.7 }}/>
+              </div>
+            </div>
+            <SubLabel>Entry Quality</SubLabel>
+            <DR label="MAE / MFE Ratio" value="0.25 · Good" vc={P.green}/>
+            <div style={{ marginTop:8, padding:'6px 10px', background:`${P.green}0A`, border:`1px solid ${P.greenDim}` }}>
+              <Mono size={7} color={P.dim}>Signal · </Mono>
+              <Mono size={7} color={P.green}>Entry timing is tight — low adverse drift vs captured move</Mono>
+            </div>
+          </Panel>
+
+          {/* Candle Pattern · TF · Indicator Status */}
+          <Panel title="Candle Pattern · TF · Indicator Status — Impact on Win" accent={P.green} tag="PATTERNS · TF · INDICATORS">
+            <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Candle Pattern × Timeframe</SubLabel>
+            {[
+              {l:'Engulfing  / M5',  wr:82, ct:4},
+              {l:'Engulfing  / H1',  wr:78, ct:4},
+              {l:'Pin Bar    / M15', wr:75, ct:5},
+              {l:'Pin Bar    / H1',  wr:60, ct:4},
+              {l:'FVG Fill   / M5',  wr:72, ct:6},
+              {l:'Inside Bar / H1',  wr:55, ct:5},
+              {l:'Doji       / M15', wr:41, ct:5},
+            ].map((x,i)=>(
+              <div key={i} style={{ display:'flex', justifyContent:'space-between',
+                padding:'5px 0', borderBottom:`1px solid ${P.line}` }}>
+                <Mono size={9} color={P.muted}>{x.l} <span style={{color:P.dim}}>({x.ct})</span></Mono>
+                <Cond size={13} color={pColor(x.wr)} weight={700}>{x.wr}%</Cond>
+              </div>
+            ))}
+            <SubLabel>Indicator Status — Impact on Win</SubLabel>
+            {[
+              {l:'RSI oversold + pattern',  v:'78%', c:P.green},
+              {l:'MACD cross aligned',      v:'74%', c:P.green},
+              {l:'Volume spike on break',   v:'81%', c:P.green},
+              {l:'RSI overbought entry',    v:'38%', c:P.red},
+              {l:'No indicator confluence', v:'44%', c:P.amber},
+            ].map((x,i)=><DR key={i} label={x.l} value={x.v} vc={x.c}/>)}
+          </Panel>
+
+          {/* Execution Metrics */}
+          <Panel title="Execution Metrics — Impact on Win" accent={P.amber} tag="ENTRY TIMING · SLIPPAGE">
+            <DR label="Fill Slippage (Avg)" value="−0.15 pips" vc={P.green}/>
+            <DR label="TFS Alignment (Avg)" value="1.4R"        vc={P.cyan}/>
+            <SubLabel>Order Type — Impact on Win</SubLabel>
+            {[
+              {l:'Market',    wr:67, ct:2},
+              {l:'Limit',     wr:100,ct:1},
+              {l:'Stop',      wr:0,  ct:0},
+              {l:'Stop-Limit',wr:0,  ct:0},
+            ].map((x,i)=>(
+              <div key={i} style={{ display:'flex', justifyContent:'space-between',
+                padding:'5px 0', borderBottom:`1px solid ${P.line}` }}>
+                <Mono size={9} color={P.muted}>{x.l} <span style={{color:P.dim}}>({x.ct})</span></Mono>
+                <Cond size={13} color={x.wr>=70?P.green:x.wr>=50?P.amber:P.dim} weight={700}>{x.wr}%</Cond>
+              </div>
+            ))}
+            <SubLabel>Entry Method — Impact on Win</SubLabel>
+            <Bar label="Market Entry" pct={65}/>
+            <Bar label="Limit Entry"  pct={82}/>
+            <Bar label="Stop Entry"   pct={49}/>
+          </Panel>
+        </div>
+
+        <Divider label="Instrument Matrix · Timeframe Performance"/>
+        <div className="g3">
+
+          {/* Instrument · Session Phase · Momentum */}
+          <Panel title="Instrument · Session Phase · Momentum — Impact on Win" accent={P.cyan} tag="WIN / LOSS" style={{ height:480 }}>
+            <Scroll>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Instrument × Session — Win Rate</SubLabel>
+              {[
+                {p:'EURUSD / London Open',    wr:78, loss:22},
+                {p:'EURUSD / London Mid',     wr:44, loss:56},
+                {p:'NAS100 / NY Open',        wr:67, loss:33},
+                {p:'NAS100 / NY Mid',         wr:40, loss:60},
+                {p:'XAUUSD / London Open',    wr:71, loss:29},
+                {p:'GBPUSD / London Open',    wr:63, loss:37},
+              ].map((x,i)=><SplitBar key={i} label={x.p} win={x.wr} loss={x.loss}/>)}
+
+              <SubLabel>Session Phase — Impact on Win</SubLabel>
+              <Bar label="Open  — high liquidity flush"  pct={74}/>
+              <Bar label="Mid   — consolidation range"   pct={42}/>
+              <Bar label="Close — thin / fading volume"  pct={28}/>
+
+              <SubLabel>Momentum at Entry — Impact on Win</SubLabel>
+              <YN label="Strong momentum confirmed" yes={74} no={43}/>
+              <YN label="Momentum with HTF align"   yes={78} no={38}/>
+              <YN label="Counter-momentum entry"    yes={29} no={61}/>
+              <ScoreRow label="Momentum Score → Win%"
+                scores={[{score:'4.5',pct:76},{score:'4.0',pct:64},{score:'3.5',pct:51},{score:'3.0',pct:34}]}/>
+            </Scroll>
+          </Panel>
+
+          {/* Asset + Strategy + Session + Condition */}
+          <Panel title="Asset + Strategy + Session + Condition" accent={P.green} tag="FULL MATRIX" style={{ height:480 }}>
+            <Scroll>
+              {[
+                {p:'EURUSD / Silver Bullet / London / Trend',      win:100, loss:0},
+                {p:'EURUSD / ICT Breaker  / London / Range',       win:40,  loss:60},
+                {p:'NAS100 / Silver Bullet / NY Open / Trending',  win:67,  loss:33},
+                {p:'NAS100 / ICT Breaker  / NY Mid  / Volatile',   win:33,  loss:67},
+                {p:'XAUUSD / Silver Bullet / London / Trending',   win:75,  loss:25},
+                {p:'XAUUSD / London Open  / London / Volatile',    win:38,  loss:62},
+                {p:'GBPUSD / Silver Bullet / London / Trend',      win:71,  loss:29},
+              ].map((x,i)=><SplitBar key={i} label={x.p} win={x.win} loss={x.loss}/>)}
+            </Scroll>
+          </Panel>
+
+          {/* Timeframe Performance */}
+          <Panel title="Timeframe — Impact on Win" accent={P.amber} tag="ENTRY · ANALYSIS · CONTEXT" style={{ height:480 }}>
+            <Scroll>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Entry TF</SubLabel>
+              {[{l:'M1',wr:50,r:'2.00R'},{l:'M5',wr:100,r:'4.60R'},{l:'M15',wr:60,r:'2.10R'}].map((x,i)=>(
+                <div key={i} style={{ display:'flex', justifyContent:'space-between',
+                  padding:'5px 0', borderBottom:`1px solid ${P.line}` }}>
+                  <Mono size={9} color={P.muted}>{x.l}</Mono>
+                  <Cond size={13} color={pColor(x.wr)} weight={600}>{x.wr}% · {x.r}</Cond>
+                </div>
+              ))}
+              <SubLabel>Analysis TF</SubLabel>
+              {[{l:'H1',wr:70,r:'2.80R'},{l:'H4',wr:50,r:'2.00R'},{l:'30M',wr:60,r:'1.90R'}].map((x,i)=>(
+                <div key={i} style={{ display:'flex', justifyContent:'space-between',
+                  padding:'5px 0', borderBottom:`1px solid ${P.line}` }}>
+                  <Mono size={9} color={P.muted}>{x.l}</Mono>
+                  <Cond size={13} color={pColor(x.wr)} weight={600}>{x.wr}% · {x.r}</Cond>
+                </div>
+              ))}
+              <SubLabel>Context TF</SubLabel>
+              {[{l:'D1',wr:100,r:'4.60R'},{l:'H4',wr:50,r:'2.00R'},{l:'W1',wr:28,r:'0.00R'}].map((x,i)=>(
+                <div key={i} style={{ display:'flex', justifyContent:'space-between',
+                  padding:'5px 0', borderBottom:`1px solid ${P.line}` }}>
+                  <Mono size={9} color={P.muted}>{x.l}</Mono>
+                  <Cond size={13} color={pColor(x.wr)} weight={600}>{x.wr}% · {x.r}</Cond>
+                </div>
+              ))}
+            </Scroll>
+          </Panel>
+        </div>
+
+        <Divider label="Strategy Drill-Down"/>
+
+        {/* Strategy Drill-Down */}
+        <div style={{ background:P.bg2, border:`1px solid ${P.line2}`, position:'relative' }}>
+          <Corner pos="tl" color={P.green}/><Corner pos="tr" color={P.green}/>
+          <Corner pos="bl" color={P.line2}/><Corner pos="br" color={P.line2}/>
+          <div style={{ borderBottom:`1px solid ${P.line2}`, padding:'7px 12px', background:P.bg3,
+            display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:2,height:12,background:P.green }}/>
+              <Cond size={11} color={P.bright} weight={700}>Strategy Drill-Down</Cond>
+            </div>
+            <select value={strat} onChange={e=>setStrat(e.target.value)} style={{
+              fontFamily:"'Share Tech Mono',monospace", fontSize:9, background:P.bg3,
+              color:P.muted, border:`1px solid ${P.line2}`, padding:'2px 6px', outline:'none' }}>
+              {['ALL STRATEGIES','SILVER BULLET','ICT BREAKER','LONDON OPEN'].map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="strat-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
+            {/* Bias */}
+            <div style={{ borderRight:`1px solid ${P.line2}`, padding:'10px 14px' }}>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Bias — Impact on Win</SubLabel>
+              {[
+                {bias:'Bullish', ct:'1 trade',  wr:'100%', c:P.green},
+                {bias:'Bearish', ct:'2 trades', wr:'50%',  c:P.red},
+              ].map((x,i)=>(
+                <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+                  padding:'6px 0', borderBottom:`1px solid ${P.line}` }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <div style={{ width:3, height:3, borderRadius:'50%', background:x.c }}/>
+                    <div>
+                      <Mono size={9} color={x.c} style={{ display:'block' }}>{x.bias}</Mono>
+                      <Mono size={7} color={P.dim}>{x.ct}</Mono>
+                    </div>
+                  </div>
+                  <Cond size={14} color={x.c} weight={700}>{x.wr}</Cond>
+                </div>
+              ))}
+              <div style={{ display:'flex', justifyContent:'space-between', paddingTop:8 }}>
+                <Mono size={8} color={P.dim}>Current Streak</Mono>
+                <Mono size={9} color={P.red}>LOSS × 1</Mono>
+              </div>
+            </div>
+            {/* Top Performer */}
+            <div style={{ padding:'10px 14px' }}>
+              <SubLabel style={{ borderTop:'none', paddingTop:0, marginTop:0 }}>Top Performer</SubLabel>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+                padding:'6px 0', borderBottom:`1px solid ${P.line}` }}>
+                <Mono size={9} color={P.green}>Silver Bullet</Mono>
+                <div style={{ padding:'2px 6px', border:`1px solid ${P.line2}` }}>
+                  <Mono size={7} color={P.dim}>EDGE +</Mono>
+                </div>
+              </div>
+              <DR label="Mgmt Score"  value="4.8 / 5" vc={P.cyan}/>
+              <DR label="Perf Score"  value="98%"     vc={P.cyan}/>
+              <DR label="Win Rate"    value="100%"    vc={P.green}/>
+              <DR label="Avg R"       value="4.60R"   vc={P.green}/>
+            </div>
+          </div>
+        </div>
+
+        <Divider label="Risk Performance"/>
+        <div className="g4">
+
+          {/* Drawdown */}
+          <Panel title="Drawdown" accent={P.red} tag="CURRENT PERIOD">
+            <DR label="Max DD"       value="$300 (0.30%)"  vc={P.red}/>
+            <DR label="Current DD"   value="0.30% · −$300" vc={P.amber}/>
+            <DR label="Balance"      value="$102,100"      vc={P.green}/>
+            <DR label="Period"       value="FEB 2026"      vc={P.dim}/>
+            <div style={{ marginTop:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                <Mono size={8} color={P.dim}>DD USED</Mono>
+                <Mono size={8} color={P.red}>30%</Mono>
+              </div>
+              <div style={{ height:2, background:P.line2 }}>
+                <div style={{ width:'30%', height:'100%', background:P.red }}/>
+              </div>
+            </div>
+          </Panel>
+
+          {/* Avg Win / Loss */}
+          <Panel title="Avg Win / Loss" accent={P.green} tag="P&amp;L STATS">
+            <DR label="Avg Win"          value="$1,050" vc={P.green}/>
+            <DR label="Avg Loss"         value="$300"   vc={P.red}/>
+            <DR label="Win / Loss Ratio" value="3.5"    vc={P.cyan}/>
+            <DR label="Total Wins"       value="2"      vc={P.green}/>
+            <DR label="Total Losses"     value="1"      vc={P.red}/>
+          </Panel>
+
+          {/* Streaks */}
+          <Panel title="Streaks" accent={P.cyan} tag="WIN / LOSS">
+            <DR label="Longest Win Streak"  value="2"      vc={P.green}/>
+            <DR label="Longest Loss Streak" value="1"      vc={P.red}/>
+            <DR label="Current Streak"      value="LOSS × 1" vc={P.red}/>
+            <DR label="Last Win"            value="Feb 08" vc={P.muted}/>
+            <DR label="Last Loss"           value="Feb 10" vc={P.muted}/>
+          </Panel>
+
+          {/* Recovery */}
+          <Panel title="Recovery" accent={P.cyan} tag="POST-LOSS">
+            <DR label="Win Rate After Loss"  value="0%"  vc={P.dim}/>
+            <DR label="Trades After Loss"    value="0"   vc={P.dim}/>
+            <DR label="Wins After Loss"      value="0"   vc={P.dim}/>
+            <DR label="Avg R After Loss"     value="—"   vc={P.dim}/>
+            <DR label="Recovery Status"      value="N/A" vc={P.dim}/>
+          </Panel>
+        </div>
+
+        <Divider label="Equity Curve · Risk of Ruin"/>
+        <div className="equity-ruin-grid" style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:12 }}>
+          <EquityChart/>
+          <Panel title="Risk of Ruin" accent={P.amber} tag="ACCOUNT SAFETY">
+            <DR label="Ruin Probability" value="0.8%" vc={P.green}/>
+            <DR label="Win Rate"         value="67%"  vc={P.green}/>
+            <DR label="Risk per Trade"   value="1.0%" vc={P.cyan}/>
+            <DR label="Profit Factor"    value="8.00" vc={P.cyan}/>
+            <DR label="Strategy Version" value="v2.1" vc={P.muted}/>
+            <DR label="Risk Status"      value="✓" vc={P.green}/>
+          </Panel>
+        </div>
+
+        <Divider label="Strategy Performance — Market Conditions"/>
+
+        {/* Strategy Performance Table */}
+        <div style={{ background:P.bg2, border:`1px solid ${P.line2}`, position:'relative' }}>
+          <Corner pos="tl" color={P.cyan}/><Corner pos="tr" color={P.cyan}/>
+          <Corner pos="bl" color={P.line2}/><Corner pos="br" color={P.line2}/>
+          <div style={{ borderBottom:`1px solid ${P.line2}`, padding:'7px 12px', background:P.bg3,
+            display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:2,height:12,background:P.cyan }}/>
+            <Cond size={11} color={P.bright} weight={700}>
+              Strategy Performance — Impact on Win in Bullish, Bearish and Ranging Markets
+            </Cond>
+          </div>
+          <div style={{ padding:12, overflowX:'auto' }}>
+            <table className="dtable">
+              <thead>
+                <tr>
+                  <th>Strategy</th>
+                  <th style={{color:P.green}}>Bullish</th>
+                  <th style={{color:P.red}}>Bearish</th>
+                  <th style={{color:P.amber}}>Ranging</th>
+                  <th style={{color:P.amber}}>Liquidity</th>
+                  <th style={{color:P.cyan}}>Trend Aligned</th>
+                  <th style={{textAlign:'right'}}>Net P/L</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {n:'SMC Breaker',  bu:'74%',be:'29%',ra:'35%',lq:'High',al:'74%',pl:'+$900',   pc:P.green},
+                  {n:'Silver Bullet',bu:'68%',be:'33%',ra:'41%',lq:'High',al:'68%',pl:'+$1,200', pc:P.green},
+                ].map((r,i)=>(
+                  <tr key={i}>
+                    <td className="dn">{r.n}</td>
+                    <td style={{color:P.green}}>{r.bu}</td>
+                    <td style={{color:P.red}}>{r.be}</td>
+                    <td style={{color:P.amber}}>{r.ra}</td>
+                    <td style={{color:P.amber}}>{r.lq}</td>
+                    <td style={{color:P.cyan}}>{r.al}</td>
+                    <td style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:700,color:r.pc,textAlign:'right'}}>{r.pl}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <Divider label="Setup Occurrence Frequency"/>
+
+        {/* Setup Frequency Table */}
+        <div style={{ background:P.bg2, border:`1px solid ${P.line2}`, position:'relative', marginBottom:8 }}>
+          <Corner pos="tl" color={P.amber}/><Corner pos="tr" color={P.amber}/>
+          <Corner pos="bl" color={P.line2}/><Corner pos="br" color={P.line2}/>
+          <div style={{ borderBottom:`1px solid ${P.line2}`, padding:'7px 12px', background:P.bg3,
+            display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:2,height:12,background:P.amber }}/>
+            <Cond size={11} color={P.bright} weight={700}>Setup Occurrence Frequency — Per Day / Week / Month / Year</Cond>
+          </div>
+          <div style={{ padding:12, overflowX:'auto' }}>
+            <table className="dtable">
+              <thead>
+                <tr>
+                  <th>Setup</th>
+                  <th style={{color:P.cyan}}>Per Day</th>
+                  <th style={{color:P.cyan}}>Per Week</th>
+                  <th style={{color:P.cyan}}>Per Month</th>
+                  <th style={{color:P.cyan}}>Per Year</th>
+                  <th style={{color:P.amber}}>Win Rate</th>
+                  <th style={{textAlign:'right'}}>Best Period</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {n:'Silver Bullet',d:'1–2',w:'5–8',  m:'20–32',y:'240–384',wr:'67%',best:'London Open'},
+                  {n:'SMC Breaker',  d:'0–1',w:'2–4',  m:'8–16', y:'96–192', wr:'74%',best:'NY Session'},
+                  {n:'Breakout',     d:'0–1',w:'1–3',  m:'4–12', y:'48–144', wr:'74%',best:'Tuesday'},
+                  {n:'Pullback',     d:'1–3',w:'5–10', m:'20–40',y:'240–480',wr:'63%',best:'Monday'},
+                  {n:'FVG Fill',     d:'1–3',w:'5–12', m:'20–48',y:'240–576',wr:'70%',best:'London'},
+                ].map((r,i)=>(
+                  <tr key={i}>
+                    <td className="dn">{r.n}</td>
+                    <td>{r.d}</td><td>{r.w}</td><td>{r.m}</td><td>{r.y}</td>
+                    <td style={{color:P.green,fontWeight:600}}>{r.wr}</td>
+                    <td style={{color:P.amber,textAlign:'right'}}>{r.best}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
