@@ -6,7 +6,7 @@ import {
   Layers, LayoutGrid, Award, Flame, Eye, Lightbulb,
   Clock, Gauge, Boxes, Layers3, TrendingUp, BrainCircuit,
   DoorOpen, RefreshCcw, Trash2, Save,
-  ArrowRight, BarChart2, DollarSign, Focus,
+  ArrowRight, BarChart2, DollarSign, Focus, PanelRight, X,
 } from "lucide-react";
 
 const INPUT_CLS = "w-full bg-slate-950/40 border border-slate-800/80 rounded-xl px-5 py-4 text-[13px] text-slate-200 placeholder-slate-700 resize-none focus:outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all duration-300 font-mono leading-relaxed";
@@ -179,7 +179,7 @@ const StatRow = ({ label, value, valueColor }) => (
   </div>
 );
 
-function Sidebar({ trades }) {
+function SidebarContent({ trades }) {
   const stats = useMemo(() => {
     if (!trades.length) return null;
     const wins   = trades.filter(t=>t.outcome==="Win");
@@ -210,109 +210,106 @@ function Sidebar({ trades }) {
   const pnlPct = stats&&stats.startBal>0?((stats.netPnL/stats.startBal)*100).toFixed(2):"0.00";
 
   return (
-    <div style={{flex:1,padding:"12px 12px 24px"}}>
-      <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
-
-        {/* NET P&L */}
-        <div style={{background:"rgba(10,13,20,0.8)",border:"1px solid rgba(51,65,85,0.5)",borderRadius:"12px",padding:"12px 14px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"6px"}}>
-            <span style={{fontSize:"9px",fontWeight:900,letterSpacing:"0.25em",textTransform:"uppercase",color:"#475569"}}>NET P&amp;L</span>
-            <ArrowRight style={{width:"12px",height:"12px",color:"#334155"}}/>
-          </div>
-          <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between"}}>
-            <span style={{fontSize:"24px",fontWeight:900,fontFamily:"monospace",color:pnlColor}}>{stats?fmt(stats.netPnL):"0"}</span>
-            <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:pnlColor}}>{stats?(stats.netPnL>=0?"+":"")+pnlPct+"%":"0%"}</span>
-          </div>
+    <div style={{padding:"12px 12px 24px",display:"flex",flexDirection:"column",gap:"8px"}}>
+      {/* NET P&L */}
+      <div style={{background:"rgba(10,13,20,0.8)",border:"1px solid rgba(51,65,85,0.5)",borderRadius:"12px",padding:"12px 14px"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"6px"}}>
+          <span style={{fontSize:"9px",fontWeight:900,letterSpacing:"0.25em",textTransform:"uppercase",color:"#475569"}}>NET P&amp;L</span>
+          <ArrowRight style={{width:"12px",height:"12px",color:"#334155"}}/>
         </div>
-
-        {/* Balances */}
-        <div style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"10px 14px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:"3px"}}>
-            <span style={{fontSize:"10px",color:"#475569"}}>Start Balance</span>
-            <span style={{fontSize:"10px",color:"#475569"}}>End Balance</span>
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between"}}>
-            <span style={{fontSize:"13px",fontWeight:700,fontFamily:"monospace",color:"#cbd5e1"}}>{stats?fmt(stats.startBal):"$0.00"}</span>
-            <span style={{fontSize:"13px",fontWeight:700,fontFamily:"monospace",color:"#cbd5e1"}}>{stats?fmt(stats.endBal):"$0.00"}</span>
-          </div>
+        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between"}}>
+          <span style={{fontSize:"24px",fontWeight:900,fontFamily:"monospace",color:pnlColor}}>{stats?fmt(stats.netPnL):"0"}</span>
+          <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:pnlColor}}>{stats?(stats.netPnL>=0?"+":"")+pnlPct+"%":"0%"}</span>
         </div>
-
-        {/* Commissions */}
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"9px 14px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-            <DollarSign style={{width:"12px",height:"12px",color:"#475569"}}/>
-            <span style={{fontSize:"11px",color:"#475569"}}>Commissions &amp; Fees</span>
-          </div>
-          <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:"#94a3b8"}}>{stats?fmt(stats.commissions):"$0.00"}</span>
-        </div>
-
-        {/* Divider */}
-        <div style={{display:"flex",alignItems:"center",gap:"8px",padding:"2px 0"}}>
-          <div style={{flex:1,height:"1px",background:"rgba(51,65,85,0.5)"}}/>
-          <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
-            <BarChart2 style={{width:"10px",height:"10px",color:"#334155"}}/>
-            <span style={{fontSize:"8px",fontWeight:900,letterSpacing:"0.2em",textTransform:"uppercase",color:"#334155"}}>Trading Stats</span>
-          </div>
-          <div style={{flex:1,height:"1px",background:"rgba(51,65,85,0.5)"}}/>
-        </div>
-
-        {/* Buys / Sells / Total */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px"}}>
-          {[
-            {label:"Buys",  val:stats?stats.buys:0,  color:"#60a5fa"},
-            {label:"Sells", val:stats?stats.sells:0, color:"#a78bfa"},
-            {label:"Total Trades",val:stats?stats.total:0,color:"#e2e8f0"},
-          ].map(({label,val,color})=>(
-            <div key={label} style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"10px",padding:"9px 4px",textAlign:"center"}}>
-              <p style={{fontSize:"9px",color:"#475569",marginBottom:"3px"}}>{label}</p>
-              <p style={{fontSize:"17px",fontWeight:900,fontFamily:"monospace",color}}>{val}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Stat rows */}
-        <div style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"2px 14px"}}>
-          <StatRow label="Best Trade"   value={stats?fmt(stats.bestTrade):"$0.00"}  valueColor="#34d399"/>
-          <StatRow label="Worst Trade"  value={stats?fmt(stats.worstTrade):"$0.00"} valueColor={stats&&stats.worstTrade<0?"#f87171":"#94a3b8"}/>
-          <StatRow label="Avg Hold Time" value="—" valueColor="#475569"/>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0"}}>
-            <span style={{fontSize:"11px",color:"#64748b"}}>Max Drawdown</span>
-            <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:stats&&stats.maxDD>0?"#f87171":"#94a3b8"}}>{stats?fmt(stats.maxDD):"$0.00"}</span>
-          </div>
-        </div>
-
-        {/* Winrate / PF / Expectancy */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px"}}>
-          {[
-            {label:"Winrate",      val:stats?stats.winrate+"%":"0%",  color:!stats?"#475569":parseFloat(stats?.winrate)>=50?"#34d399":"#f87171"},
-            {label:"Profit Factor",val:stats?stats.profitFactor:"0",   color:!stats?"#475569":parseFloat(stats?.profitFactor)>=1.5?"#34d399":parseFloat(stats?.profitFactor)>=1?"#fbbf24":"#f87171"},
-            {label:"Expectancy",   val:stats?stats.exp:"0",            color:!stats?"#475569":parseFloat(stats?.exp)>0?"#34d399":"#f87171"},
-          ].map(({label,val,color})=>(
-            <div key={label} style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"10px",padding:"10px 4px",textAlign:"center"}}>
-              <p style={{fontSize:"9px",color:"#475569",marginBottom:"5px"}}>{label}</p>
-              <p style={{fontSize:"14px",fontWeight:900,fontFamily:"monospace",color}}>{val}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* empty state */}
-        {!trades.length&&(
-          <div style={{borderRadius:"12px",border:"1px dashed rgba(51,65,85,0.3)",padding:"20px",textAlign:"center",marginTop:"4px"}}>
-            <Activity style={{width:"20px",height:"20px",color:"#1e293b",margin:"0 auto 6px"}}/>
-            <p style={{fontSize:"10px",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"#1e293b"}}>No trades yet</p>
-            <p style={{fontSize:"10px",color:"#0f172a",marginTop:"3px"}}>Log a trade to see stats</p>
-          </div>
-        )}
       </div>
+
+      {/* Balances */}
+      <div style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"10px 14px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:"3px"}}>
+          <span style={{fontSize:"10px",color:"#475569"}}>Start Balance</span>
+          <span style={{fontSize:"10px",color:"#475569"}}>End Balance</span>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between"}}>
+          <span style={{fontSize:"13px",fontWeight:700,fontFamily:"monospace",color:"#cbd5e1"}}>{stats?fmt(stats.startBal):"$0.00"}</span>
+          <span style={{fontSize:"13px",fontWeight:700,fontFamily:"monospace",color:"#cbd5e1"}}>{stats?fmt(stats.endBal):"$0.00"}</span>
+        </div>
+      </div>
+
+      {/* Commissions */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"9px 14px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+          <DollarSign style={{width:"12px",height:"12px",color:"#475569"}}/>
+          <span style={{fontSize:"11px",color:"#475569"}}>Commissions &amp; Fees</span>
+        </div>
+        <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:"#94a3b8"}}>{stats?fmt(stats.commissions):"$0.00"}</span>
+      </div>
+
+      {/* Divider */}
+      <div style={{display:"flex",alignItems:"center",gap:"8px",padding:"2px 0"}}>
+        <div style={{flex:1,height:"1px",background:"rgba(51,65,85,0.5)"}}/>
+        <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
+          <BarChart2 style={{width:"10px",height:"10px",color:"#334155"}}/>
+          <span style={{fontSize:"8px",fontWeight:900,letterSpacing:"0.2em",textTransform:"uppercase",color:"#334155"}}>Trading Stats</span>
+        </div>
+        <div style={{flex:1,height:"1px",background:"rgba(51,65,85,0.5)"}}/>
+      </div>
+
+      {/* Buys / Sells / Total */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px"}}>
+        {[
+          {label:"Buys",  val:stats?stats.buys:0,  color:"#60a5fa"},
+          {label:"Sells", val:stats?stats.sells:0, color:"#a78bfa"},
+          {label:"Total Trades",val:stats?stats.total:0,color:"#e2e8f0"},
+        ].map(({label,val,color})=>(
+          <div key={label} style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"10px",padding:"9px 4px",textAlign:"center"}}>
+            <p style={{fontSize:"9px",color:"#475569",marginBottom:"3px"}}>{label}</p>
+            <p style={{fontSize:"17px",fontWeight:900,fontFamily:"monospace",color}}>{val}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Stat rows */}
+      <div style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"2px 14px"}}>
+        <StatRow label="Best Trade"   value={stats?fmt(stats.bestTrade):"$0.00"}  valueColor="#34d399"/>
+        <StatRow label="Worst Trade"  value={stats?fmt(stats.worstTrade):"$0.00"} valueColor={stats&&stats.worstTrade<0?"#f87171":"#94a3b8"}/>
+        <StatRow label="Avg Hold Time" value="—" valueColor="#475569"/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0"}}>
+          <span style={{fontSize:"11px",color:"#64748b"}}>Max Drawdown</span>
+          <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:stats&&stats.maxDD>0?"#f87171":"#94a3b8"}}>{stats?fmt(stats.maxDD):"$0.00"}</span>
+        </div>
+      </div>
+
+      {/* Winrate / PF / Expectancy */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px"}}>
+        {[
+          {label:"Winrate",      val:stats?stats.winrate+"%":"0%",  color:!stats?"#475569":parseFloat(stats?.winrate)>=50?"#34d399":"#f87171"},
+          {label:"Profit Factor",val:stats?stats.profitFactor:"0",   color:!stats?"#475569":parseFloat(stats?.profitFactor)>=1.5?"#34d399":parseFloat(stats?.profitFactor)>=1?"#fbbf24":"#f87171"},
+          {label:"Expectancy",   val:stats?stats.exp:"0",            color:!stats?"#475569":parseFloat(stats?.exp)>0?"#34d399":"#f87171"},
+        ].map(({label,val,color})=>(
+          <div key={label} style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"10px",padding:"10px 4px",textAlign:"center"}}>
+            <p style={{fontSize:"9px",color:"#475569",marginBottom:"5px"}}>{label}</p>
+            <p style={{fontSize:"14px",fontWeight:900,fontFamily:"monospace",color}}>{val}</p>
+          </div>
+        ))}
+      </div>
+
+      {!trades.length&&(
+        <div style={{borderRadius:"12px",border:"1px dashed rgba(51,65,85,0.3)",padding:"20px",textAlign:"center",marginTop:"4px"}}>
+          <Activity style={{width:"20px",height:"20px",color:"#1e293b",margin:"0 auto 6px"}}/>
+          <p style={{fontSize:"10px",fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"#1e293b"}}>No trades yet</p>
+          <p style={{fontSize:"10px",color:"#0f172a",marginTop:"3px"}}>Log a trade to see stats</p>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function App() {
-  const [step,setStep]     = useState(1);
-  const [form,setForm]     = useState(INIT);
-  const [saved,setSaved]   = useState(false);
-  const [trades,setTrades] = useState([]);
+  const [step,setStep]         = useState(1);
+  const [form,setForm]         = useState(INIT);
+  const [saved,setSaved]       = useState(false);
+  const [trades,setTrades]     = useState([]);
+  const [sidebarOpen,setSidebarOpen] = useState(false);
 
   const set = (k,v) => setForm(p=>({...p,[k]:v}));
   const lf  = (label,field,rows,placeholder,type) => <Field label={label} field={field} value={form[field]} onChange={set} rows={rows} placeholder={placeholder} type={type}/>;
@@ -333,33 +330,89 @@ export default function App() {
         .form-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .side-scroll::-webkit-scrollbar { display: none; }
         .side-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Sidebar responsive behaviour */
+        .sidebar-panel {
+          position: relative;
+          z-index: 1;
+          width: 240px;
+          flex-shrink: 0;
+          border-left: 1px solid rgba(51,65,85,0.35);
+          background: #07090f;
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        /* On screens < 900px hide the inline sidebar */
+        @media (max-width: 899px) {
+          .sidebar-panel { display: none; }
+          .sidebar-fab   { display: flex !important; }
+        }
+
+        /* Mobile drawer overlay */
+        .sidebar-drawer {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          display: flex;
+        }
+        .sidebar-drawer-backdrop {
+          flex: 1;
+          background: rgba(5,7,10,0.7);
+          backdrop-filter: blur(4px);
+        }
+        .sidebar-drawer-panel {
+          width: min(320px, 88vw);
+          background: #07090f;
+          border-left: 1px solid rgba(51,65,85,0.35);
+          overflow-y: auto;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+          display: flex;
+          flex-direction: column;
+          animation: slideIn 0.22s ease;
+        }
+        .sidebar-drawer-panel::-webkit-scrollbar { display: none; }
+        @keyframes slideIn {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
+
+        /* Mobile step tabs: 2×2 grid on xs, row on sm+ */
+        @media (max-width: 479px) {
+          .steps-grid { grid-template-columns: 1fr 1fr !important; }
+        }
       `}</style>
 
-      <div style={{display:"flex",height:"100vh",overflow:"hidden",background:"#05070a",color:"#cbd5e1",fontFamily:"sans-serif"}}>
+      <div style={{display:"flex",height:"100vh",overflow:"hidden",background:"#05070a",color:"#cbd5e1",fontFamily:"sans-serif",position:"relative"}}>
 
-        {/* ambient */}
+        {/* ambient blobs */}
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0}}>
           <div style={{position:"absolute",top:"-10%",left:"-10%",width:"40%",height:"40%",background:"rgba(30,58,138,0.08)",filter:"blur(120px)",borderRadius:"50%"}}/>
           <div style={{position:"absolute",bottom:"-10%",right:"-10%",width:"40%",height:"40%",background:"rgba(120,53,15,0.04)",filter:"blur(120px)",borderRadius:"50%"}}/>
         </div>
 
         {/* ── FORM ── */}
-        <div className="form-scroll" style={{position:"relative",zIndex:1,flex:1,overflowY:"auto"}}>
-          <div style={{maxWidth:"860px",margin:"0 0 0 auto",padding:"12px 20px"}}>
+        <div className="form-scroll" style={{position:"relative",zIndex:1,flex:1,overflowY:"auto",minWidth:0}}>
+          <div style={{maxWidth:"860px",margin:"0 0 0 auto",padding:"12px 20px 12px 20px"}}>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            {/* Step tabs */}
+            <div className="steps-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"8px",marginBottom:"16px"}}>
               {STEPS.map(s=>{
                 const isActive=s.id===step,isDone=s.id<step,Icon=s.icon;
                 return(
                   <button key={s.id} onClick={()=>setStep(s.id)}
-                    className={`relative flex flex-col p-4 rounded-2xl border transition-all duration-500 overflow-hidden text-left
+                    className={`relative flex flex-col p-3 sm:p-4 rounded-2xl border transition-all duration-500 overflow-hidden text-left
                       ${isActive?"bg-slate-900/40 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.1)]":"bg-slate-900/10 border-slate-800/50 hover:border-slate-700"}`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`p-2 rounded-lg ${isActive?"text-blue-400":isDone?"text-blue-500/40":"text-slate-600"}`}><Icon className="w-4 h-4"/></div>
-                      <span className={`text-[10px] font-bold ${isActive?"text-blue-500":"text-slate-700"}`}>0{s.id}</span>
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <div className={`p-1.5 sm:p-2 rounded-lg ${isActive?"text-blue-400":isDone?"text-blue-500/40":"text-slate-600"}`}><Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4"/></div>
+                      <span className={`text-[9px] sm:text-[10px] font-bold ${isActive?"text-blue-500":"text-slate-700"}`}>0{s.id}</span>
                     </div>
-                    <p className={`text-[11px] font-black tracking-widest uppercase mb-0.5 ${isActive?"text-white":"text-slate-500"}`}>{s.label}</p>
-                    <p className={`text-[9px] font-medium tracking-wider uppercase opacity-60 ${isActive?"text-blue-300":"text-slate-700"}`}>{s.sub}</p>
+                    <p className={`text-[10px] sm:text-[11px] font-black tracking-widest uppercase mb-0.5 ${isActive?"text-white":"text-slate-500"}`}>{s.label}</p>
+                    <p className={`hidden sm:block text-[9px] font-medium tracking-wider uppercase opacity-60 ${isActive?"text-blue-300":"text-slate-700"}`}>{s.sub}</p>
                     {isActive&&<div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent"/>}
                     {isDone&&<CheckCircle2 className="absolute top-3 right-3 w-3 h-3 text-blue-500/40"/>}
                   </button>
@@ -674,19 +727,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* ── SIDEBAR ── */}
-        <div className="side-scroll" style={{
-          position:"relative",zIndex:1,
-          width:"240px",flexShrink:0,
-          borderLeft:"1px solid rgba(51,65,85,0.35)",
-          background:"#07090f",
-          display:"flex",flexDirection:"column",
-          overflowY:"auto",
-          msOverflowStyle:"none",
-          scrollbarWidth:"none",
-        }}>
-          {/* SESSION HEADER — sticky removed, scrolls freely with everything */}
-          <div style={{padding:"12px 12px 12px",borderBottom:"1px solid rgba(51,65,85,0.35)",background:"#07090f",boxSizing:"border-box"}}>
+        {/* ── SIDEBAR — desktop inline ── */}
+        <div className="sidebar-panel side-scroll">
+          {/* Session header */}
+          <div style={{padding:"12px 12px 12px",borderBottom:"1px solid rgba(51,65,85,0.35)",background:"#07090f",boxSizing:"border-box",position:"sticky",top:0,zIndex:2}}>
             <div style={{background:"rgba(10,13,20,0.9)",border:"1px solid rgba(59,130,246,0.25)",borderRadius:"16px",padding:"14px 16px",height:"94px",boxSizing:"border-box",display:"flex",flexDirection:"column",justifyContent:"space-between",position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(59,130,246,0.06),transparent)",borderRadius:"16px",pointerEvents:"none"}}/>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -696,9 +740,7 @@ export default function App() {
               <div>
                 <div style={{display:"flex",alignItems:"flex-end",gap:"6px"}}>
                   <span style={{fontSize:"28px",fontWeight:900,fontFamily:"monospace",color:"#e2e8f0",lineHeight:1}}>{trades.length}</span>
-                  <span style={{fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"3px"}}>
-                    {trades.length===1?"TRADE":"TRADES"}
-                  </span>
+                  <span style={{fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"3px"}}>{trades.length===1?"TRADE":"TRADES"}</span>
                 </div>
                 <div style={{marginTop:"4px",height:"2px",borderRadius:"2px",background:"rgba(51,65,85,0.4)",overflow:"hidden"}}>
                   <div style={{height:"100%",borderRadius:"2px",background:"linear-gradient(90deg,#3b82f6,#1d4ed8)",width:`${Math.min((trades.length/10)*100,100)}%`,transition:"width 0.4s ease"}}/>
@@ -706,13 +748,68 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          <Sidebar trades={trades}/>
+          <SidebarContent trades={trades}/>
         </div>
 
-        {/* modal */}
+        {/* ── FAB — mobile only ── */}
+        <button
+          className="sidebar-fab"
+          onClick={()=>setSidebarOpen(true)}
+          style={{
+            display:"none", // overridden by media query
+            position:"fixed",
+            bottom:"24px",
+            right:"20px",
+            zIndex:50,
+            alignItems:"center",
+            gap:"8px",
+            padding:"12px 18px",
+            borderRadius:"16px",
+            background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",
+            border:"none",
+            cursor:"pointer",
+            boxShadow:"0 8px 32px rgba(59,130,246,0.35)",
+            color:"#fff",
+            fontSize:"11px",
+            fontWeight:900,
+            letterSpacing:"0.15em",
+          }}>
+          <BarChart2 style={{width:"16px",height:"16px"}}/>
+          STATS
+          {trades.length>0&&(
+            <span style={{background:"rgba(255,255,255,0.2)",borderRadius:"8px",padding:"2px 7px",fontSize:"10px",fontWeight:900}}>{trades.length}</span>
+          )}
+        </button>
+
+        {/* ── Mobile drawer ── */}
+        {sidebarOpen&&(
+          <div className="sidebar-drawer" onClick={e=>{if(e.target===e.currentTarget||e.currentTarget===e.target)setSidebarOpen(false)}}>
+            <div className="sidebar-drawer-backdrop" onClick={()=>setSidebarOpen(false)}/>
+            <div className="sidebar-drawer-panel side-scroll">
+              {/* drawer header */}
+              <div style={{padding:"16px",borderBottom:"1px solid rgba(51,65,85,0.35)",background:"#07090f",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:2}}>
+                <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                  <BarChart2 style={{width:"16px",height:"16px",color:"#3b82f6"}}/>
+                  <span style={{fontSize:"11px",fontWeight:900,letterSpacing:"0.2em",textTransform:"uppercase",color:"#cbd5e1"}}>Session Stats</span>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                    <div style={{width:"6px",height:"6px",borderRadius:"50%",background:trades.length>0?"#34d399":"#1e3a5f",boxShadow:trades.length>0?"0 0 6px #34d399":"none"}}/>
+                    <span style={{fontSize:"12px",fontWeight:900,fontFamily:"monospace",color:"#e2e8f0"}}>{trades.length} {trades.length===1?"trade":"trades"}</span>
+                  </div>
+                  <button onClick={()=>setSidebarOpen(false)} style={{padding:"6px",borderRadius:"10px",background:"rgba(51,65,85,0.3)",border:"1px solid rgba(51,65,85,0.5)",cursor:"pointer",color:"#94a3b8",display:"flex"}}>
+                    <X style={{width:"14px",height:"14px"}}/>
+                  </button>
+                </div>
+              </div>
+              <SidebarContent trades={trades}/>
+            </div>
+          </div>
+        )}
+
+        {/* ── Save modal ── */}
         {saved&&(
-          <div style={{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",background:"rgba(5,7,10,0.92)",backdropFilter:"blur(8px)"}}>
+          <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",background:"rgba(5,7,10,0.92)",backdropFilter:"blur(8px)"}}>
             <div style={{background:"#0a0d14",border:"1px solid rgba(51,65,85,0.5)",borderRadius:"2rem",padding:"40px",maxWidth:"360px",width:"100%",textAlign:"center",boxShadow:"0 25px 50px rgba(0,0,0,0.5)"}}>
               <div style={{width:"80px",height:"80px",borderRadius:"1.5rem",background:"rgba(30,41,59,0.5)",border:"1px solid rgba(51,65,85,0.5)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px"}}>
                 <CheckCircle2 style={{width:"36px",height:"36px",color:"#34d399",opacity:0.8}}/>
