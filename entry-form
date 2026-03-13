@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 
-// ── Inline SVG Icons ───────────────────────────────────────────────────────
 const Ic = ({ d, size=16, style, className, strokeWidth=2 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"
@@ -10,52 +9,49 @@ const Ic = ({ d, size=16, style, className, strokeWidth=2 }) => (
 );
 
 const ICONS = {
-  ChevronRight: "M9 18l6-6-6-6",
-  ChevronLeft:  "M15 18l-6-6 6-6",
-  AlertCircle:  ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 8v4","M12 16h.01"],
-  Zap:          "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
-  ShieldCheck:  ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z","M9 12l2 2 4-4"],
-  Activity:     "M22 12h-4l-3 9L9 3l-3 9H2",
-  Globe2:       ["M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z","M2 12h20","M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"],
+  ChevronRight: "M9 18l6-6-6-6", ChevronLeft: "M15 18l-6-6 6-6",
+  AlertCircle: ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 8v4","M12 16h.01"],
+  Zap: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+  ShieldCheck: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z","M9 12l2 2 4-4"],
+  Activity: "M22 12h-4l-3 9L9 3l-3 9H2",
+  Globe2: ["M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z","M2 12h20","M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"],
   CheckCircle2: ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M9 12l2 2 4-4"],
-  Camera:       ["M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z","M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
-  Target:       ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z","M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"],
-  Brain:        ["M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.66z","M14.5 2a2.5 2.5 0 0 1 1.44 4.66 2.5 2.5 0 0 1 1.32 4.24 3 3 0 0 1-.34 5.58 2.5 2.5 0 0 1-2.96 3.08A2.5 2.5 0 0 1 12 19.5v-15A2.5 2.5 0 0 1 14.5 2z"],
-  Crosshair:    ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M22 12h-4","M6 12H2","M12 6V2","M12 22v-4"],
-  Microscope:   ["M6 18h8","M3 22h18","M14 22a7 7 0 1 0 0-14h-1","M9 14h2","M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2z","M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"],
-  Shield:       "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
-  Battery:      ["M17 7H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M22 11v2"],
-  Briefcase:    ["M20 7H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"],
-  Layers:       ["M12 2L2 7l10 5 10-5-10-5z","M2 17l10 5 10-5","M2 12l10 5 10-5"],
-  LayoutGrid:   ["M3 3h7v7H3z","M14 3h7v7h-7z","M3 14h7v7H3z","M14 14h7v7h-7z"],
-  Award:        ["M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z","M8.21 13.89L7 23l5-3 5 3-1.21-9.12"],
-  Flame:        "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z",
-  Eye:          ["M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z","M12 12a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"],
-  Lightbulb:    ["M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5","M9 18h6","M10 22h4"],
-  Clock:        ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 6v6l4 2"],
-  Gauge:        ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M22 12A10 10 0 1 1 2 12"],
-  Boxes:        ["M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42z","M7 16.5l-4.74-2.85","M7 16.5l5-3","M7 16.5V19","M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3z","M17 16.5l-5-3","M17 16.5l4.74-2.85","M17 16.5V19"],
-  Layers3:      ["M12 2L2 7l10 5 10-5-10-5z","M2 12l10 5 10-5","M2 17l10 5 10-5"],
-  TrendingUp:   "M23 6l-9.5 9.5-5-5L1 18",
+  Camera: ["M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z","M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
+  Target: ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z","M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"],
+  Brain: ["M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.66z","M14.5 2a2.5 2.5 0 0 1 1.44 4.66 2.5 2.5 0 0 1 1.32 4.24 3 3 0 0 1-.34 5.58 2.5 2.5 0 0 1-2.96 3.08A2.5 2.5 0 0 1 12 19.5v-15A2.5 2.5 0 0 1 14.5 2z"],
+  Crosshair: ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M22 12h-4","M6 12H2","M12 6V2","M12 22v-4"],
+  Microscope: ["M6 18h8","M3 22h18","M14 22a7 7 0 1 0 0-14h-1","M9 14h2","M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2z","M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"],
+  Shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  Battery: ["M17 7H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M22 11v2"],
+  Briefcase: ["M20 7H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"],
+  Layers: ["M12 2L2 7l10 5 10-5-10-5z","M2 17l10 5 10-5","M2 12l10 5 10-5"],
+  LayoutGrid: ["M3 3h7v7H3z","M14 3h7v7h-7z","M3 14h7v7H3z","M14 14h7v7h-7z"],
+  Award: ["M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z","M8.21 13.89L7 23l5-3 5 3-1.21-9.12"],
+  Flame: "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z",
+  Eye: ["M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z","M12 12a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"],
+  Lightbulb: ["M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5","M9 18h6","M10 22h4"],
+  Clock: ["M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z","M12 6v6l4 2"],
+  Gauge: ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z","M22 12A10 10 0 1 1 2 12"],
+  Boxes: ["M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42z","M7 16.5l-4.74-2.85","M7 16.5l5-3","M7 16.5V19","M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3z","M17 16.5l-5-3","M17 16.5l4.74-2.85","M17 16.5V19"],
+  Layers3: ["M12 2L2 7l10 5 10-5-10-5z","M2 12l10 5 10-5","M2 17l10 5 10-5"],
+  TrendingUp: "M23 6l-9.5 9.5-5-5L1 18",
   BrainCircuit: ["M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z","M9 13a4.5 4.5 0 0 0 3-4","M6.003 5.125A3 3 0 0 0 6.401 6.5","M3.477 10.896a4 4 0 0 1 .585-.396","M6 18a4 4 0 0 1-1.967-.516","M12 13h4","M12 18h6a2 2 0 0 1 2 2v1","M12 8h8","M16 8V5a2 2 0 0 1 2-2","M16 13v-1a2 2 0 0 1 2-2h2"],
-  DoorOpen:     ["M13 4h3a2 2 0 0 1 2 2v14","M2 20h3","M13 20h9","M10 12v.01","M13 4L2 20h11V4z"],
-  RefreshCcw:   ["M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8","M3 3v5h5","M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16","M16 16h5v5"],
-  Trash2:       ["M3 6h18","M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6","M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2","M10 11v6","M14 11v6"],
-  Save:         ["M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z","M17 21v-8H7v8","M7 3v5h8"],
-  ArrowRight:   "M5 12h14M12 5l7 7-7 7",
-  BarChart2:    ["M18 20V10","M12 20V4","M6 20v-6"],
-  DollarSign:   ["M12 1v22","M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"],
-  Focus:        ["M8 3H5a2 2 0 0 0-2 2v3","M21 8V5a2 2 0 0 0-2-2h-3","M3 16v3a2 2 0 0 0 2 2h3","M16 21h3a2 2 0 0 0 2-2v-3"],
-  X:            "M18 6L6 18M6 6l12 12",
+  DoorOpen: ["M13 4h3a2 2 0 0 1 2 2v14","M2 20h3","M13 20h9","M10 12v.01","M13 4L2 20h11V4z"],
+  RefreshCcw: ["M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8","M3 3v5h5","M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16","M16 16h5v5"],
+  Trash2: ["M3 6h18","M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6","M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2","M10 11v6","M14 11v6"],
+  Save: ["M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z","M17 21v-8H7v8","M7 3v5h8"],
+  ArrowRight: "M5 12h14M12 5l7 7-7 7",
+  BarChart2: ["M18 20V10","M12 20V4","M6 20v-6"],
+  DollarSign: ["M12 1v22","M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"],
+  Focus: ["M8 3H5a2 2 0 0 0-2 2v3","M21 8V5a2 2 0 0 0-2-2h-3","M3 16v3a2 2 0 0 0 2 2h3","M16 21h3a2 2 0 0 0 2-2v-3"],
+  X: "M18 6L6 18M6 6l12 12",
 };
 
 const Icon = ({ name, size=16, style, className }) => {
-  const d = ICONS[name];
-  if (!d) return null;
+  const d = ICONS[name]; if (!d) return null;
   return <Ic d={d} size={size} style={style} className={className}/>;
 };
 
-// ── Constants ─────────────────────────────────────────────────────────────
 const INPUT_CLS = "w-full bg-slate-950/40 border border-slate-800/80 rounded-xl px-5 py-4 text-[13px] text-slate-200 placeholder-slate-700 resize-none focus:outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all duration-300 font-mono leading-relaxed";
 const LABEL_CLS = "block text-[10px] font-bold tracking-[0.2em] text-slate-500 mb-3 uppercase px-1";
 
@@ -101,31 +97,19 @@ const INIT = {
   recencyBiasFlag:false,
 };
 
-// ── UI Primitives ─────────────────────────────────────────────────────────
 const InfoBox = ({ color, icon, title, text }) => {
-  const themes = {
-    amber:  "border-amber-500/20  bg-amber-500/5  text-amber-400",
-    blue:   "border-blue-500/20   bg-blue-500/5   text-blue-400",
-    green:  "border-emerald-500/20 bg-emerald-500/5 text-emerald-400",
-    rose:   "border-rose-500/20   bg-rose-500/5   text-rose-400",
-    violet: "border-violet-500/20 bg-violet-500/5 text-violet-400",
-  };
+  const themes = { amber:"border-amber-500/20 bg-amber-500/5 text-amber-400", blue:"border-blue-500/20 bg-blue-500/5 text-blue-400", green:"border-emerald-500/20 bg-emerald-500/5 text-emerald-400", rose:"border-rose-500/20 bg-rose-500/5 text-rose-400", violet:"border-violet-500/20 bg-violet-500/5 text-violet-400" };
   return (
     <div className={`flex gap-4 p-5 rounded-xl border ${themes[color]||themes.blue}`}>
       <div className="flex-shrink-0 mt-0.5"><Icon name={icon} size={20}/></div>
-      <div>
-        <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1.5 opacity-90">{title}</p>
-        <p className="text-sm leading-relaxed text-slate-400 font-medium">{text}</p>
-      </div>
+      <div><p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1.5 opacity-90">{title}</p><p className="text-sm leading-relaxed text-slate-400 font-medium">{text}</p></div>
     </div>
   );
 };
 
 const SectionHeader = ({ icon, title }) => (
   <div className="flex items-center gap-4 mb-6">
-    <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-300 flex-shrink-0">
-      <Icon name={icon} size={16}/>
-    </div>
+    <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-300 flex-shrink-0"><Icon name={icon} size={16}/></div>
     <div className="h-px flex-1 bg-gradient-to-r from-slate-700/50 to-transparent"/>
     <h2 className="text-[11px] font-black tracking-[0.3em] text-slate-500 uppercase italic whitespace-nowrap">{title}</h2>
   </div>
@@ -134,10 +118,7 @@ const SectionHeader = ({ icon, title }) => (
 const Field = ({ label, field, value, onChange, placeholder="", rows, type="text" }) => (
   <div>
     {label && <label className={LABEL_CLS}>{label}</label>}
-    {rows
-      ? <textarea rows={rows} placeholder={placeholder} value={value??""} onChange={e=>onChange(field,e.target.value)} className={INPUT_CLS}/>
-      : <input type={type} placeholder={placeholder} value={value??""} onChange={e=>onChange(field,e.target.value)} className={INPUT_CLS+" block"}/>
-    }
+    {rows ? <textarea rows={rows} placeholder={placeholder} value={value??""} onChange={e=>onChange(field,e.target.value)} className={INPUT_CLS}/> : <input type={type} placeholder={placeholder} value={value??""} onChange={e=>onChange(field,e.target.value)} className={INPUT_CLS+" block"}/>}
   </div>
 );
 
@@ -145,8 +126,7 @@ const Sel = ({ label, field, value, onChange, options }) => (
   <div>
     {label && <label className={LABEL_CLS}>{label}</label>}
     <div className="relative">
-      <select value={options.includes(value)?value:options[0]} onChange={e=>onChange(field,e.target.value)}
-        className={INPUT_CLS+" appearance-none cursor-pointer pr-10 block"}>
+      <select value={options.includes(value)?value:options[0]} onChange={e=>onChange(field,e.target.value)} className={INPUT_CLS+" appearance-none cursor-pointer pr-10 block"}>
         {options.map(o=><option key={o} value={o} className="bg-[#0a0d14]">{o}</option>)}
       </select>
       <Icon name="ChevronRight" size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none rotate-90"/>
@@ -159,12 +139,7 @@ const Score = ({ label, field, value, onChange }) => (
     <label className="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase">{label}</label>
     <div className="flex gap-1.5">
       {[1,2,3,4,5].map(n=>(
-        <button key={n} onClick={()=>onChange(field,n)}
-          className={`w-8 h-8 rounded-lg text-[11px] font-black font-mono border transition-all
-            ${value===n?"bg-blue-600 border-blue-500 text-white shadow-[0_0_12px_rgba(59,130,246,0.5)]"
-            :"bg-slate-950/40 border-slate-800/80 text-slate-600 hover:border-blue-500/40"}`}>
-          {n}
-        </button>
+        <button key={n} onClick={()=>onChange(field,n)} className={`w-8 h-8 rounded-lg text-[11px] font-black font-mono border transition-all ${value===n?"bg-blue-600 border-blue-500 text-white shadow-[0_0_12px_rgba(59,130,246,0.5)]":"bg-slate-950/40 border-slate-800/80 text-slate-600 hover:border-blue-500/40"}`}>{n}</button>
       ))}
     </div>
   </div>
@@ -179,10 +154,7 @@ const Check = ({ label, field, value, onChange }) => (
 
 const Upload = ({ field, inputId, value, onChange, label, sublabel }) => (
   <div className={`relative rounded-2xl border transition-all overflow-hidden ${value?"border-blue-500/30":"border-dashed border-slate-800/80 hover:border-blue-500/30"} bg-slate-950/20`}>
-    <input type="file" className="hidden" id={inputId} accept="image/*" onChange={e=>{
-      const f=e.target.files[0];
-      if(f){const r=new FileReader();r.onloadend=()=>onChange(field,r.result);r.readAsDataURL(f);}
-    }}/>
+    <input type="file" className="hidden" id={inputId} accept="image/*" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onloadend=()=>onChange(field,r.result);r.readAsDataURL(f);}}}/>
     {value?(
       <div className="relative group/img">
         <img src={value} alt="chart" className="w-full h-auto max-h-80 object-contain"/>
@@ -193,9 +165,7 @@ const Upload = ({ field, inputId, value, onChange, label, sublabel }) => (
       </div>
     ):(
       <label htmlFor={inputId} className="flex flex-col items-center justify-center p-10 cursor-pointer group">
-        <div className="w-14 h-14 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-4 group-hover:border-blue-500/40 transition-all">
-          <Icon name="Camera" size={24} className="text-slate-700 group-hover:text-blue-500/60 transition-colors"/>
-        </div>
+        <div className="w-14 h-14 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-4 group-hover:border-blue-500/40 transition-all"><Icon name="Camera" size={24} className="text-slate-700 group-hover:text-blue-500/60 transition-colors"/></div>
         <span className="text-[13px] font-semibold text-slate-500 mb-1 text-center">{label}</span>
         <span className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-700 text-center">{sublabel}</span>
       </label>
@@ -205,15 +175,8 @@ const Upload = ({ field, inputId, value, onChange, label, sublabel }) => (
 
 const NavButtons = ({ step, onPrev, onNext }) => (
   <div className="flex items-center justify-between mt-12 pt-8 border-t border-slate-900">
-    <button onClick={onPrev} disabled={step===1}
-      className="group flex items-center gap-3 px-6 py-3 rounded-xl text-[11px] font-black tracking-widest text-slate-500 border border-slate-800 hover:border-slate-600 hover:text-slate-200 transition-all disabled:opacity-20">
-      <Icon name="ChevronLeft" size={16}/>PREV
-    </button>
-    <div className="hidden sm:flex gap-1.5">
-      {[1,2,3,4].map(n=>(
-        <div key={n} className={`h-1.5 rounded-full transition-all duration-500 ${step===n?"bg-blue-500 w-5":"bg-slate-800 w-1.5"}`}/>
-      ))}
-    </div>
+    <button onClick={onPrev} disabled={step===1} className="group flex items-center gap-3 px-6 py-3 rounded-xl text-[11px] font-black tracking-widest text-slate-500 border border-slate-800 hover:border-slate-600 hover:text-slate-200 transition-all disabled:opacity-20"><Icon name="ChevronLeft" size={16}/>PREV</button>
+    <div className="hidden sm:flex gap-1.5">{[1,2,3,4].map(n=><div key={n} className={`h-1.5 rounded-full transition-all duration-500 ${step===n?"bg-blue-500 w-5":"bg-slate-800 w-1.5"}`}/>)}</div>
     <button onClick={onNext} className="group flex items-center gap-3 px-8 py-3 rounded-xl text-[11px] font-black tracking-widest text-white transition-all hover:scale-[1.02] active:scale-95" style={{background:"linear-gradient(135deg,#3b82f6,#1d4ed8)"}}>
       {step===4?<><Icon name="Save" size={16}/>SAVE</>:<>NEXT<Icon name="ChevronRight" size={16}/></>}
     </button>
@@ -227,7 +190,6 @@ const StatRow = ({ label, value, valueColor }) => (
   </div>
 );
 
-// ── Sidebar ───────────────────────────────────────────────────────────────
 function SidebarContent({ trades }) {
   const stats = useMemo(() => {
     if (!trades.length) return null;
@@ -258,7 +220,7 @@ function SidebarContent({ trades }) {
   const pnlPct = stats&&stats.startBal>0?((stats.netPnL/stats.startBal)*100).toFixed(2):"0.00";
 
   return (
-    <div style={{padding:"12px 12px 24px",display:"flex",flexDirection:"column",gap:"8px"}}>
+    <div style={{padding:"12px 16px 24px",display:"flex",flexDirection:"column",gap:"8px",width:"100%",boxSizing:"border-box"}}>
       <div style={{background:"rgba(10,13,20,0.8)",border:"1px solid rgba(51,65,85,0.5)",borderRadius:"12px",padding:"12px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"6px"}}>
           <span style={{fontSize:"9px",fontWeight:900,letterSpacing:"0.25em",textTransform:"uppercase",color:"#475569"}}>NET P&L</span>
@@ -269,7 +231,6 @@ function SidebarContent({ trades }) {
           <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:pnlColor}}>{stats?(stats.netPnL>=0?"+":"")+pnlPct+"%":"0%"}</span>
         </div>
       </div>
-
       <div style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"10px 14px"}}>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:"3px"}}>
           <span style={{fontSize:"10px",color:"#475569"}}>Start Balance</span>
@@ -280,7 +241,6 @@ function SidebarContent({ trades }) {
           <span style={{fontSize:"13px",fontWeight:700,fontFamily:"monospace",color:"#cbd5e1"}}>{stats?fmt(stats.endBal):"$0.00"}</span>
         </div>
       </div>
-
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"9px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
           <Icon name="DollarSign" size={12} style={{color:"#475569"}}/>
@@ -288,7 +248,6 @@ function SidebarContent({ trades }) {
         </div>
         <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:"#94a3b8"}}>{stats?fmt(stats.commissions):"$0.00"}</span>
       </div>
-
       <div style={{display:"flex",alignItems:"center",gap:"8px",padding:"2px 0"}}>
         <div style={{flex:1,height:"1px",background:"rgba(51,65,85,0.5)"}}/>
         <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
@@ -297,35 +256,28 @@ function SidebarContent({ trades }) {
         </div>
         <div style={{flex:1,height:"1px",background:"rgba(51,65,85,0.5)"}}/>
       </div>
-
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px"}}>
-        {[
-          {label:"Buys",  val:stats?stats.buys:0,  color:"#60a5fa"},
-          {label:"Sells", val:stats?stats.sells:0, color:"#a78bfa"},
-          {label:"Total", val:stats?stats.total:0, color:"#e2e8f0"},
-        ].map(({label,val,color})=>(
+        {[{label:"Buys",val:stats?stats.buys:0,color:"#60a5fa"},{label:"Sells",val:stats?stats.sells:0,color:"#a78bfa"},{label:"Total",val:stats?stats.total:0,color:"#e2e8f0"}].map(({label,val,color})=>(
           <div key={label} style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"10px",padding:"9px 4px",textAlign:"center"}}>
             <p style={{fontSize:"9px",color:"#475569",marginBottom:"3px"}}>{label}</p>
             <p style={{fontSize:"17px",fontWeight:900,fontFamily:"monospace",color}}>{val}</p>
           </div>
         ))}
       </div>
-
       <div style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"12px",padding:"2px 14px"}}>
-        <StatRow label="Best Trade"    value={stats?fmt(stats.bestTrade):"$0.00"}  valueColor="#34d399"/>
-        <StatRow label="Worst Trade"   value={stats?fmt(stats.worstTrade):"$0.00"} valueColor={stats&&stats.worstTrade<0?"#f87171":"#94a3b8"}/>
+        <StatRow label="Best Trade"  value={stats?fmt(stats.bestTrade):"$0.00"} valueColor="#34d399"/>
+        <StatRow label="Worst Trade" value={stats?fmt(stats.worstTrade):"$0.00"} valueColor={stats&&stats.worstTrade<0?"#f87171":"#94a3b8"}/>
         <StatRow label="Avg Hold Time" value="—" valueColor="#475569"/>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0"}}>
           <span style={{fontSize:"11px",color:"#64748b"}}>Max Drawdown</span>
           <span style={{fontSize:"12px",fontWeight:700,fontFamily:"monospace",color:stats&&stats.maxDD>0?"#f87171":"#94a3b8"}}>{stats?fmt(stats.maxDD):"$0.00"}</span>
         </div>
       </div>
-
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px"}}>
         {[
-          {label:"Winrate",       val:stats?stats.winrate+"%":"0%", color:!stats?"#475569":parseFloat(stats?.winrate)>=50?"#34d399":"#f87171"},
-          {label:"Profit Factor", val:stats?stats.profitFactor:"0", color:!stats?"#475569":parseFloat(stats?.profitFactor)>=1.5?"#34d399":parseFloat(stats?.profitFactor)>=1?"#fbbf24":"#f87171"},
-          {label:"Expectancy",    val:stats?stats.exp:"0",          color:!stats?"#475569":parseFloat(stats?.exp)>0?"#34d399":"#f87171"},
+          {label:"Winrate",val:stats?stats.winrate+"%":"0%",color:!stats?"#475569":parseFloat(stats?.winrate)>=50?"#34d399":"#f87171"},
+          {label:"Profit Factor",val:stats?stats.profitFactor:"0",color:!stats?"#475569":parseFloat(stats?.profitFactor)>=1.5?"#34d399":parseFloat(stats?.profitFactor)>=1?"#fbbf24":"#f87171"},
+          {label:"Expectancy",val:stats?stats.exp:"0",color:!stats?"#475569":parseFloat(stats?.exp)>0?"#34d399":"#f87171"},
         ].map(({label,val,color})=>(
           <div key={label} style={{background:"rgba(10,13,20,0.6)",border:"1px solid rgba(51,65,85,0.4)",borderRadius:"10px",padding:"10px 4px",textAlign:"center"}}>
             <p style={{fontSize:"9px",color:"#475569",marginBottom:"5px"}}>{label}</p>
@@ -333,7 +285,6 @@ function SidebarContent({ trades }) {
           </div>
         ))}
       </div>
-
       {!trades.length&&(
         <div style={{borderRadius:"12px",border:"1px dashed rgba(51,65,85,0.3)",padding:"20px",textAlign:"center",marginTop:"4px"}}>
           <Icon name="Activity" size={20} style={{color:"#1e293b",margin:"0 auto 6px",display:"block"}}/>
@@ -345,7 +296,6 @@ function SidebarContent({ trades }) {
   );
 }
 
-// ── App ───────────────────────────────────────────────────────────────────
 export default function App() {
   const [step,setStep]               = useState(1);
   const [form,setForm]               = useState(INIT);
@@ -368,9 +318,21 @@ export default function App() {
   return (
     <>
       <style>{`
+        html,body,#root{width:100%;height:100%;margin:0;padding:0;overflow:hidden}
         .form-scroll::-webkit-scrollbar,.side-scroll::-webkit-scrollbar{display:none}
         .form-scroll,.side-scroll{-ms-overflow-style:none;scrollbar-width:none}
-        .sidebar-panel{position:relative;z-index:1;width:240px;flex-shrink:0;border-left:1px solid rgba(51,65,85,0.35);background:#07090f;display:flex;flex-direction:column;overflow-y:auto;-ms-overflow-style:none;scrollbar-width:none}
+        .sidebar-panel{
+          position:relative;z-index:1;
+          width:28vw;min-width:280px;flex-shrink:0;
+          border-left:1px solid rgba(51,65,85,0.35);
+          background:#07090f;
+          display:flex;flex-direction:column;
+          overflow-y:auto;
+          -ms-overflow-style:none;scrollbar-width:none;
+          padding-left:8px;
+          padding-right:12px;
+        }
+        .sidebar-panel::-webkit-scrollbar{display:none}
         @media(max-width:899px){.sidebar-panel{display:none}.sidebar-fab{display:flex!important}}
         .sidebar-drawer{position:fixed;inset:0;z-index:100;display:flex}
         .sidebar-drawer-backdrop{flex:1;background:rgba(5,7,10,0.7);backdrop-filter:blur(4px)}
@@ -380,7 +342,7 @@ export default function App() {
         @media(max-width:479px){.steps-grid{grid-template-columns:1fr 1fr!important}}
       `}</style>
 
-      <div style={{display:"flex",height:"100vh",overflow:"hidden",background:"#05070a",color:"#cbd5e1",fontFamily:"sans-serif",position:"relative"}}>
+      <div style={{display:"flex",width:"100vw",height:"100vh",overflow:"hidden",background:"#05070a",color:"#cbd5e1",fontFamily:"sans-serif",position:"relative"}}>
         <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0}}>
           <div style={{position:"absolute",top:"-10%",left:"-10%",width:"40%",height:"40%",background:"rgba(30,58,138,0.08)",filter:"blur(120px)",borderRadius:"50%"}}/>
           <div style={{position:"absolute",bottom:"-10%",right:"-10%",width:"40%",height:"40%",background:"rgba(120,53,15,0.04)",filter:"blur(120px)",borderRadius:"50%"}}/>
@@ -388,19 +350,16 @@ export default function App() {
 
         {/* FORM */}
         <div className="form-scroll" style={{position:"relative",zIndex:1,flex:1,overflowY:"auto",minWidth:0}}>
-          <div style={{maxWidth:"860px",margin:"0 0 0 auto",padding:"12px 20px"}}>
+          <div style={{width:"100%",margin:"0",padding:"12px 32px"}}>
 
             <div className="steps-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"8px",marginBottom:"16px"}}>
               {STEPS.map(s=>{
                 const isActive=s.id===step, isDone=s.id<step;
                 return (
                   <button key={s.id} onClick={()=>setStep(s.id)}
-                    className={`relative flex flex-col p-3 sm:p-4 rounded-2xl border transition-all duration-500 overflow-hidden text-left
-                      ${isActive?"bg-slate-900/40 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.1)]":"bg-slate-900/10 border-slate-800/50 hover:border-slate-700"}`}>
+                    className={`relative flex flex-col p-3 sm:p-4 rounded-2xl border transition-all duration-500 overflow-hidden text-left ${isActive?"bg-slate-900/40 border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.1)]":"bg-slate-900/10 border-slate-800/50 hover:border-slate-700"}`}>
                     <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <div className={`p-1.5 sm:p-2 rounded-lg ${isActive?"text-blue-400":isDone?"text-blue-500/40":"text-slate-600"}`}>
-                        <Icon name={s.icon} size={14}/>
-                      </div>
+                      <div className={`p-1.5 sm:p-2 rounded-lg ${isActive?"text-blue-400":isDone?"text-blue-500/40":"text-slate-600"}`}><Icon name={s.icon} size={14}/></div>
                       <span className={`text-[9px] sm:text-[10px] font-bold ${isActive?"text-blue-500":"text-slate-700"}`}>0{s.id}</span>
                     </div>
                     <p className={`text-[10px] sm:text-[11px] font-black tracking-widest uppercase mb-0.5 ${isActive?"text-white":"text-slate-500"}`}>{s.label}</p>
@@ -423,8 +382,8 @@ export default function App() {
                       <SectionHeader icon="Lightbulb" title="Core Thesis"/>
                       {lf("Trade Thesis","thesis",4,"Example: Price broke key resistance at 1.0850...")}
                       <div className={g2}>
-                        <InfoBox color="blue"  icon="Target" title="Objective" text="Clarity of thought. If you can't articulate your edge in 2-3 sentences, you don't have one."/>
-                        <InfoBox color="green" icon="Zap"    title="Edge"      text="Defines your systematic advantage. Separates disciplined entries from random impulse trades."/>
+                        <InfoBox color="blue" icon="Target" title="Objective" text="Clarity of thought. If you can't articulate your edge in 2-3 sentences, you don't have one."/>
+                        <InfoBox color="green" icon="Zap" title="Edge" text="Defines your systematic advantage. Separates disciplined entries from random impulse trades."/>
                       </div>
                     </section>
                     <section className="space-y-4">
@@ -436,8 +395,8 @@ export default function App() {
                       {lf("Invalidation Logic","invalidationLogic",3,"Example: If price closes below 1.0830...")}
                       {lf("Expected Behavior","expectedBehavior",3,"Example: Expect immediate bullish momentum...")}
                       <div className={g2}>
-                        <InfoBox color="rose"   icon="AlertCircle" title="Exit Plan"       text="Rule-based exits. Pre-define failure before emotion kicks in."/>
-                        <InfoBox color="violet" icon="Eye"          title="Early Detection" text="Know within minutes if your trade is working or dying."/>
+                        <InfoBox color="rose" icon="AlertCircle" title="Exit Plan" text="Rule-based exits. Pre-define failure before emotion kicks in."/>
+                        <InfoBox color="violet" icon="Eye" title="Early Detection" text="Know within minutes if your trade is working or dying."/>
                       </div>
                     </section>
                     <section className="space-y-6">
@@ -454,8 +413,8 @@ export default function App() {
                         </div>
                       </div>
                       <div className={g2}>
-                        <InfoBox color="green" icon="Focus"    title="State Matters"       text="Low energy/focus correlates with poor execution."/>
-                        <InfoBox color="blue"  icon="Briefcase" title="Portfolio Awareness" text="Over-leverage and correlated exposure are silent account killers."/>
+                        <InfoBox color="green" icon="Focus" title="State Matters" text="Low energy/focus correlates with poor execution."/>
+                        <InfoBox color="blue" icon="Briefcase" title="Portfolio Awareness" text="Over-leverage and correlated exposure are silent account killers."/>
                       </div>
                     </section>
                     <section className="space-y-6">
@@ -587,9 +546,9 @@ export default function App() {
                       </div>
                     </section>
                     <section className="space-y-4">
-                      <SectionHeader icon="Target" title="Liquidity & Bias"/>
+                      <SectionHeader icon="Boxes" title="Liquidity & Bias"/>
                       {lf("Liquidity Targets","liquidityTargets",3,"Major liquidity pools, stop hunts...")}
-                      <InfoBox color="blue" icon="Target" title="Smart Money Context" text="Identifies institutional positioning."/>
+                      <InfoBox color="blue" icon="Boxes" title="Smart Money Context" text="Identifies institutional positioning."/>
                     </section>
                     <section className="space-y-4">
                       <SectionHeader icon="Clock" title="Session Timing"/>
@@ -718,7 +677,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* SIDEBAR desktop */}
+        {/* SIDEBAR — right, with left padding for breathing room */}
         <div className="sidebar-panel side-scroll">
           <div style={{padding:"12px",borderBottom:"1px solid rgba(51,65,85,0.35)",background:"#07090f"}}>
             <div style={{background:"rgba(10,13,20,0.9)",border:"1px solid rgba(59,130,246,0.25)",borderRadius:"16px",padding:"14px 16px",height:"94px",boxSizing:"border-box",display:"flex",flexDirection:"column",justifyContent:"space-between",position:"relative",overflow:"hidden"}}>
@@ -744,8 +703,7 @@ export default function App() {
         {/* FAB mobile */}
         <button className="sidebar-fab" onClick={()=>setSidebarOpen(true)}
           style={{display:"none",position:"fixed",bottom:"24px",right:"20px",zIndex:50,alignItems:"center",gap:"8px",padding:"12px 18px",borderRadius:"16px",background:"linear-gradient(135deg,#3b82f6,#1d4ed8)",border:"none",cursor:"pointer",boxShadow:"0 8px 32px rgba(59,130,246,0.35)",color:"#fff",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em"}}>
-          <Icon name="BarChart2" size={16}/>
-          STATS
+          <Icon name="BarChart2" size={16}/>STATS
           {trades.length>0&&<span style={{background:"rgba(255,255,255,0.2)",borderRadius:"8px",padding:"2px 7px",fontSize:"10px",fontWeight:900}}>{trades.length}</span>}
         </button>
 
@@ -783,8 +741,7 @@ export default function App() {
               </div>
               <h3 style={{fontSize:"13px",fontWeight:900,letterSpacing:"0.4em",color:"#cbd5e1",textTransform:"uppercase",marginBottom:"12px"}}>Trade Logged</h3>
               <p style={{fontSize:"13px",color:"#64748b",fontFamily:"monospace",lineHeight:1.6,marginBottom:"32px"}}>Decision architecture and trade data recorded. Stats updated in sidebar.</p>
-              <button onClick={()=>{setForm(INIT);setStep(1);setSaved(false);}}
-                style={{width:"100%",padding:"12px 32px",borderRadius:"12px",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",color:"#fff",border:"none",cursor:"pointer",background:"linear-gradient(135deg,#3b82f6,#1d4ed8)"}}>
+              <button onClick={()=>{setForm(INIT);setStep(1);setSaved(false);}} style={{width:"100%",padding:"12px 32px",borderRadius:"12px",fontSize:"11px",fontWeight:900,letterSpacing:"0.15em",color:"#fff",border:"none",cursor:"pointer",background:"linear-gradient(135deg,#3b82f6,#1d4ed8)"}}>
                 CONTINUE TRADING
               </button>
             </div>
