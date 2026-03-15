@@ -1,27 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-  BrainCircuit, Send, Sparkles, AlertTriangle,
-  RotateCcw, Copy, Check, MessageSquare, Download,
-  Terminal, BarChart3, ShieldCheck, Zap, History,
-  Command, ChevronRight, FileText
+  Send, RotateCcw, Copy, Check, Download,
+  FileText, ChevronRight, AlertCircle, User
 } from "lucide-react";
 
-// --- Configuration & API Logic ---
-const apiKey = "";
-const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
-
-const SUGGESTED_QUESTIONS = [
-  "What patterns do you see in my losing trades?",
-  "Am I over-trading on any particular day?",
-  "How does my emotional state affect my win rate?",
-  "Which setup tags perform best for me?",
-  "Am I following my risk management rules?",
-  "What's my average R:R on winning vs losing trades?",
-  "Do I trade better in specific sessions?",
-  "Where do I deviate most from my planned entries?",
-  "What does my impulse control data reveal?",
-  "Which instruments give me the best results?",
-];
+const MODEL_NAME = "claude-sonnet-4-20250514";
 
 const SYSTEM_PROMPT = `You are an elite trading coach and performance analyst connected directly to the trader's TradeLog journal database. You have full access to all their trade entries.
 
@@ -33,348 +16,333 @@ Your role is to:
 
 Always respond as if you have already retrieved the relevant data from the database.`;
 
+
+const AtomAI = ({ size = 20, color = "white" }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Orbit 1 - horizontal ellipse */}
+    <ellipse cx="20" cy="20" rx="18" ry="7" stroke={color} strokeWidth="2" fill="none"/>
+    {/* Orbit 2 - rotated 60deg */}
+    <ellipse cx="20" cy="20" rx="18" ry="7" stroke={color} strokeWidth="2" fill="none" transform="rotate(60 20 20)"/>
+    {/* Orbit 3 - rotated 120deg */}
+    <ellipse cx="20" cy="20" rx="18" ry="7" stroke={color} strokeWidth="2" fill="none" transform="rotate(120 20 20)"/>
+    {/* Center text */}
+    <text x="20" y="24.5" textAnchor="middle" fontSize="9" fontWeight="700" fontFamily="Montserrat, sans-serif" fill={color} letterSpacing="0.5">AI</text>
+  </svg>
+);
+
+const SUGGESTIONS = [
+  "What patterns do you see in my losing trades?",
+  "Am I over-trading on any particular day?",
+  "How does my emotional state affect my win rate?",
+  "Which setup tags perform best for me?",
+  "Am I following my risk management rules?",
+  "What's my average R:R on winning vs losing trades?",
+  "Do I trade better in specific sessions?",
+  "Which instruments give me the best results?",
+];
+
+const F = "'Montserrat', sans-serif";
+
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [copiedIdx, setCopiedIdx] = useState(null);
+  const [copied, setCopied] = useState(null);
   const [error, setError] = useState(null);
-  const messagesEndRef = useRef(null);
+  const bottomRef = useRef(null);
+  const taRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const callGemini = async (userMessages) => {
-    let delay = 1000;
-    const maxRetries = 5;
-
-    for (let i = 0; i <= maxRetries; i++) {
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: userMessages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n") }] }],
-              systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            }),
-          }
-        );
-
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error("Empty response from AI");
-        return text;
-      } catch (err) {
-        if (i === maxRetries) throw err;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        delay *= 2;
-      }
-    }
+  const autoResize = (el) => {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 200) + "px";
   };
 
-  const sendMessage = async (overrideInput) => {
-    const userMsg = (overrideInput ?? input).trim();
-    if (!userMsg || loading) return;
+  const callClaude = async (msgs) => {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: msgs.map(m => ({
+          role: m.role === "model" ? "assistant" : "user",
+          content: m.content,
+        })),
+      }),
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const data = await res.json();
+    return data.content?.[0]?.text ?? "";
+  };
+
+  const send = async (override) => {
+    const text = (override ?? input).trim();
+    if (!text || loading) return;
     setInput("");
     setError(null);
-
-    const newMessages = [...messages, { role: "user", content: userMsg }];
-    setMessages(newMessages);
+    if (taRef.current) taRef.current.style.height = "28px";
+    const next = [...messages, { role: "user", content: text }];
+    setMessages(next);
     setLoading(true);
-
     try {
-      const reply = await callGemini(newMessages);
-      setMessages([...newMessages, { role: "model", content: reply }]);
-    } catch (err) {
-      setError("Analysis failed. Connection to the neural engine timed out. Please retry.");
+      const reply = await callClaude(next);
+      setMessages([...next, { role: "model", content: reply }]);
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const copyMessage = (text, idx) => {
-    document.execCommand('copy'); 
+  const copyMsg = (text, idx) => {
     navigator.clipboard.writeText(text);
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
+    setCopied(idx);
+    setTimeout(() => setCopied(null), 2000);
   };
 
-  const downloadFullReport = () => {
-    if (messages.length === 0) return;
-    
-    const timestamp = new Date().toLocaleString();
-    let content = `FSD AI TRADE ANALYSIS REPORT\nGenerated: ${timestamp}\n`;
-    content += `==========================================\n\n`;
-
-    messages.forEach((msg, i) => {
-      const role = msg.role === 'user' ? 'TRADER' : 'FSD AI ANALYST';
-      content += `[${role}]\n${msg.content}\n\n`;
-      content += `------------------------------------------\n\n`;
+  const exportChat = () => {
+    if (!messages.length) return;
+    const content = messages
+      .map(m => `${m.role === "user" ? "You" : "Trader AI : FSD AI"}:\n${m.content}`)
+      .join("\n\n---\n\n");
+    const a = Object.assign(document.createElement("a"), {
+      href: URL.createObjectURL(new Blob([content], { type: "text/plain" })),
+      download: `fsd-analysis-${Date.now()}.txt`,
     });
-
-    content += `END OF REPORT\n`;
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `fsd-ai-analysis-${Date.now()}.txt`;
     a.click();
-    URL.revokeObjectURL(url);
   };
 
-  const downloadMessage = (text, idx) => {
-    const content = `TRADELOG AI ANALYST REPORT\n\n${text}`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `trade-analysis-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const clearChat = () => {
-    setMessages([]);
-    setError(null);
+  const renderContent = (content) => {
+    const lines = content.split("\n");
+    const elements = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (!line.trim()) { elements.push(<div key={i} style={{ height: 8 }} />); i++; continue; }
+      if (line.startsWith("### ")) {
+        elements.push(<p key={i} style={{ fontFamily: F, fontSize: 11, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginTop: 20, marginBottom: 8 }}>{line.slice(4)}</p>);
+        i++; continue;
+      }
+      if (line.startsWith("## ")) {
+        elements.push(<p key={i} style={{ fontFamily: F, fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.88)", marginTop: 16, marginBottom: 6 }}>{line.slice(3)}</p>);
+        i++; continue;
+      }
+      if (line.startsWith("**") && line.endsWith("**")) {
+        elements.push(<p key={i} style={{ fontFamily: F, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.82)", marginBottom: 4 }}>{line.slice(2, -2)}</p>);
+        i++; continue;
+      }
+      if (line.trim().startsWith("|")) {
+        const tableLines = [];
+        while (i < lines.length && lines[i].trim().startsWith("|")) { tableLines.push(lines[i]); i++; }
+        elements.push(
+          <div key={`t${i}`} style={{ overflowX: "auto", margin: "12px 0" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: F }}>
+              {tableLines.map((row, ri) => {
+                if (row.replace(/[|\s\-]/g, "") === "") return null;
+                const cells = row.split("|").slice(1, -1);
+                const isHeader = ri === 0;
+                return (
+                  <tr key={ri} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    {cells.map((cell, ci) => (
+                      <td key={ci} style={{ padding: "8px 12px", color: isHeader ? "rgba(255,255,255,0.38)" : "rgba(255,255,255,0.7)", fontWeight: isHeader ? 500 : 400, fontSize: isHeader ? 11 : 13, textTransform: isHeader ? "uppercase" : "none", letterSpacing: isHeader ? "0.05em" : 0, whiteSpace: "nowrap", fontFamily: F }}>
+                        {cell.trim()}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </table>
+          </div>
+        );
+        continue;
+      }
+      if (/^[-•*]\s/.test(line)) {
+        elements.push(
+          <div key={i} style={{ display: "flex", gap: 10, marginBottom: 5, alignItems: "flex-start" }}>
+            <div style={{ width: 4, height: 4, borderRadius: "50%", background: "rgba(255,255,255,0.2)", marginTop: 8, flexShrink: 0 }} />
+            <span style={{ fontFamily: F, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.65, fontWeight: 400 }}>{line.replace(/^[-•*]\s/, "")}</span>
+          </div>
+        );
+        i++; continue;
+      }
+      elements.push(<p key={i} style={{ fontFamily: F, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.72, marginBottom: 4, fontWeight: 400 }}>{line}</p>);
+      i++;
+    }
+    return elements;
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30">
-      {/* Background Decor */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600/5 blur-[120px] rounded-full" />
+    <div style={{ minHeight: "100vh", background: "#08090c", display: "flex", flexDirection: "column", alignItems: "center", fontFamily: F }}>
+
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)", zIndex: 10 }} />
+
+      {/* Header */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: 56, background: "rgba(8,9,12,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <AtomAI size={14} color="white" />
+          </div>
+          <span style={{ fontFamily: F, fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.9)", letterSpacing: "-0.02em" }}>Trader AI : FSD AI</span>
+          <span style={{ fontFamily: F, fontSize: 12, color: "rgba(255,255,255,0.22)", fontWeight: 400 }}>Your Personal Trading Coach</span>
+        </div>
+
+        {messages.length > 0 && (
+          <div style={{ display: "flex", gap: 6 }}>
+            {[
+              { label: "Export", icon: <FileText size={13} />, action: exportChat },
+              { label: "Clear",  icon: <RotateCcw size={13} />, action: () => { setMessages([]); setError(null); } },
+            ].map(({ label, icon, action }) => (
+              <button key={label} onClick={action} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: F, transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
+              >
+                {icon}<span>{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="relative flex flex-col h-screen max-w-6xl mx-auto border-x border-slate-800/50 bg-slate-950/20 backdrop-blur-3xl">
-        
-        {/* Top Navigation Bar */}
-        <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-800/60 bg-slate-900/40 backdrop-blur-md z-10">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-lg shadow-indigo-500/20">
-              <BrainCircuit className="w-5 h-5 text-white" />
+      {/* Content */}
+      <div style={{ width: "100%", maxWidth: 720, paddingTop: 56, paddingBottom: 148, minHeight: "100vh" }}>
+
+        {messages.length === 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 200px)", padding: "40px 24px", textAlign: "center" }}>
+            <div style={{ width: 50, height: 50, borderRadius: 15, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, boxShadow: "0 0 48px rgba(99,102,241,0.25)" }}>
+              <AtomAI size={22} color="white" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold tracking-tight text-white uppercase flex items-center gap-2">
-                fsd AI <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">v2.5</span>
-              </h1>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                SECURE DATABASE UPLINK ACTIVE
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {messages.length > 0 && (
-              <>
-                <button 
-                  onClick={downloadFullReport}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-indigo-500/30 transition-all active:scale-95"
-                  title="Download Full Report"
+            <h1 style={{ fontFamily: F, fontSize: 26, fontWeight: 700, color: "rgba(255,255,255,0.92)", letterSpacing: "-0.04em", marginBottom: 10, lineHeight: 1.2 }}>
+              How can I analyse<br />your trades today?
+            </h1>
+            <p style={{ fontFamily: F, fontSize: 14, color: "rgba(255,255,255,0.3)", lineHeight: 1.65, maxWidth: 360, marginBottom: 40, fontWeight: 400 }}>
+              Connected to your TradeLog database. Ask me anything about your performance, patterns, and edge.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", maxWidth: 640 }}>
+              {SUGGESTIONS.map((s, i) => (
+                <button key={i} onClick={() => send(s)}
+                  style={{ padding: "16px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, color: "rgba(255,255,255,0.55)", fontSize: 13, fontFamily: F, fontWeight: 400, cursor: "pointer", textAlign: "left", lineHeight: 1.5, transition: "all 0.18s", display: "flex", flexDirection: "column", gap: 10 }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,0.08)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.35)"; e.currentTarget.style.color = "rgba(255,255,255,0.85)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; }}
                 >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Download Report</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(99,102,241,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <ChevronRight size={13} color="#818cf8" />
+                  </div>
+                  <span style={{ fontFamily: F }}>{s}</span>
                 </button>
-                <button 
-                  onClick={clearChat}
-                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-all border border-transparent hover:border-rose-400/20"
-                  title="Clear Session"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-              </>
-            )}
-            <div className="hidden md:flex flex-col items-end px-4 py-1.5 bg-slate-800/30 border border-slate-700/50 rounded-lg">
-               <span className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Latency</span>
-               <span className="text-[10px] text-emerald-400 font-mono">24ms / OPTIMAL</span>
-            </div>
-          </div>
-        </header>
-
-        {/* Workspace */}
-        <main className="flex-1 overflow-hidden relative flex flex-col">
-          
-          {messages.length === 0 ? (
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="flex flex-col items-center justify-center min-h-full p-6 text-center">
-                <div className="relative mb-6 mt-4">
-                  <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
-                  <div className="relative w-16 h-16 bg-slate-900 border border-slate-700/50 rounded-2xl flex items-center justify-center shadow-2xl">
-                    <Terminal className="w-8 h-8 text-indigo-400" />
-                  </div>
-                </div>
-                
-                <h2 className="text-xl font-bold text-white mb-2">Initialize Analysis</h2>
-                <p className="text-slate-400 max-w-md mx-auto mb-8 text-sm leading-relaxed px-4">
-                  Connect your trade data for deep-level pattern recognition, psychological audit, and risk efficiency mapping.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 w-full max-w-2xl px-4 pb-8">
-                  {SUGGESTED_QUESTIONS.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => sendMessage(q)}
-                      className="group flex items-center justify-between p-3.5 bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all rounded-xl text-left"
-                    >
-                      <span className="text-[12px] text-slate-300 group-hover:text-white transition-colors line-clamp-1">{q}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all flex-shrink-0 ml-2" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 scroll-smooth custom-scrollbar">
-              {messages.map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  className="flex gap-4 md:gap-6 max-w-4xl mx-auto group animate-in fade-in slide-in-from-bottom-2 duration-500"
-                >
-                  <div className={`mt-1 flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center border shadow-sm
-                    ${msg.role === 'user' 
-                      ? 'bg-slate-800 border-slate-700' 
-                      : 'bg-indigo-500/10 border-indigo-500/30'}`}
-                  >
-                    {msg.role === 'user' ? (
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Trd</span>
-                    ) : (
-                      <BrainCircuit className="w-4 h-4 md:w-5 md:h-5 text-indigo-400" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 space-y-2 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
-                        {msg.role === 'user' ? 'Local Operator' : 'Neural Core'}
-                      </span>
-                      {msg.role === 'model' && (
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => copyMessage(msg.content, idx)}
-                            className="p-1.5 hover:bg-slate-800 rounded-md text-slate-500 hover:text-indigo-400 transition-all"
-                            title="Copy"
-                          >
-                            {copiedIdx === idx ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                          </button>
-                          <button 
-                            onClick={() => downloadMessage(msg.content, idx)}
-                            className="p-1.5 hover:bg-slate-800 rounded-md text-slate-500 hover:text-indigo-400 transition-all"
-                            title="Download Segment"
-                          >
-                            <Download className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className={`prose prose-invert max-w-none text-[13px] md:text-[14px] leading-relaxed
-                      ${msg.role === 'user' ? 'text-slate-200 font-medium' : 'text-slate-300'}
-                    `}>
-                      {msg.content.split('\n').map((line, i) => {
-                        if (line.trim().startsWith('|')) return <pre key={i} className="font-mono bg-slate-900/80 p-3 rounded-lg text-[11px] my-3 overflow-x-auto border border-slate-800 text-indigo-300">{line}</pre>;
-                        if (line.startsWith('###')) return <h3 key={i} className="text-white font-bold text-sm uppercase tracking-wider mt-6 mb-2">{line.replace('###', '')}</h3>;
-                        return <p key={i} className="mb-3 last:mb-0">{line}</p>;
-                      })}
-                    </div>
-                  </div>
-                </div>
               ))}
-              
-              {loading && (
-                <div className="flex gap-4 md:gap-6 max-w-4xl mx-auto py-4">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center">
-                    <Zap className="w-4 h-4 md:w-5 md:h-5 text-indigo-400 animate-pulse" />
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <div className="h-2 w-24 bg-slate-800 rounded-full animate-pulse" />
-                    <div className="space-y-2">
-                      <div className="h-3 w-full bg-slate-900/50 rounded animate-pulse" />
-                      <div className="h-3 w-3/4 bg-slate-900/50 rounded animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} className="h-4" />
-            </div>
-          )}
-        </main>
-
-        {/* Input Terminal */}
-        <footer className="flex-shrink-0 p-4 md:p-6 bg-slate-900/30 border-t border-slate-800/60 backdrop-blur-md">
-          <div className="max-w-4xl mx-auto space-y-4">
-            {error && (
-              <div className="flex items-center gap-3 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl animate-in fade-in slide-in-from-top-1">
-                <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0" />
-                <p className="text-[11px] text-rose-400 font-medium">{error}</p>
-              </div>
-            )}
-
-            <div className="relative group">
-              <div className="absolute inset-0 bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-2xl" />
-              <div className="relative flex items-end gap-2 md:gap-3 p-2 bg-slate-900 border border-slate-700 group-focus-within:border-indigo-500/50 rounded-2xl transition-all shadow-2xl">
-                <div className="hidden sm:flex h-11 w-11 items-center justify-center text-slate-500 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                  <Command className="w-4 h-4" />
-                </div>
-                <textarea
-                  rows={1}
-                  className="flex-1 bg-transparent py-3 px-1 md:px-2 text-sm text-white placeholder-slate-500 focus:outline-none resize-none min-h-[44px] max-h-32 custom-scrollbar"
-                  placeholder="Query trading database..."
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                  disabled={loading}
-                />
-                <button
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim() || loading}
-                  className="h-11 w-11 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-600/20 transition-all active:scale-95 flex-shrink-0"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-1">
-              <div className="flex gap-4">
-                 <div className="flex items-center gap-1.5 text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                   <ShieldCheck className="w-2.5 h-2.5 text-emerald-500" />
-                   Encrypted
-                 </div>
-                 <div className="flex items-center gap-1.5 text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                   <BarChart3 className="w-2.5 h-2.5 text-indigo-500" />
-                   Analytical Mode
-                 </div>
-              </div>
-              <p className="text-[9px] text-slate-600 font-mono hidden sm:block">STATUS: SYSTEM_READY</p>
             </div>
           </div>
-        </footer>
+        ) : (
+          <div style={{ padding: "32px 24px 0" }}>
+            {messages.map((msg, idx) => (
+              <div key={idx} style={{ marginBottom: 32, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg, #6366f1, #8b5cf6)", border: msg.role === "user" ? "1px solid rgba(255,255,255,0.09)" : "none", marginTop: 2 }}>
+                  {msg.role === "user" ? <User size={13} color="rgba(255,255,255,0.45)" /> : <AtomAI size={13} color="white" />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: F, fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.28)", marginBottom: 7 }}>
+                    {msg.role === "user" ? "You" : "Trader AI : FSD AI"}
+                  </div>
+                  {msg.role === "user"
+                    ? <p style={{ fontFamily: F, fontSize: 15, color: "rgba(255,255,255,0.88)", lineHeight: 1.65, fontWeight: 400 }}>{msg.content}</p>
+                    : (
+                      <div>
+                        {renderContent(msg.content)}
+                        <div style={{ display: "flex", gap: 4, marginTop: 10 }}
+                          onMouseEnter={e => Array.from(e.currentTarget.children).forEach(c => c.style.opacity = "1")}
+                          onMouseLeave={e => Array.from(e.currentTarget.children).forEach(c => c.style.opacity = "0")}
+                        >
+                          {[
+                            { icon: copied === idx ? <Check size={13} /> : <Copy size={13} />, action: () => copyMsg(msg.content, idx) },
+                            { icon: <Download size={13} />, action: () => { const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([msg.content], { type: "text/plain" })), download: `analysis-${Date.now()}.txt` }); a.click(); } },
+                          ].map(({ icon, action }, bi) => (
+                            <button key={bi} onClick={action} style={{ width: 28, height: 28, borderRadius: 6, border: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.35)", opacity: 0, transition: "all 0.15s" }}
+                              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}
+                            >{icon}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div style={{ marginBottom: 32, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+                  <AtomAI size={13} color="white" />
+                </div>
+                <div style={{ flex: 1, paddingTop: 6 }}>
+                  <div style={{ fontFamily: F, fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>Trader AI : FSD AI</div>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {[0, 1, 2].map(d => (
+                      <div key={d} style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.22)", animation: `bounce 1.2s ${d * 0.18}s ease-in-out infinite` }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9, padding: "16px 24px 24px", background: "linear-gradient(to top, #08090c 65%, transparent)" }}>
+        {error && (
+          <div style={{ maxWidth: 720, margin: "0 auto 10px", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.18)", borderRadius: 10 }}>
+            <AlertCircle size={13} color="#f87171" />
+            <span style={{ fontFamily: F, fontSize: 13, color: "#f87171" }}>{error}</span>
+          </div>
+        )}
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 14, padding: "10px 10px 10px 16px", backdropFilter: "blur(20px)", transition: "border-color 0.15s, box-shadow 0.15s" }}
+            onFocusCapture={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.45)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
+            onBlurCapture={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"; e.currentTarget.style.boxShadow = "none"; }}
+          >
+            <textarea
+              ref={taRef}
+              value={input}
+              onChange={e => { setInput(e.target.value); autoResize(e.target); }}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              disabled={loading}
+              rows={1}
+              placeholder="Message Trader AI..."
+              style={{ flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", fontFamily: F, fontSize: 15, fontWeight: 400, color: "rgba(255,255,255,0.88)", lineHeight: 1.55, minHeight: 28, maxHeight: 200, padding: 0 }}
+            />
+            <button onClick={() => send()} disabled={!input.trim() || loading}
+              style={{ width: 34, height: 34, borderRadius: 9, border: "none", background: input.trim() && !loading ? "linear-gradient(135deg, #6366f1, #8b5cf6)" : "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() && !loading ? "pointer" : "default", transition: "all 0.15s", flexShrink: 0, boxShadow: input.trim() && !loading ? "0 2px 14px rgba(99,102,241,0.35)" : "none" }}
+            >
+              {loading
+                ? <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.15)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                : <Send size={14} color={input.trim() ? "white" : "rgba(255,255,255,0.18)"} />
+              }
+            </button>
+          </div>
+          <p style={{ fontFamily: F, textAlign: "center", fontSize: 11, fontWeight: 400, color: "rgba(255,255,255,0.15)", marginTop: 8 }}>
+            Trader AI can make mistakes. Verify important insights independently.
+          </p>
+        </div>
       </div>
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.3); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
-        
-        /* Ensure layout stability */
-        html, body, #root { height: 100%; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        @keyframes spin   { to{transform:rotate(360deg)} }
+        textarea::placeholder { color:rgba(255,255,255,0.2); font-family:'Montserrat',sans-serif; }
+        html,body,#root { height:100%; overflow:auto; background:#08090c; font-family:'Montserrat',sans-serif; }
+        *{ box-sizing:border-box; margin:0; padding:0; }
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:10px}
       `}</style>
     </div>
   );
