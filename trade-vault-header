@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const CircleDownloadIcon = ({ success }) => (
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -15,32 +15,72 @@ const CircleDownloadIcon = ({ success }) => (
   </svg>
 );
 
+const Cell = ({ label, value, color, isMobile, first = false }) => (
+  <div style={{
+    flex: isMobile ? 1 : "none",
+    width: isMobile ? "auto" : 110,
+    padding: "10px 0",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    borderLeft: first ? "none" : "1px solid #1e2535",
+  }}>
+    <span style={{
+      fontSize: 9,
+      fontWeight: 900,
+      color: "#3d4d6a",
+      letterSpacing: "0.12em",
+      fontFamily: "'Montserrat', sans-serif",
+    }}>
+      {label}
+    </span>
+    <span style={{
+      fontSize: isMobile ? 15 : 18,
+      fontWeight: 900,
+      color,
+      fontFamily: "'Montserrat', sans-serif",
+      letterSpacing: "-0.02em",
+      textShadow:
+        color === "#00d48a" ? "0 0 16px rgba(0,212,138,0.35)" :
+        color === "#4da6ff" ? "0 0 16px rgba(77,166,255,0.3)" :
+        color === "#a78bfa" ? "0 0 16px rgba(167,139,250,0.3)" : "none",
+    }}>
+      {value}
+    </span>
+  </div>
+);
+
 export default function TradeVaultHeader() {
   const [exported, setExported] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const handleExport = () => {
     setExported(true);
     setTimeout(() => setExported(false), 1800);
   };
 
-  const stats = [
-    { label: "NET P/L",  value: "+$14,736.7", color: "#00d48a" },
-    { label: "WIN RATE", value: "75%",         color: "#4da6ff" },
-    { label: "TRADES",   value: "4",           color: "#f0f4ff" },
-  ];
-
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet" />
       <header style={{
         width: "100%",
         background: "#111520",
         borderBottom: "1px solid #1e2535",
-        padding: "14px 20px",
+        padding: isMobile ? "12px 14px" : "14px 20px",
         display: "flex",
-        alignItems: "center",
+        flexDirection: isMobile ? "column" : "row",
+        alignItems: isMobile ? "stretch" : "center",
         justifyContent: "space-between",
-        gap: 16,
+        gap: isMobile ? 12 : 16,
         boxSizing: "border-box",
         fontFamily: "'Montserrat', sans-serif",
         boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
@@ -50,64 +90,41 @@ export default function TradeVaultHeader() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 8, height: 8, borderRadius: "50%",
-            background: "#00d48a",
-            boxShadow: "0 0 6px #00d48a",
-            flexShrink: 0,
+            background: "#00d48a", boxShadow: "0 0 6px #00d48a", flexShrink: 0,
           }} />
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#eef2ff", letterSpacing: "0.1em" }}>
+            <div style={{ fontSize: 12, fontWeight: 900, color: "#eef2ff", letterSpacing: "0.12em", fontFamily: "'Montserrat', sans-serif" }}>
               TRADE VAULT
             </div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: "#4a5778", marginTop: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "#4a5778", marginTop: 2, fontFamily: "'Montserrat', sans-serif" }}>
               Performance ledger · 4 entries
             </div>
           </div>
         </div>
 
-        {/* Right: stat cells + export */}
+        {/* Right: all stat cells */}
         <div style={{
           display: "flex",
           background: "#0d1018",
           border: "1px solid #1e2535",
           overflow: "hidden",
           flexShrink: 0,
+          width: isMobile ? "100%" : "auto",
         }}>
-          {stats.map((s, i) => (
-            <div key={i} style={{
-              width: 110,
-              padding: "10px 0",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-              borderLeft: i === 0 ? "none" : "1px solid #1e2535",
-            }}>
-              <span style={{ fontSize: 9, fontWeight: 600, color: "#3d4d6a", letterSpacing: "0.1em" }}>
-                {s.label}
-              </span>
-              <span style={{
-                fontSize: 17, fontWeight: 700, color: s.color,
-                textShadow:
-                  s.color === "#00d48a" ? "0 0 16px rgba(0,212,138,0.35)" :
-                  s.color === "#4da6ff" ? "0 0 16px rgba(77,166,255,0.3)" : "none",
-              }}>
-                {s.value}
-              </span>
-            </div>
-          ))}
+          <Cell label="NET P/L"  value="+$14,736.7" color="#00d48a" isMobile={isMobile} first />
+          <Cell label="WIN RATE" value="75%"         color="#4da6ff" isMobile={isMobile} />
+          <Cell label="TRADES"   value="4"           color="#f0f4ff" isMobile={isMobile} />
+          <Cell label="GROWTH"   value="+32.4%"      color="#a78bfa" isMobile={isMobile} />
+          <Cell label="DAYS"     value="21"          color="#f0f4ff" isMobile={isMobile} />
 
-          {/* Export cell */}
+          {/* Export */}
           <div
             onClick={handleExport}
             style={{
-              width: 110,
+              flex: isMobile ? 1 : "none",
+              width: isMobile ? "auto" : 110,
               padding: "10px 0",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
               borderLeft: "1px solid #1e2535",
               cursor: "pointer",
               transition: "background 0.15s",
@@ -115,7 +132,7 @@ export default function TradeVaultHeader() {
             onMouseEnter={e => e.currentTarget.style.background = "#161b27"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
-            <span style={{ fontSize: 9, fontWeight: 600, color: "#3d4d6a", letterSpacing: "0.1em" }}>
+            <span style={{ fontSize: 9, fontWeight: 900, color: "#3d4d6a", letterSpacing: "0.12em", fontFamily: "'Montserrat', sans-serif" }}>
               {exported ? "EXPORTED" : "EXPORT CSV"}
             </span>
             <CircleDownloadIcon success={exported} />
