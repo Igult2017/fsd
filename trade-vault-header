@@ -1,0 +1,128 @@
+import { useState } from "react";
+
+const CircleDownloadIcon = ({ success }) => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="14" cy="14" r="14" fill={success ? "#00d48a" : "#1e6fc8"} />
+    {success ? (
+      <polyline points="8,14 12,18 20,10" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    ) : (
+      <>
+        <line x1="14" y1="7" x2="14" y2="17" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <polyline points="9,13 14,18 19,13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <line x1="8" y1="21" x2="20" y2="21" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      </>
+    )}
+  </svg>
+);
+
+export default function TradeVaultHeader() {
+  const [exported, setExported] = useState(false);
+
+  const handleExport = () => {
+    setExported(true);
+    setTimeout(() => setExported(false), 1800);
+  };
+
+  const stats = [
+    { label: "NET P/L",  value: "+$14,736.7", color: "#00d48a" },
+    { label: "WIN RATE", value: "75%",         color: "#4da6ff" },
+    { label: "TRADES",   value: "4",           color: "#f0f4ff" },
+  ];
+
+  return (
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet" />
+      <header style={{
+        width: "100%",
+        background: "#111520",
+        borderBottom: "1px solid #1e2535",
+        padding: "14px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 16,
+        boxSizing: "border-box",
+        fontFamily: "'Montserrat', sans-serif",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+      }}>
+
+        {/* Left: identity */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 8, height: 8, borderRadius: "50%",
+            background: "#00d48a",
+            boxShadow: "0 0 6px #00d48a",
+            flexShrink: 0,
+          }} />
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#eef2ff", letterSpacing: "0.1em" }}>
+              TRADE VAULT
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: "#4a5778", marginTop: 2 }}>
+              Performance ledger · 4 entries
+            </div>
+          </div>
+        </div>
+
+        {/* Right: stat cells + export */}
+        <div style={{
+          display: "flex",
+          background: "#0d1018",
+          border: "1px solid #1e2535",
+          overflow: "hidden",
+          flexShrink: 0,
+        }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{
+              width: 110,
+              padding: "10px 0",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+              borderLeft: i === 0 ? "none" : "1px solid #1e2535",
+            }}>
+              <span style={{ fontSize: 9, fontWeight: 600, color: "#3d4d6a", letterSpacing: "0.1em" }}>
+                {s.label}
+              </span>
+              <span style={{
+                fontSize: 17, fontWeight: 700, color: s.color,
+                textShadow:
+                  s.color === "#00d48a" ? "0 0 16px rgba(0,212,138,0.35)" :
+                  s.color === "#4da6ff" ? "0 0 16px rgba(77,166,255,0.3)" : "none",
+              }}>
+                {s.value}
+              </span>
+            </div>
+          ))}
+
+          {/* Export cell */}
+          <div
+            onClick={handleExport}
+            style={{
+              width: 110,
+              padding: "10px 0",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              borderLeft: "1px solid #1e2535",
+              cursor: "pointer",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "#161b27"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            <span style={{ fontSize: 9, fontWeight: 600, color: "#3d4d6a", letterSpacing: "0.1em" }}>
+              {exported ? "EXPORTED" : "EXPORT CSV"}
+            </span>
+            <CircleDownloadIcon success={exported} />
+          </div>
+        </div>
+
+      </header>
+    </>
+  );
+}
