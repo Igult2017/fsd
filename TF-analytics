@@ -1,36 +1,36 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const C = {
-  bg:       '#060a10',
-  surface:  '#090f18',
-  panel:    '#0b1220',
-  glass:    'rgba(255,255,255,0.025)',
-  border:   'rgba(120,180,255,0.07)',
-  sep:      'rgba(120,180,255,0.12)',
-  htf:      '#a78bfa',
-  atf:      '#38bdf8',
-  etf:      '#2dd4bf',
-  ind:      '#fb923c',
-  ctx:      '#94a3b8',
-  perf:     '#fbbf24',
-  win:      '#22d3a0',
-  loss:     '#f43f5e',
-  warn:     '#f59e0b',
-  sub:      '#3d5570',
-  muted:    '#566b82',
-  text:     '#7fa0bb',
-  strong:   '#c8dff2',
-  bright:   '#eaf4ff',
-  accent:   '#6366f1',
+  bg:      '#07090f',
+  surface: '#0c1018',
+  panel:   '#0f1420',
+  panelB:  '#131926',
+  border:  'rgba(100,160,255,0.06)',
+  sep:     'rgba(100,160,255,0.11)',
+  htf:     '#b48ef8',
+  atf:     '#4fc3f7',
+  etf:     '#2dd4bf',
+  ind:     '#f97316',
+  ctx:     '#94a3b8',
+  perf:    '#fcd34d',
+  win:     '#22d3a0',
+  loss:    '#f43f5e',
+  warn:    '#f59e0b',
+  muted:   '#49637a',
+  sub:     '#304055',
+  text:    '#7a9ab5',
+  strong:  '#c2d9ef',
+  bright:  '#e8f3ff',
+  accent:  '#6366f1',
 };
 
-const wrC  = w => w >= 80 ? C.win   : w >= 62 ? C.warn : C.loss;
-const wrBg = w => w >= 80 ? 'rgba(34,211,160,0.04)' : w >= 62 ? 'rgba(245,158,11,0.04)' : 'rgba(244,63,94,0.05)';
+const wrC  = w => w >= 80 ? C.win  : w >= 62 ? C.warn : C.loss;
+const wrBg = w => w >= 80 ? 'rgba(34,211,160,0.035)' : w >= 62 ? 'rgba(245,158,11,0.035)' : 'rgba(244,63,94,0.04)';
 
 const MONO    = "'JetBrains Mono', 'Fira Code', monospace";
-const SANS    = "'Plus Jakarta Sans', 'Inter', sans-serif";
-const DISPLAY = "'Outfit', sans-serif";
+const SANS    = "'Inter', 'Plus Jakarta Sans', sans-serif";
+const DISPLAY = "'Montserrat', sans-serif";
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const ROWS = [
@@ -171,63 +171,98 @@ const ROWS = [
   },
 ];
 
-// ─── SMALL HELPERS ────────────────────────────────────────────────────────────
-const Badge = ({ children, color, bg }) => (
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const roleColor = { W1:C.htf, D1:C.htf, H4:C.atf, H1:C.atf, '30M':C.warn, M5:C.etf, M15:C.etf, M1:C.loss };
+const roleName  = i => ['HTF','ATF','ETF'][i];
+
+const biasCol = v => v.includes('🟢') ? C.win : v.includes('🔴') ? C.loss : C.warn;
+const newsCol = v => v.includes('🚫') ? C.loss : v.includes('📰') ? C.warn : C.win;
+const condCol = v => (v.includes('Uptrend')||v.includes('Breakout')) ? C.win
+  : (v.includes('Downtrend')||v.includes('News')||v.includes('Chop')) ? C.loss : C.warn;
+
+// ─── MICRO COMPONENTS ─────────────────────────────────────────────────────────
+
+const Pill = ({ children, color }) => (
   <span style={{
-    display:'inline-block',
-    fontFamily: MONO, fontSize:9, fontWeight:500,
-    letterSpacing:'0.1em', textTransform:'uppercase',
-    color, background: bg || color + '18',
+    display:'inline-flex', alignItems:'center',
+    fontFamily:MONO, fontSize:9, fontWeight:500,
+    letterSpacing:'0.09em', textTransform:'uppercase',
+    color, background:`${color}14`,
     border:`1px solid ${color}28`,
-    padding:'2px 7px', borderRadius:3,
+    padding:'2px 8px', borderRadius:2,
+    whiteSpace:'nowrap',
   }}>{children}</span>
 );
 
-const TierDot = ({ color }) => (
-  <span style={{
-    display:'inline-block', width:5, height:5,
-    borderRadius:'50%', background:color, flexShrink:0,
-    boxShadow:`0 0 6px ${color}60`,
-  }} />
-);
+const TFBadge = ({ tf }) => {
+  const c = roleColor[tf] || C.sub;
+  return (
+    <span style={{
+      fontFamily:MONO, fontSize:10, fontWeight:500,
+      color:c, background:`${c}12`,
+      border:`1px solid ${c}22`,
+      padding:'2px 8px', borderRadius:2,
+      letterSpacing:'0.09em',
+    }}>{tf}</span>
+  );
+};
 
-const WRBar = ({ wr, height = 3, width = '100%' }) => (
-  <div style={{ width, height, borderRadius:99, background:'rgba(255,255,255,0.05)', overflow:'hidden' }}>
+const WRBar = ({ wr, height=2, width='100%' }) => (
+  <div style={{ width, height, borderRadius:99, background:'rgba(255,255,255,0.04)', overflow:'hidden' }}>
     <div style={{
       width:`${wr}%`, height:'100%', borderRadius:99,
-      background:`linear-gradient(90deg, ${wrC(wr)}bb, ${wrC(wr)})`,
+      background:wrC(wr), opacity:0.75,
     }} />
   </div>
 );
 
-// ─── ROLE CONFIG ──────────────────────────────────────────────────────────────
-const roleColor = { W1:C.htf, D1:C.htf, H4:C.atf, H1:C.atf, '30M':C.warn, M5:C.etf, M15:C.etf, M1:C.loss };
-const roleName  = i => ['HTF','ATF','ETF'][i];
+// ─── CARD WRAPPER (inset card inside a table cell) ───────────────────────────
+const cellTd = (width, extra = {}) => ({
+  padding:'7px 6px',
+  verticalAlign:'top',
+  borderRight:`1px solid ${C.border}`,
+  borderBottom:`1px solid ${C.border}`,
+  width, minWidth:width,
+  ...extra,
+});
 
-// ─── TF CELL ─────────────────────────────────────────────────────────────────
-const TFCell = ({ data, color, tfLabel, tfName }) => (
-  <td style={{
-    padding:'12px 14px', verticalAlign:'top',
-    borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`,
-    minWidth:210, width:210, background:'transparent',
-  }}>
-    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:7 }}>
-      <TierDot color={color} />
-      <span style={{
-        fontFamily: MONO, fontSize:8, fontWeight:500,
-        color, letterSpacing:'0.14em', textTransform:'uppercase',
-        opacity:0.7,
-      }}>{tfLabel}</span>
-    </div>
-    <div style={{
-      fontFamily: MONO, fontSize:10, fontWeight:500,
-      color, lineHeight:1.4, marginBottom:6,
-      letterSpacing:'0.05em',
-    }}>{data.candle}</div>
-    <div style={{
-      fontFamily: SANS, fontSize:11, fontWeight:400,
-      color:C.text, lineHeight:1.7,
-    }}>{data.pa}</div>
+const Card = ({ children, color, style = {} }) => (
+  <div style={{
+    height:'100%',
+    background: color ? `${color}07` : C.surface,
+    border:`1px solid ${color ? color + '1e' : C.border}`,
+    borderTop:`2px solid ${color ? color + '60' : C.sep}`,
+    borderRadius:5,
+    padding:'10px 12px',
+    ...style,
+  }}>{children}</div>
+);
+
+// ─── TF ANALYSIS CELL ────────────────────────────────────────────────────────
+const TFCell = ({ data, color, tfLabel }) => (
+  <td style={cellTd(205)}>
+    <Card color={color}>
+      {/* Role label */}
+      <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:9 }}>
+        <div style={{ width:2, height:10, borderRadius:1, background:color, opacity:0.55, flexShrink:0 }} />
+        <span style={{
+          fontFamily:MONO, fontSize:7.5, fontWeight:500,
+          color, letterSpacing:'0.18em', textTransform:'uppercase', opacity:0.55,
+        }}>{tfLabel}</span>
+      </div>
+      {/* Candle name */}
+      <div style={{
+        fontFamily:MONO, fontSize:10, fontWeight:500,
+        color, letterSpacing:'0.03em', lineHeight:1.4,
+        marginBottom:8, paddingBottom:8,
+        borderBottom:`1px solid ${color}16`,
+      }}>{data.candle}</div>
+      {/* PA text */}
+      <div style={{
+        fontFamily:SANS, fontSize:10.5, fontWeight:400,
+        color:C.text, lineHeight:1.75,
+      }}>{data.pa}</div>
+    </Card>
   </td>
 );
 
@@ -235,77 +270,67 @@ const TFCell = ({ data, color, tfLabel, tfName }) => (
 const IndCell = ({ value }) => {
   const lines = value.split('\n');
   return (
-    <td style={{
-      padding:'12px 14px', verticalAlign:'top',
-      borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`,
-      borderLeft:`1px solid ${C.sep}`,
-      minWidth:185, width:185,
-    }}>
-      {lines.map((line, i) => (
-        <div key={i} style={{
-          display:'flex', alignItems:'flex-start', gap:6,
-          marginBottom: i < lines.length-1 ? 5 : 0,
-        }}>
-          <span style={{
-            width:3, height:3, borderRadius:'50%',
-            background: i===0 ? C.ind : C.sub,
-            flexShrink:0, marginTop:5,
-          }} />
-          <span style={{
-            fontFamily: i===0 ? MONO : SANS,
-            fontSize: 11, lineHeight:1.6,
-            color: i===0 ? C.strong : C.text,
-            fontWeight: i===0 ? 500 : 400,
-            letterSpacing: i===0 ? '0.05em':'0',
-          }}>{line}</span>
+    <td style={{ ...cellTd(180), borderLeft:`1px solid ${C.sep}` }}>
+      <Card color={C.ind}>
+        <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
+          {lines.map((line, i) => (
+            <div key={i} style={{ display:'flex', gap:7, alignItems:'flex-start' }}>
+              <div style={{
+                width: i === 0 ? 5 : 3, height: i === 0 ? 5 : 3,
+                borderRadius:'50%', flexShrink:0,
+                marginTop: i === 0 ? 3.5 : 4.5,
+                background: i === 0 ? C.ind : C.sub,
+              }} />
+              <span style={{
+                fontFamily: i === 0 ? MONO : SANS,
+                fontSize: i === 0 ? 10.5 : 10.5,
+                fontWeight: i === 0 ? 500 : 400,
+                color: i === 0 ? C.strong : C.text,
+                lineHeight:1.55,
+                letterSpacing: i === 0 ? '0.03em' : '0',
+              }}>{line}</span>
+            </div>
+          ))}
         </div>
-      ))}
+      </Card>
     </td>
   );
 };
 
 // ─── CONTEXT CELL ────────────────────────────────────────────────────────────
-const getCtxColor = (id, val) => {
-  if (id==='bia') return val.includes('🟢') ? C.win : val.includes('🔴') ? C.loss : C.warn;
-  if (id==='nws') return val.includes('🚫') ? C.loss : val.includes('📰') ? C.warn : C.win;
-  if (id==='cnd') return val.includes('Uptrend')||val.includes('Breakout') ? C.win
-    : val.includes('Downtrend')||val.includes('News')||val.includes('Chop') ? C.loss : C.warn;
-  return C.strong;
-};
+const CtxCell = ({ value, type, width }) => {
+  const [main, sub] = (value || '—').split(' · ');
+  let col = C.strong;
+  let isTag = false;
 
-const CtxCell = ({ value, id, w }) => {
-  const [main, sub] = (value||'—').split(' · ');
-  const col = getCtxColor(id, main);
+  if (type === 'bias')  { col = biasCol(main); isTag = true; }
+  if (type === 'news')  { col = newsCol(main); isTag = true; }
+  if (type === 'cond')  { col = condCol(main); isTag = true; }
+
   return (
-    <td style={{
-      padding:'12px 14px', verticalAlign:'middle',
-      borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`,
-      minWidth:w, width:w, maxWidth:w,
-    }}>
-      {(id==='bia'||id==='nws'||id==='cnd') ? (
-        <span style={{
-          display:'inline-block',
-          fontFamily: MONO, fontSize:9, fontWeight:500,
-          color: col,
-          background: col + '15',
-          border:`1px solid ${col}28`,
-          padding:'3px 9px', borderRadius:3,
-          letterSpacing:'0.06em',
-          whiteSpace:'nowrap',
-        }}>{main}</span>
-      ) : (
-        <>
-          <div style={{
-            fontFamily: MONO, fontSize:10, fontWeight:500,
-            color:C.strong, lineHeight:1.5, marginBottom: sub ? 3 : 0,
-            letterSpacing:'0.04em', wordBreak:'break-word',
-          }}>{main}</div>
-          {sub && <div style={{
-            fontFamily: SANS, fontSize:10, fontWeight:400,
-            color:C.muted, lineHeight:1.5, wordBreak:'break-word',
-          }}>{sub}</div>}
-        </>
-      )}
+    <td style={{ ...cellTd(width), verticalAlign:'middle', maxWidth:width }}>
+      <Card color={isTag ? col : undefined} style={{ display:'flex', alignItems:'center', minHeight:52 }}>
+        {isTag ? (
+          <div>
+            <div style={{
+              fontFamily:MONO, fontSize:9.5, fontWeight:500,
+              color:col, letterSpacing:'0.08em',
+            }}>{main}</div>
+          </div>
+        ) : (
+          <div>
+            <div style={{
+              fontFamily:MONO, fontSize:10, fontWeight:500,
+              color:C.strong, lineHeight:1.5, marginBottom: sub ? 3 : 0,
+              letterSpacing:'0.04em',
+            }}>{main}</div>
+            {sub && <div style={{
+              fontFamily:SANS, fontSize:9.5, fontWeight:400,
+              color:C.muted, lineHeight:1.5, marginTop:2,
+            }}>{sub}</div>}
+          </div>
+        )}
+      </Card>
     </td>
   );
 };
@@ -314,43 +339,39 @@ const CtxCell = ({ value, id, w }) => {
 const MomCell = ({ value }) => {
   const [main, sub] = value.split(' · ');
   return (
-    <td style={{
-      padding:'12px 14px', verticalAlign:'middle',
-      borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`,
-      minWidth:155, width:155, maxWidth:155,
-    }}>
-      <div style={{
-        fontFamily: MONO, fontSize:10, fontWeight:500,
-        color:C.strong, lineHeight:1.5, marginBottom: sub ? 3 : 0,
-        letterSpacing:'0.04em', wordBreak:'break-word',
-      }}>{main}</div>
-      {sub && <div style={{
-        fontFamily: SANS, fontSize:10, fontWeight:400,
-        color:C.muted, lineHeight:1.5, wordBreak:'break-word',
-      }}>{sub}</div>}
+    <td style={{ ...cellTd(155), verticalAlign:'middle' }}>
+      <Card style={{ minHeight:52, display:'flex', flexDirection:'column', justifyContent:'center' }}>
+        <div style={{
+          fontFamily:MONO, fontSize:10, fontWeight:500,
+          color:C.strong, letterSpacing:'0.04em',
+          lineHeight:1.5, marginBottom: sub ? 4 : 0,
+        }}>{main}</div>
+        {sub && <div style={{
+          fontFamily:SANS, fontSize:9.5, color:C.muted, lineHeight:1.5,
+        }}>{sub}</div>}
+      </Card>
     </td>
   );
 };
 
 // ─── SAMPLE CELL ─────────────────────────────────────────────────────────────
 const SampleCell = ({ trades, wr }) => {
-  const wins = Math.round(trades * wr / 100);
+  const wins   = Math.round(trades * wr / 100);
   const losses = trades - wins;
   return (
-    <td style={{
-      padding:'12px 14px', verticalAlign:'middle', textAlign:'center',
-      borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`,
-      minWidth:110, width:110,
-    }}>
-      <div style={{ fontFamily:MONO, fontSize:14, fontWeight:500, color:C.strong, lineHeight:1, marginBottom:6 }}>
-        {trades}
-      </div>
-      <div style={{ display:'flex', justifyContent:'center', gap:5, marginBottom:6 }}>
-        <span style={{ fontFamily:MONO, fontSize:9, fontWeight:500, color:C.win }}>{wins}W</span>
-        <span style={{ fontFamily:MONO, fontSize:9, fontWeight:400, color:C.sub }}>/</span>
-        <span style={{ fontFamily:MONO, fontSize:9, fontWeight:500, color:C.loss }}>{losses}L</span>
-      </div>
-      <WRBar wr={wr} />
+    <td style={{ ...cellTd(108), verticalAlign:'middle' }}>
+      <Card style={{ textAlign:'center', minHeight:52, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:5 }}>
+        <div style={{
+          fontFamily:MONO, fontSize:13, fontWeight:500,
+          color:C.strong, lineHeight:1, letterSpacing:'-0.01em',
+        }}>{trades}</div>
+        <div style={{ display:'flex', justifyContent:'center', gap:4 }}>
+          <span style={{ fontFamily:MONO, fontSize:9, color:C.win }}>{wins}W</span>
+          <span style={{ fontFamily:MONO, fontSize:9, color:C.sub }}>/</span>
+          <span style={{ fontFamily:MONO, fontSize:9, color:C.loss }}>{losses}L</span>
+        </div>
+        <WRBar wr={wr} width={68} />
+      </Card>
     </td>
   );
 };
@@ -359,256 +380,228 @@ const SampleCell = ({ trades, wr }) => {
 const PerfCell = ({ row }) => {
   const col = wrC(row.wr);
   return (
-    <td style={{
-      padding:'14px 16px', verticalAlign:'middle',
-      borderBottom:`1px solid ${C.border}`,
-      background: wrBg(row.wr),
-      borderLeft:`2px solid ${col}30`,
-      minWidth:145, width:145,
-    }}>
-      {/* WR */}
-      <div style={{ display:'flex', alignItems:'baseline', gap:4, marginBottom:5 }}>
-        <span style={{ fontFamily:MONO, fontSize:20, fontWeight:500, color:col, lineHeight:1, letterSpacing:'-0.02em' }}>
-          {row.wr}
-        </span>
-        <span style={{ fontFamily:MONO, fontSize:11, fontWeight:400, color:col, opacity:0.7 }}>%</span>
-      </div>
-      <WRBar wr={row.wr} height={2} style={{ marginBottom:10 }} />
-      <div style={{ marginTop:8, display:'flex', flexDirection:'column', gap:4 }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <span style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em' }}>Avg R</span>
-          <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:row.avgR>=3?'#60a5fa':C.muted }}>
-            {row.avgR>0?'+':''}{row.avgR}R
-          </span>
+    <td style={{ ...cellTd(140, { borderLeft:`1px solid ${C.sep}` }), verticalAlign:'middle' }}>
+      <Card color={col} style={{ minHeight:52 }}>
+        {/* WR number */}
+        <div style={{ display:'flex', alignItems:'baseline', gap:2, marginBottom:5 }}>
+          <span style={{
+            fontFamily:MONO, fontSize:15, fontWeight:500,
+            color:col, lineHeight:1, letterSpacing:'-0.02em',
+          }}>{row.wr}</span>
+          <span style={{ fontFamily:MONO, fontSize:9, color:col, opacity:0.55 }}>%</span>
         </div>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <span style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em' }}>P/L</span>
-          <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:row.netPL>=0?C.win:C.loss }}>
-            {row.netPL>=0?'+':''}${row.netPL.toLocaleString()}
-          </span>
+        <WRBar wr={row.wr} height={2} width={72} />
+        {/* Stats rows */}
+        <div style={{ marginTop:9, display:'flex', flexDirection:'column', gap:5 }}>
+          {[
+            { label:'AVG R', value:`${row.avgR > 0 ? '+' : ''}${row.avgR}R`, color: row.avgR >= 3 ? '#60a5fa' : C.muted },
+            { label:'P/L',   value:`${row.netPL >= 0 ? '+' : ''}$${row.netPL.toLocaleString()}`, color: row.netPL >= 0 ? C.win : C.loss },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontFamily:MONO, fontSize:7.5, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em' }}>{label}</span>
+              <span style={{ fontFamily:MONO, fontSize:10, fontWeight:500, color }}>{value}</span>
+            </div>
+          ))}
         </div>
-      </div>
+      </Card>
     </td>
   );
 };
 
-// ─── TABLE ROW ────────────────────────────────────────────────────────────────
-const MatrixRow = ({ row, index }) => {
-  const isElite = row.wr >= 85;
-  const isWeak  = row.wr < 50;
-  const rowBg   = isElite ? 'rgba(167,139,250,0.025)' : isWeak ? 'rgba(244,63,94,0.025)' : 'transparent';
+// ─── TF COMBO CELL ───────────────────────────────────────────────────────────
+const ComboCell = ({ row }) => (
+  <td style={{
+    width:136, minWidth:136,
+    padding:'7px 6px',
+    borderRight:`1px solid ${C.sep}`,
+    borderBottom:`1px solid ${C.border}`,
+    verticalAlign:'middle',
+  }}>
+    <Card>
+      <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
+        {[row.htf, row.atf, row.etf].map((tf, i) => {
+          const roleLabel = roleName(i);
+          const c = roleColor[tf] || C.sub;
+          return (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:9 }}>
+              {/* checkmark */}
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink:0, opacity:0.45 }}>
+                <polyline points="1.5,5.5 4,8 8.5,2" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {/* TF + role inline, plain text */}
+              <span style={{
+                fontFamily:MONO, fontSize:11, fontWeight:500,
+                color:c, letterSpacing:'0.04em',
+              }}>{tf}</span>
+              <span style={{
+                fontFamily:MONO, fontSize:10, fontWeight:400,
+                color:C.muted, letterSpacing:'0.08em',
+              }}>{roleLabel}</span>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  </td>
+);
 
-  return (
-    <tr style={{ background: rowBg }}>
-      {/* TF Combo */}
-      <td style={{
-        minWidth:140, width:140,
-        padding:'12px 13px',
-        borderRight:`1px solid ${C.sep}`,
-        borderBottom:`1px solid ${C.border}`,
-        verticalAlign:'middle',
-        position:'relative',
-      }}>
-        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-          {[row.htf, row.atf, row.etf].map((tf, i) => {
-            const col = roleColor[tf] || C.sub;
-            return (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:7 }}>
-                <div style={{
-                  width:2, height:16, borderRadius:1,
-                  background:col, opacity:0.7, flexShrink:0,
-                }} />
-                <span style={{
-                  fontFamily: MONO, fontSize:11, fontWeight:500,
-                  color:col, letterSpacing:'0.1em',
-                  background: col + '12',
-                  padding:'1px 7px', borderRadius:3,
-                  border:`1px solid ${col}20`,
-                }}>{tf}</span>
-                <span style={{
-                  fontFamily: MONO, fontSize:7, fontWeight:400,
-                  color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em',
-                }}>{roleName(i)}</span>
-              </div>
-            );
-          })}
-        </div>
-        {(isElite || isWeak) && (
-          <div style={{
-            marginTop:8, paddingTop:7,
-            borderTop:`1px solid ${isElite ? C.win+'20' : C.loss+'20'}`,
-            fontFamily: MONO, fontSize:8, fontWeight:500,
-            letterSpacing:'0.16em', textTransform:'uppercase',
-            color: isElite ? C.win : C.loss,
-          }}>
-            {isElite ? '★ ELITE' : '✗ AVOID'}
-          </div>
-        )}
-      </td>
-      <TFCell data={row.tf1} color={C.htf} tfLabel={`${row.htf} · HTF`} />
-      <TFCell data={row.tf2} color={C.atf} tfLabel={`${row.atf} · ATF`} />
-      <TFCell data={row.tf3} color={C.etf} tfLabel={`${row.etf} · ETF`} />
-      <IndCell value={row.indicators} />
-      <CtxCell value={row.session}   id="ses" w={140} />
-      <CtxCell value={row.condition} id="cnd" w={165} />
-      <CtxCell value={row.bias}      id="bia" w={105} />
-      <CtxCell value={row.news}      id="nws" w={190} />
-      <MomCell value={row.momentum} />
-      <SampleCell trades={row.trades} wr={row.wr} />
-      <PerfCell row={row} />
-    </tr>
-  );
-};
+// ─── TABLE ROW ────────────────────────────────────────────────────────────────
+const MatrixRow = ({ row }) => (
+  <tr>
+    <ComboCell row={row} />
+    <TFCell data={row.tf1} color={C.htf} tfLabel={`${row.htf} · HTF`} />
+    <TFCell data={row.tf2} color={C.atf} tfLabel={`${row.atf} · ATF`} />
+    <TFCell data={row.tf3} color={C.etf} tfLabel={`${row.etf} · ETF`} />
+    <IndCell value={row.indicators} />
+    <CtxCell value={row.session}   type="ses"  width={138} />
+    <CtxCell value={row.condition} type="cond" width={160} />
+    <CtxCell value={row.bias}      type="bias" width={100} />
+    <CtxCell value={row.news}      type="news" width={185} />
+    <MomCell value={row.momentum} />
+    <SampleCell trades={row.trades} wr={row.wr} />
+    <PerfCell row={row} />
+  </tr>
+);
+
+// ─── COLUMN HEADER ────────────────────────────────────────────────────────────
+const ColHeaders = [
+  { label:'HTF',        sub:'Pattern & price action', color:C.htf,  w:205, sepLeft:false },
+  { label:'ATF',        sub:'Pattern & price action', color:C.atf,  w:205, sepLeft:false },
+  { label:'ETF',        sub:'Pattern & price action', color:C.etf,  w:205, sepLeft:false },
+  { label:'Indicators', sub:'State at entry',         color:C.ind,  w:180, sepLeft:true  },
+  { label:'Session',    sub:'Time window',            color:C.ctx,  w:138, sepLeft:false },
+  { label:'Condition',  sub:'Trend / range',          color:C.ctx,  w:160, sepLeft:false },
+  { label:'Bias',       sub:'Direction',              color:C.ctx,  w:100, sepLeft:false },
+  { label:'News',       sub:'Event status',           color:C.ctx,  w:185, sepLeft:false },
+  { label:'Momentum',   sub:'ATR / expansion',        color:C.ctx,  w:155, sepLeft:false },
+  { label:'Sample',     sub:'Dataset size',           color:C.sub,  w:108, sepLeft:false },
+  { label:'Performance',sub:'WR · avg R · P/L',       color:C.perf, w:140, sepLeft:true  },
+];
 
 // ─── MOBILE CARD ─────────────────────────────────────────────────────────────
 const MobileCard = ({ row }) => {
-  const [expanded, setExpanded] = useState(false);
-  const isElite = row.wr >= 85;
-  const isWeak  = row.wr < 50;
-  const col     = wrC(row.wr);
-
-  const biasL0  = (row.bias||'').split(' · ')[0];
-  const newsL0  = (row.news||'').split(' · ')[0];
-  const condL0  = (row.condition||'').split(' · ')[0];
+  const [open, setOpen] = useState(false);
+  const col = wrC(row.wr);
+  const wins    = Math.round(row.trades * row.wr / 100);
+  const losses  = row.trades - wins;
+  const bC      = biasCol((row.bias || '').split(' · ')[0]);
+  const nC      = newsCol((row.news || '').split(' · ')[0]);
+  const cC      = condCol((row.condition || '').split(' · ')[0]);
   const [momMain, momSub] = row.momentum.split(' · ');
-
-  const biasCol = getCtxColor('bia', biasL0);
-  const newsCol = getCtxColor('nws', newsL0);
-  const condCol = getCtxColor('cnd', condL0);
-
-  const wins   = Math.round(row.trades * row.wr / 100);
-  const losses = row.trades - wins;
 
   return (
     <div style={{
       margin:'0 10px 6px',
-      background: isElite ? 'rgba(167,139,250,0.03)' : isWeak ? 'rgba(244,63,94,0.03)' : C.surface,
-      border:`1px solid ${isElite ? C.htf+'30' : isWeak ? C.loss+'30' : C.border}`,
+      background: C.surface,
+      border:`1px solid ${C.border}`,
       borderRadius:6, overflow:'hidden',
     }}>
-      {/* Card header */}
-      <div
-        onClick={() => setExpanded(e => !e)}
-        style={{ padding:'12px 14px', cursor:'pointer', userSelect:'none' }}
-      >
-        {/* Top row: TF badges + WR */}
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:10 }}>
-          <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:5, flex:1, marginRight:12 }}>
-            {[{tf:row.htf,i:0},{tf:row.atf,i:1},{tf:row.etf,i:2}].map(({tf,i}) => {
+      {/* Header tap-target */}
+      <div onClick={() => setOpen(o => !o)} style={{ padding:'12px 14px', cursor:'pointer', userSelect:'none' }}>
+        {/* TF row + WR */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 }}>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:5, alignItems:'center', flex:1, marginRight:12 }}>
+            {[row.htf, row.atf, row.etf].map((tf, i) => {
               const c = roleColor[tf] || C.sub;
               return (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:3 }}>
-                  <span style={{
-                    fontFamily:MONO, fontSize:11, fontWeight:500,
-                    color:c, background:c+'14',
-                    border:`1px solid ${c}22`,
-                    padding:'2px 7px', borderRadius:3, letterSpacing:'0.1em',
-                  }}>{tf}</span>
-                  <span style={{ fontFamily:MONO, fontSize:7, color:C.sub, textTransform:'uppercase', letterSpacing:'0.1em' }}>{roleName(i)}</span>
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:7 }}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink:0, opacity:0.45 }}>
+                    <polyline points="1.5,5.5 4,8 8.5,2" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:c, letterSpacing:'0.04em' }}>{tf}</span>
+                  <span style={{ fontFamily:MONO, fontSize:10, color:C.muted, letterSpacing:'0.08em' }}>{roleName(i)}</span>
                 </div>
               );
             })}
-            {(isElite||isWeak) && (
-              <span style={{
-                fontFamily:MONO, fontSize:7, fontWeight:500,
-                letterSpacing:'0.14em', textTransform:'uppercase',
-                color:isElite?C.win:C.loss,
-                background:isElite?C.win+'12':C.loss+'12',
-                border:`1px solid ${isElite?C.win:C.loss}25`,
-                padding:'2px 7px', borderRadius:3,
-              }}>{isElite?'★ ELITE':'✗ AVOID'}</span>
-            )}
+
           </div>
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3, flexShrink:0 }}>
-            <span style={{ fontFamily:MONO, fontSize:16, fontWeight:500, color:col, lineHeight:1 }}>{row.wr}%</span>
-            <WRBar wr={row.wr} width={60} />
+          <div style={{ textAlign:'right', flexShrink:0 }}>
+            <div style={{ fontFamily:MONO, fontSize:15, fontWeight:500, color:col, lineHeight:1, marginBottom:4 }}>{row.wr}%</div>
+            <WRBar wr={row.wr} width={56} />
           </div>
         </div>
 
         {/* Stats row */}
-        <div style={{ display:'flex', gap:20, marginBottom:10 }}>
+        <div style={{ display:'flex', gap:20, marginBottom:9 }}>
           {[
-            { label:'AVG R',   value:`${row.avgR>0?'+':''}${row.avgR}R`,   color: row.avgR>=3?'#60a5fa':C.muted },
-            { label:'NET P/L', value:`${row.netPL>=0?'+':''}$${row.netPL.toLocaleString()}`, color: row.netPL>=0?C.win:C.loss },
-            { label:'SAMPLE',  value:`${row.trades} · ${wins}W/${losses}L`, color: C.strong },
-          ].map(({label,value,color}) => (
+            { label:'AVG R',   value:`${row.avgR > 0 ? '+' : ''}${row.avgR}R`,   color: row.avgR >= 3 ? '#60a5fa' : C.muted },
+            { label:'NET P/L', value:`${row.netPL >= 0 ? '+' : ''}$${row.netPL.toLocaleString()}`, color: row.netPL >= 0 ? C.win : C.loss },
+            { label:'TRADES',  value:`${row.trades} · ${wins}W/${losses}L`,       color: C.strong },
+          ].map(({label, value, color}) => (
             <div key={label}>
-              <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:2 }}>{label}</div>
-              <div style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color }}>{value}</div>
+              <div style={{ fontFamily:MONO, fontSize:7, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:2 }}>{label}</div>
+              <div style={{ fontFamily:MONO, fontSize:10, fontWeight:500, color }}>{value}</div>
             </div>
           ))}
         </div>
 
         {/* Tags */}
-        <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:10 }}>
-          {[{text:biasL0,col:biasCol},{text:condL0,col:condCol},{text:newsL0,col:newsCol}].map(({text,col}) => (
-            <span key={text} style={{
-              fontFamily:MONO, fontSize:9, fontWeight:500,
-              color:col, background:col+'15',
-              border:`1px solid ${col}28`,
-              padding:'3px 9px', borderRadius:3, letterSpacing:'0.06em',
-            }}>{text}</span>
-          ))}
+        <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:9 }}>
+          <Pill color={bC}>{(row.bias || '').split(' · ')[0]}</Pill>
+          <Pill color={cC}>{(row.condition || '').split(' · ')[0]}</Pill>
+          <Pill color={nC}>{(row.news || '').split(' · ')[0]}</Pill>
         </div>
 
         {/* Footer */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <span style={{ fontFamily:SANS, fontSize:10, color:C.muted }}>{row.session}</span>
           <span style={{
-            fontFamily:MONO, fontSize:9, fontWeight:500,
-            color:C.accent, letterSpacing:'0.1em',
-            background:C.accent+'15',
-            padding:'2px 8px', borderRadius:3,
+            fontFamily:MONO, fontSize:8, fontWeight:500,
+            color:C.accent, background:`${C.accent}14`,
             border:`1px solid ${C.accent}25`,
-          }}>{expanded?'▲ LESS':'▼ MORE'}</span>
+            padding:'2px 8px', borderRadius:2, letterSpacing:'0.1em',
+          }}>{open ? '▲ LESS' : '▼ MORE'}</span>
         </div>
       </div>
 
-      {/* Expanded content */}
-      {expanded && (
+      {/* Expanded details */}
+      {open && (
         <div style={{ borderTop:`1px solid ${C.sep}` }}>
           {[
-            { label:'HTF', tf:row.htf, color:C.htf, data:row.tf1 },
-            { label:'ATF', tf:row.atf, color:C.atf, data:row.tf2 },
-            { label:'ETF', tf:row.etf, color:C.etf, data:row.tf3 },
-          ].map(({label,tf,color,data}) => (
-            <div key={label} style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
+            { role:'HTF', tf:row.htf, color:C.htf, data:row.tf1 },
+            { role:'ATF', tf:row.atf, color:C.atf, data:row.tf2 },
+            { role:'ETF', tf:row.etf, color:C.etf, data:row.tf3 },
+          ].map(({ role, tf, color, data }) => (
+            <div key={role} style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:5 }}>
-                <TierDot color={color} />
-                <Badge color={color}>{tf}</Badge>
-                <span style={{ fontFamily:MONO, fontSize:7, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em' }}>{label}</span>
+                <div style={{ width:2, height:12, borderRadius:1, background:color, opacity:0.6 }} />
+                <TFBadge tf={tf} />
+                <span style={{ fontFamily:MONO, fontSize:7, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em' }}>{role}</span>
                 <span style={{ fontFamily:MONO, fontSize:10, fontWeight:500, color, letterSpacing:'0.04em' }}>{data.candle}</span>
               </div>
               <p style={{ fontFamily:SANS, fontSize:12, color:C.text, lineHeight:1.7, margin:0 }}>{data.pa}</p>
             </div>
           ))}
 
+          {/* Indicators */}
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
-            <div style={{ fontFamily:MONO, fontSize:8, fontWeight:500, color:C.ind, textTransform:'uppercase', letterSpacing:'0.14em', marginBottom:7 }}>
+            <div style={{ fontFamily:MONO, fontSize:7, fontWeight:500, color:C.ind, textTransform:'uppercase', letterSpacing:'0.16em', marginBottom:7 }}>
               Indicators
             </div>
-            {row.indicators.split('\n').map((line,i) => (
-              <div key={i} style={{ display:'flex', gap:6, marginBottom:4 }}>
-                <span style={{ width:3, height:3, borderRadius:'50%', background:i===0?C.ind:C.sub, flexShrink:0, marginTop:5 }} />
-                <span style={{ fontFamily:i===0?MONO:SANS, fontSize:11, color:i===0?C.strong:C.text, fontWeight:i===0?500:400, lineHeight:1.6 }}>{line}</span>
+            {row.indicators.split('\n').map((line, i) => (
+              <div key={i} style={{ display:'flex', gap:6, marginBottom:5 }}>
+                <div style={{ width:4, height:4, borderRadius:'50%', flexShrink:0, marginTop:4, background:i === 0 ? C.ind : C.sub }} />
+                <span style={{ fontFamily:i === 0 ? MONO : SANS, fontSize:11, color:i === 0 ? C.strong : C.text, fontWeight:i === 0 ? 500 : 400, lineHeight:1.6 }}>{line}</span>
               </div>
             ))}
           </div>
 
+          {/* Momentum */}
           <div style={{ padding:'11px 14px', borderBottom:`1px solid ${C.border}` }}>
-            <div style={{ fontFamily:MONO, fontSize:8, color:C.ctx, textTransform:'uppercase', letterSpacing:'0.14em', marginBottom:5 }}>Momentum</div>
-            <div style={{ fontFamily:MONO, fontSize:13, fontWeight:500, color:C.strong }}>{momMain}</div>
+            <div style={{ fontFamily:MONO, fontSize:7, color:C.ctx, textTransform:'uppercase', letterSpacing:'0.14em', marginBottom:5 }}>Momentum</div>
+            <div style={{ fontFamily:MONO, fontSize:12, fontWeight:500, color:C.strong }}>{momMain}</div>
             {momSub && <div style={{ fontFamily:SANS, fontSize:11, color:C.sub, marginTop:2 }}>{momSub}</div>}
           </div>
 
+          {/* Context grid */}
           <div style={{ padding:'11px 14px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px' }}>
             <div>
-              <div style={{ fontFamily:MONO, fontSize:8, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:3 }}>Session</div>
-              <div style={{ fontFamily:SANS, fontSize:11, color:C.muted, lineHeight:1.6 }}>{row.session.replace(' · ','\n')}</div>
+              <div style={{ fontFamily:MONO, fontSize:7, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:3 }}>Session</div>
+              <div style={{ fontFamily:SANS, fontSize:11, color:C.muted, lineHeight:1.6 }}>{row.session.replace(' · ', '\n')}</div>
             </div>
             <div>
-              <div style={{ fontFamily:MONO, fontSize:8, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:3 }}>Condition</div>
-              <div style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color:condCol }}>{condL0}</div>
+              <div style={{ fontFamily:MONO, fontSize:7, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:3 }}>Condition</div>
+              <Pill color={cC}>{(row.condition || '').split(' · ')[0]}</Pill>
             </div>
           </div>
         </div>
@@ -622,37 +615,31 @@ const InsightsPanel = ({ isMobile }) => (
   <div style={{
     padding: isMobile ? '0 10px 32px' : '0 20px 32px',
     display:'grid',
-    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
     gap:10,
   }}>
     {[
-      { color:C.win, icon:'★', title:'Highest Probability Setup',
+      { color:C.win,  icon:'★', title:'Highest probability setup',
         lines:['HTF: Engulfing or Pin Bar at/above key S/R level','ATF: Double Bottom / OB / FVG / Institution Candle','ETF: BOS or FVG Fill + Rejection on M5 or M15','Indicators: Volume surge + RSI extreme confirming ATF','London or NY Open · No news · ATR Expanding'] },
-      { color:C.atf, icon:'▸', title:'TF Alignment Rule',
+      { color:C.atf,  icon:'▸', title:'TF alignment rule',
         lines:['HTF: must show clear directional bias at a key level','ATF: must confirm bias with structure (OB/FVG/double)','ETF: must show precise trigger in the same direction','All three TFs must tell the same story — or skip','One contradicting TF = reduce size or wait'] },
-      { color:C.loss, icon:'⚠', title:'Win Rate Killers',
+      { color:C.loss, icon:'⚠', title:'Win rate killers',
         lines:['30M as ATF: structure becomes noise, WR drops ~20%','M1 as ETF: no institutional footprint, coin-flip entries','During news: all patterns and levels invalidated','Dead zone session: spread destroys every edge','H4 as HTF: no macro context, bias shifts too quickly'] },
-    ].map((c, i) => (
+    ].map((card, i) => (
       <div key={i} style={{
-        background: c.color + '07',
-        border:`1px solid ${c.color}20`,
-        borderRadius:6, padding:'16px 18px',
-        borderTop:`2px solid ${c.color}50`,
+        background:`${card.color}06`,
+        border:`1px solid ${card.color}1a`,
+        borderTop:`2px solid ${card.color}45`,
+        borderRadius:4, padding:'16px 18px',
       }}>
-        <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:12 }}>
-          <span style={{ fontFamily:MONO, fontSize:12, color:c.color }}>{c.icon}</span>
-          <span style={{
-            fontFamily: MONO, fontSize:9, fontWeight:500,
-            color:c.color, letterSpacing:'0.14em', textTransform:'uppercase',
-          }}>{c.title}</span>
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
+          <span style={{ fontFamily:MONO, fontSize:11, color:card.color }}>{card.icon}</span>
+          <span style={{ fontFamily:MONO, fontSize:9, fontWeight:500, color:card.color, letterSpacing:'0.14em', textTransform:'uppercase' }}>{card.title}</span>
         </div>
-        {c.lines.map((line, j) => (
+        {card.lines.map((line, j) => (
           <div key={j} style={{ display:'flex', gap:8, marginBottom:7 }}>
-            <div style={{ width:2, borderRadius:1, background:c.color+'50', flexShrink:0, marginTop:2, alignSelf:'stretch' }} />
-            <span style={{
-              fontFamily: SANS, fontSize:11, fontWeight:400,
-              color:C.muted, lineHeight:1.55,
-            }}>{line}</span>
+            <div style={{ width:2, flexShrink:0, borderRadius:1, marginTop:2, alignSelf:'stretch', background:`${card.color}45` }} />
+            <span style={{ fontFamily:SANS, fontSize:11, color:C.muted, lineHeight:1.6 }}>{line}</span>
           </div>
         ))}
       </div>
@@ -672,245 +659,244 @@ export default function TFSMatrix() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const rows = page === 1
-    ? ROWS
-    : [...ROWS].filter(r => r.wr >= 78).sort((a, b) => b.wr - a.wr);
+  const rows = page === 2
+    ? [...ROWS].filter(r => r.wr >= 78).sort((a, b) => b.wr - a.wr)
+    : ROWS;
 
-  const COLS = [
-    { label:'HTF',        sub:'Pattern & Price Action', color:C.htf,  w:210, leftBorder:false },
-    { label:'ATF',        sub:'Pattern & Price Action', color:C.atf,  w:210, leftBorder:false },
-    { label:'ETF',        sub:'Pattern & Price Action', color:C.etf,  w:210, leftBorder:false },
-    { label:'Indicators', sub:'State at entry',         color:C.ind,  w:185, leftBorder:true  },
-    { label:'Session',    sub:'Time window',            color:C.ctx,  w:140, leftBorder:false },
-    { label:'Condition',  sub:'Trend / Range',          color:C.ctx,  w:165, leftBorder:false },
-    { label:'Bias',       sub:'Direction',              color:C.ctx,  w:105, leftBorder:false },
-    { label:'News',       sub:'Event status',           color:C.ctx,  w:190, leftBorder:false },
-    { label:'Momentum',   sub:'ATR / Expansion',        color:C.ctx,  w:155, leftBorder:false },
-    { label:'Sample',     sub:'Dataset size',           color:C.sub,  w:110, leftBorder:false },
-    { label:'Performance',sub:'WR · Avg R · P/L',       color:C.perf, w:145, leftBorder:true  },
-  ];
-
-  // Summary stats for top bar
-  const allRows = ROWS;
-  const eliteCount = allRows.filter(r => r.wr >= 85).length;
-  const avgWR = Math.round(allRows.reduce((s,r) => s+r.wr, 0) / allRows.length);
-  const bestWR = Math.max(...allRows.map(r => r.wr));
+  const avgWR      = Math.round(ROWS.reduce((s, r) => s + r.wr, 0) / ROWS.length);
+  const bestWR     = Math.max(...ROWS.map(r => r.wr));
 
   return (
     <div style={{ minHeight:'100vh', background:C.bg, color:C.text }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Plus+Jakarta+Sans:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap');
-        *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-        body { background:#060a10; }
-        ::-webkit-scrollbar { width:3px; height:4px; }
-        ::-webkit-scrollbar-track { background:#050810; }
-        ::-webkit-scrollbar-thumb { background:#1a2e44; border-radius:4px; }
-        ::-webkit-scrollbar-thumb:hover { background:#243d55; }
-        .fadein { animation:fi 0.2s ease; }
-        @keyframes fi { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
-        tbody tr:hover > td { background:rgba(120,180,255,0.012) !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@400;500&display=swap');
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { background:${C.bg}; }
+        ::-webkit-scrollbar { width:3px; height:3px; }
+        ::-webkit-scrollbar-track { background:${C.bg}; }
+        ::-webkit-scrollbar-thumb { background:${C.sub}; border-radius:99px; }
         table { border-collapse:separate; border-spacing:0; }
-        button { cursor:pointer; outline:none; }
+        button { cursor:pointer; outline:none; border:none; background:none; }
+
+        /* Row hover — lift cards */
+        tbody tr:hover > td > div {
+          border-color: rgba(100,160,255,0.14) !important;
+        }
+
+        /* Fade-in */
+        .fade { animation: fadein 0.18s ease; }
+        @keyframes fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Column group dividers */
+        .sep-left { border-left:1px solid ${C.sep} !important; }
       `}</style>
 
-      {/* ── HEADER ── */}
-      <div style={{
+      {/* ── STICKY HEADER ── */}
+      <header style={{
         position:'sticky', top:0, zIndex:100,
-        background:'rgba(6,10,16,0.96)',
+        background:'rgba(7,9,15,0.99)',
         backdropFilter:'blur(24px)',
-        borderBottom:'1px solid rgba(120,180,255,0.08)',
+        borderBottom:`1px solid rgba(100,160,255,0.12)`,
       }}>
+
+        {/* ── ROW 1: Brand + stats ── */}
         <div style={{
-          display:'flex', alignItems:'center',
-          padding: isMobile ? '0 14px' : '0 22px',
-          height: isMobile ? 44 : 50,
-          gap:0,
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding: isMobile ? '10px 16px' : '11px 28px',
+          borderBottom:`1px solid rgba(100,160,255,0.07)`,
         }}>
-          {/* Brand */}
-          <div style={{
-            display:'flex', alignItems:'center', gap:10,
-            paddingRight:18, borderRight:'1px solid rgba(120,180,255,0.08)',
-            flexShrink:0,
-          }}>
+          {/* Brand mark */}
+          <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
             <div style={{
-              width:22, height:22, borderRadius:5,
-              background:'linear-gradient(135deg, #6366f180, #38bdf840)',
-              border:'1px solid rgba(120,180,255,0.2)',
+              width:34, height:34, borderRadius:8,
+              background:`rgba(180,142,248,0.12)`,
+              border:`1px solid ${C.htf}35`,
               display:'flex', alignItems:'center', justifyContent:'center',
+              flexShrink:0,
             }}>
-              <span style={{ fontFamily:DISPLAY, fontSize:10, fontWeight:700, color:'#a5b4fc', letterSpacing:'-0.02em' }}>TF</span>
+              <span style={{ fontFamily:DISPLAY, fontSize:13, fontWeight:800, color:C.htf, letterSpacing:'-0.01em' }}>TF</span>
             </div>
-            <div>
-              <div style={{ fontFamily:DISPLAY, fontSize:13, fontWeight:700, color:'#c8dff2', letterSpacing:'0.06em', lineHeight:1.1 }}>
-                Analytics
-              </div>
-              {!isMobile && (
-                <div style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.muted, letterSpacing:'0.1em' }}>
-                  MULTI-TIMEFRAME MATRIX
-                </div>
-              )}
-            </div>
+            <span style={{
+              fontFamily:DISPLAY, fontSize:11, fontWeight:700,
+              color:C.strong, letterSpacing:'0.22em', textTransform:'uppercase',
+            }}>Multi-Timeframe Matrix</span>
           </div>
 
-          {/* Tabs */}
-          <div style={{ display:'flex', alignItems:'stretch', height:'100%', marginRight:'auto' }}>
-            {[
-              { n:1, label: isMobile ? 'Matrix' : 'Full Matrix',     sub:`${ROWS.length} scenarios` },
-              { n:2, label: isMobile ? 'Elite'  : 'Best Performers', sub:'WR ≥ 78%' },
-            ].map(p => {
-              const active = page === p.n;
-              return (
-                <button key={p.n} onClick={() => setPage(p.n)} style={{
-                  display:'flex', alignItems:'center', gap: isMobile ? 0 : 8,
-                  padding: isMobile ? '0 14px' : '0 18px',
-                  background:'transparent',
-                  border:'none',
-                  borderBottom: active ? `2px solid ${C.accent}` : '2px solid transparent',
-                  transition:'all .15s',
-                }}>
-                  <span style={{
-                    fontFamily: MONO, fontSize:11,
-                    fontWeight: active ? 500 : 400,
-                    color: active ? C.bright : 'rgba(148,200,255,0.3)',
-                    letterSpacing:'0.1em', textTransform:'uppercase',
-                    transition:'color .15s',
-                  }}>{p.label}</span>
-                  {!isMobile && (
-                    <span style={{
-                      fontFamily:MONO, fontSize:8,
-                      color: active ? 'rgba(148,200,255,0.4)' : 'rgba(148,200,255,0.15)',
-                      transition:'color .15s',
-                    }}>{p.sub}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Legend */}
+          {/* Stats chips — desktop only */}
           {!isMobile && (
-            <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               {[
-                {c:C.htf,l:'HTF'},{c:C.atf,l:'ATF'},{c:C.etf,l:'ETF'},
-                null,
-                {c:C.win,l:'≥80%'},{c:C.warn,l:'62–79%'},{c:C.loss,l:'<62%'},
-              ].map((x, i) => x === null ? (
-                <div key={i} style={{ width:1, height:12, background:'rgba(120,180,255,0.1)' }} />
-              ) : (
-                <div key={x.l} style={{ display:'flex', alignItems:'center', gap:5 }}>
-                  <TierDot color={x.c} />
-                  <span style={{ fontFamily:MONO, fontSize:9, color:'rgba(148,200,255,0.35)', letterSpacing:'0.08em' }}>{x.l}</span>
+                { label:'Scenarios', value:ROWS.length,  color:C.bright,  bg:'rgba(194,217,239,0.07)', border:'rgba(194,217,239,0.15)' },
+                { label:'Avg WR',    value:`${avgWR}%`,  color:C.perf,    bg:`${C.perf}10`,            border:`${C.perf}30`           },
+                { label:'Best WR',   value:`${bestWR}%`, color:C.win,     bg:`${C.win}10`,             border:`${C.win}30`            },
+              ].map(({ label, value, color, bg, border }) => (
+                <div key={label} style={{
+                  display:'flex', alignItems:'center', gap:8,
+                  background:bg, border:`1px solid ${border}`,
+                  borderRadius:5, padding:'5px 12px',
+                }}>
+                  <span style={{ fontFamily:DISPLAY, fontSize:9, fontWeight:600, color:'rgba(148,200,255,0.5)', textTransform:'uppercase', letterSpacing:'0.15em' }}>{label}</span>
+                  <span style={{ fontFamily:DISPLAY, fontSize:15, fontWeight:800, color, lineHeight:1, letterSpacing:'-0.01em' }}>{value}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Summary strip */}
-        {!isMobile && (
-          <div style={{
-            display:'flex', alignItems:'center', gap:0,
-            borderTop:'1px solid rgba(120,180,255,0.05)',
-            height:28, paddingLeft:22,
-            overflow:'hidden',
-          }}>
+        {/* ── ROW 2: Tabs + legend ── */}
+        <div style={{
+          display:'flex', alignItems:'stretch', justifyContent:'space-between',
+          padding: isMobile ? '0 16px' : '0 28px',
+          height:42,
+        }}>
+          {/* Tabs */}
+          <nav style={{ display:'flex', alignItems:'stretch', gap:0 }}>
             {[
-              { label:'Scenarios', value:ROWS.length, color:C.strong },
-              { label:'Elite (≥85%)', value:eliteCount, color:C.win },
-              { label:'Avg WR', value:`${avgWR}%`, color:C.perf },
-              { label:'Best WR', value:`${bestWR}%`, color:C.win },
-            ].map(({label,value,color}, i) => (
-              <div key={label} style={{
-                display:'flex', alignItems:'center', gap:8,
-                paddingRight:18, marginRight:18,
-                borderRight: i<3 ? '1px solid rgba(120,180,255,0.06)' : 'none',
-              }}>
-                <span style={{ fontFamily:MONO, fontSize:8, fontWeight:400, color:C.sub, textTransform:'uppercase', letterSpacing:'0.12em' }}>{label}</span>
-                <span style={{ fontFamily:MONO, fontSize:11, fontWeight:500, color }}>{value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              { n:1, label:'Full Matrix',     sub:`${ROWS.length} scenarios` },
+              { n:2, label:'Best Performers', sub:'WR ≥ 78%' },
+            ].map(tab => {
+              const active = page === tab.n;
+              return (
+                <button key={tab.n} onClick={() => setPage(tab.n)} style={{
+                  display:'flex', alignItems:'center', gap:9,
+                  paddingRight:22, paddingLeft: tab.n === 1 ? 0 : 22,
+                  borderBottom: active ? `2px solid ${C.accent}` : '2px solid transparent',
+                  borderRight: tab.n === 1 ? `1px solid rgba(100,160,255,0.09)` : 'none',
+                  transition:'all 0.15s',
+                }}>
+                  <span style={{
+                    fontFamily:DISPLAY, fontSize:12, fontWeight: active ? 700 : 600,
+                    color: active ? C.bright : 'rgba(148,200,255,0.38)',
+                    letterSpacing:'0.12em', textTransform:'uppercase',
+                    transition:'color 0.15s',
+                  }}>{isMobile ? (tab.n === 1 ? 'Matrix' : 'Best') : tab.label}</span>
+                  {!isMobile && (
+                    <span style={{
+                      fontFamily:DISPLAY, fontSize:9, fontWeight:600,
+                      color: active ? C.accent : 'rgba(148,200,255,0.2)',
+                      background: active ? `${C.accent}16` : 'transparent',
+                      border: active ? `1px solid ${C.accent}30` : '1px solid transparent',
+                      padding:'2px 7px', borderRadius:3, letterSpacing:'0.08em',
+                      transition:'all 0.15s',
+                    }}>{tab.sub}</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
 
-      {/* Mobile legend */}
+          {/* Legend — desktop only */}
+          {!isMobile && (
+            <div style={{ display:'flex', alignItems:'center', gap:0 }}>
+              {/* TF role */}
+              <div style={{
+                display:'flex', alignItems:'center', gap:12,
+                paddingRight:18, marginRight:18,
+                borderRight:`1px solid rgba(100,160,255,0.09)`,
+              }}>
+                <span style={{ fontFamily:DISPLAY, fontSize:9, fontWeight:700, color:'rgba(148,200,255,0.4)', textTransform:'uppercase', letterSpacing:'0.18em' }}>TF Role</span>
+                {[{ c:C.htf, l:'HTF' }, { c:C.atf, l:'ATF' }, { c:C.etf, l:'ETF' }].map(x => (
+                  <div key={x.l} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <div style={{ width:7, height:7, borderRadius:'50%', background:x.c, flexShrink:0 }} />
+                    <span style={{ fontFamily:DISPLAY, fontSize:10, fontWeight:600, color:x.c, letterSpacing:'0.08em' }}>{x.l}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Win rate */}
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <span style={{ fontFamily:DISPLAY, fontSize:9, fontWeight:700, color:'rgba(148,200,255,0.4)', textTransform:'uppercase', letterSpacing:'0.18em' }}>Win Rate</span>
+                {[{ c:C.win, l:'≥ 80%' }, { c:C.warn, l:'62–79%' }, { c:C.loss, l:'< 62%' }].map(x => (
+                  <div key={x.l} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <div style={{ width:7, height:7, borderRadius:'50%', background:x.c, flexShrink:0 }} />
+                    <span style={{ fontFamily:DISPLAY, fontSize:10, fontWeight:600, color:x.c, letterSpacing:'0.08em' }}>{x.l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Mobile legend strip */}
       {isMobile && (
         <div style={{
           display:'flex', alignItems:'center', gap:12,
           padding:'5px 14px',
-          borderBottom:'1px solid rgba(120,180,255,0.05)',
-          background:'rgba(6,10,16,0.7)',
+          borderBottom:`1px solid ${C.sep}`,
+          background:'rgba(7,9,15,0.8)',
         }}>
-          {[{c:C.htf,l:'HTF'},{c:C.atf,l:'ATF'},{c:C.etf,l:'ETF'},{c:C.win,l:'≥80%'},{c:C.warn,l:'62-79%'},{c:C.loss,l:'<62%'}].map(x => (
-            <div key={x.l} style={{ display:'flex', alignItems:'center', gap:4 }}>
-              <TierDot color={x.c} />
-              <span style={{ fontFamily:MONO, fontSize:9, color:'rgba(148,200,255,0.3)', letterSpacing:'0.08em' }}>{x.l}</span>
-            </div>
-          ))}
+          {[{ c:C.htf, l:'HTF' }, { c:C.atf, l:'ATF' }, { c:C.etf, l:'ETF' },
+            { c:C.win, l:'≥80%' }, { c:C.warn, l:'62–79%' }, { c:C.loss, l:'<62%' }]
+            .map(x => (
+              <div key={x.l} style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <div style={{ width:4, height:4, borderRadius:'50%', background:x.c }} />
+                <span style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(148,200,255,0.28)', letterSpacing:'0.07em' }}>{x.l}</span>
+              </div>
+            ))}
         </div>
       )}
 
-      {/* Content */}
-      <div className="fadein" key={`${page}-${isMobile}`} style={{ paddingBottom:28 }}>
+      {/* ── CONTENT ── */}
+      <main className="fade" key={`${page}-${isMobile}`} style={{ paddingBottom:32 }}>
         {isMobile ? (
           <div style={{ paddingTop:8 }}>
             {rows.map(row => <MobileCard key={row.id} row={row} />)}
           </div>
         ) : (
-          <div style={{ overflowX:'auto' }}>
+          <div style={{ overflowX:'auto', borderLeft:`3px solid ${C.sep}` }}>
             <table>
               <thead>
                 <tr>
-                  {/* First col header */}
+                  {/* Combo header */}
                   <th style={{
-                    background: C.panel,
-                    width:140, minWidth:140,
-                    padding:'11px 13px',
+                    background:C.panel, width:148, minWidth:148,
+                    padding:'10px 14px',
                     borderRight:`1px solid ${C.sep}`,
                     borderBottom:`1px solid ${C.sep}`,
                     textAlign:'left', verticalAlign:'bottom',
                   }}>
-                    <div style={{ fontFamily:MONO, fontSize:8, fontWeight:500, color:C.sub, letterSpacing:'0.18em', textTransform:'uppercase' }}>
+                    <div style={{ fontFamily:MONO, fontSize:7.5, fontWeight:500, color:C.sub, letterSpacing:'0.18em', textTransform:'uppercase' }}>
                       MTF Combo
                     </div>
-                    <div style={{ fontFamily:MONO, fontSize:7, fontWeight:400, color:C.sub, marginTop:3, letterSpacing:'0.1em', opacity:0.6 }}>
+                    <div style={{ fontFamily:MONO, fontSize:7, color:C.sub, marginTop:3, letterSpacing:'0.1em', opacity:0.5 }}>
                       HTF → ATF → ETF
                     </div>
                   </th>
-                  {COLS.map((col, i) => (
+
+                  {ColHeaders.map((col, i) => (
                     <th key={i} style={{
-                      padding:'11px 14px',
+                      padding:'10px 16px',
                       textAlign:'left', verticalAlign:'bottom',
-                      background: col.color + '08',
+                      background:`${col.color}07`,
                       borderBottom:`1px solid ${C.sep}`,
-                      borderLeft: col.leftBorder ? `1px solid ${C.sep}` : undefined,
+                      borderLeft: col.sepLeft ? `1px solid ${C.sep}` : undefined,
                       borderRight:`1px solid ${C.border}`,
                       width:col.w, minWidth:col.w,
                     }}>
                       <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
-                        <TierDot color={col.color} />
+                        <div style={{ width:4, height:4, borderRadius:'50%', background:col.color, flexShrink:0 }} />
                         <span style={{
-                          fontFamily:MONO, fontSize:9, fontWeight:500,
+                          fontFamily:MONO, fontSize:8.5, fontWeight:500,
                           color:col.color, letterSpacing:'0.14em', textTransform:'uppercase',
                         }}>{col.label}</span>
                       </div>
                       <div style={{
-                        fontFamily:SANS, fontSize:9, fontWeight:400,
-                        color:C.sub, paddingLeft:11,
+                        fontFamily:SANS, fontSize:10, fontWeight:400,
+                        color:C.sub, paddingLeft:10,
                       }}>{col.sub}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, i) => <MatrixRow key={row.id} row={row} index={i} />)}
+                {rows.map(row => <MatrixRow key={row.id} row={row} />)}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Insights panel */}
+      {/* Insights panel — only on Best Performers tab */}
       {page === 2 && <InsightsPanel isMobile={isMobile} />}
     </div>
   );
