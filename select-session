@@ -1,209 +1,308 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const sessions = [
-  { id: 1, name: "SMC", date: "3/18/2026", balance: "$10,000" },
-  { id: 2, name: "MSS", date: "3/18/2026", balance: "$100,000" },
-  { id: 3, name: "Scalping", date: "3/18/2026", balance: "$10,000" },
+  {
+    id: 1,
+    name: "SNR",
+    date: "25 Mar 2026",
+    status: "ACTIVE",
+    balance: 5000,
+    pnl: -1.87,
+    ret: -0.0,
+    trades: 1,
+  },
+  {
+    id: 2,
+    name: "SNR",
+    date: "25 Mar 2026",
+    status: "ACTIVE",
+    balance: 1000,
+    pnl: null,
+    ret: null,
+    trades: 0,
+  },
 ];
 
-function usePulse() {
-  const [on, setOn] = useState(true);
-  useEffect(() => {
-    const t = setInterval(() => setOn(v => !v), 1500);
-    return () => clearInterval(t);
-  }, []);
-  return on;
-}
+const styles = {
+  root: {
+    fontFamily: "'Montserrat', sans-serif",
+    background: "#0a0a0a",
+    minHeight: "100vh",
+    padding: "40px 36px",
+    color: "#fff",
+  },
+  header: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: "40px",
+    borderBottom: "2px solid #222",
+    paddingBottom: "24px",
+  },
+  title: {
+    fontSize: "26px",
+    fontWeight: "800",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#7eb8f7",
+    margin: 0,
+  },
+  subtitle: {
+    fontSize: "11px",
+    fontWeight: "500",
+    color: "#555",
+    letterSpacing: "0.05em",
+    marginTop: "6px",
+    textTransform: "uppercase",
+  },
+  sessionCount: {
+    fontSize: "11px",
+    fontWeight: "700",
+    letterSpacing: "0.12em",
+    color: "#3dff8f",
+    border: "2px solid #3dff8f",
+    padding: "6px 14px",
+    textTransform: "uppercase",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    gap: "3px",
+  },
+  card: {
+    background: "#111",
+    border: "2px solid #1a3a5c",
+    padding: "0",
+    cursor: "pointer",
+    position: "relative",
+    transition: "border-color 0.15s, transform 0.1s",
+    overflow: "hidden",
+  },
+  cardHovered: {
+    borderColor: "#2a5a8c",
+    transform: "translateY(-2px)",
+  },
+  cardTopBar: {
+    background: "#161616",
+    borderBottom: "2px solid #1e1e1e",
+    padding: "14px 20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardName: {
+    fontSize: "13px",
+    fontWeight: "800",
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "#7eb8f7",
+  },
+  cardDate: {
+    fontSize: "10px",
+    fontWeight: "600",
+    letterSpacing: "0.08em",
+    color: "#444",
+    textTransform: "uppercase",
+  },
+  statusPill: {
+    fontSize: "9px",
+    fontWeight: "800",
+    letterSpacing: "0.14em",
+    color: "#3dff8f",
+    border: "1.5px solid #3dff8f",
+    padding: "3px 8px",
+    textTransform: "uppercase",
+  },
+  cardBody: {
+    padding: "10px 20px 0",
+  },
+  balanceLabel: {
+    fontSize: "9px",
+    fontWeight: "700",
+    letterSpacing: "0.16em",
+    color: "#444",
+    textTransform: "uppercase",
+    marginBottom: "4px",
+  },
+  balanceValue: {
+    fontSize: "38px",
+    fontWeight: "800",
+    color: "#7eb8f7",
+    letterSpacing: "-0.01em",
+    lineHeight: 1,
+    marginBottom: "10px",
+  },
+  divider: {
+    height: "2px",
+    background: "#1a1a1a",
+    marginBottom: "0",
+  },
+  statsRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    borderTop: "2px solid #1a1a1a",
+  },
+  statBox: {
+    padding: "16px 20px",
+    borderRight: "2px solid #1a1a1a",
+    position: "relative",
+  },
+  statBoxLast: {
+    padding: "16px 20px",
+    position: "relative",
+  },
+  statLabel: {
+    fontSize: "9px",
+    fontWeight: "700",
+    letterSpacing: "0.14em",
+    color: "#444",
+    textTransform: "uppercase",
+    marginBottom: "6px",
+  },
+  statValueNeg: {
+    fontSize: "17px",
+    fontWeight: "800",
+    color: "#ff4d4d",
+    letterSpacing: "-0.01em",
+  },
+  statValueNeutral: {
+    fontSize: "17px",
+    fontWeight: "800",
+    color: "#555",
+    letterSpacing: "-0.01em",
+  },
+  statValueWhite: {
+    fontSize: "17px",
+    fontWeight: "800",
+    color: "#7eb8f7",
+    letterSpacing: "-0.01em",
+  },
+  cardFooter: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "12px 20px",
+    borderTop: "2px solid #1a1a1a",
+    background: "#0d0d0d",
+  },
+  tradeNote: {
+    fontSize: "10px",
+    fontWeight: "600",
+    letterSpacing: "0.08em",
+    color: "#3a3a3a",
+    textTransform: "uppercase",
+  },
+  deleteBtn: {
+    fontSize: "9px",
+    fontWeight: "700",
+    letterSpacing: "0.12em",
+    color: "#3a3a3a",
+    background: "none",
+    border: "1.5px solid #2a2a2a",
+    padding: "5px 12px",
+    cursor: "pointer",
+    textTransform: "uppercase",
+    fontFamily: "'Montserrat', sans-serif",
+    transition: "border-color 0.15s, color 0.15s",
+  },
+  deleteBtnHovered: {
+    borderColor: "#ff4d4d",
+    color: "#ff4d4d",
+  },
+  accentLine: {
+    height: "3px",
+    background: "#ff4d4d",
+  },
+  accentLineEmpty: {
+    height: "3px",
+    background: "#1e1e1e",
+  },
+};
 
-function useVisible(delay = 0) {
-  const [v, setV] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setV(true), delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-  return v;
-}
+function SessionCard({ session }) {
+  const [hovered, setHovered] = useState(false);
+  const [deleteHovered, setDeleteHovered] = useState(false);
 
-const TrashIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6l-1 14H6L5 6"/>
-    <path d="M10 11v6M14 11v6"/>
-    <path d="M9 6V4h6v2"/>
-  </svg>
-);
-
-function Card({ s, selected, onSelect, index }) {
-  const [hov, setHov] = useState(false);
-  const visible = useVisible(index * 80 + 120);
-  const pulse = usePulse();
-  const sel = selected === s.id;
+  const hasData = session.trades > 0;
+  const pnlPositive = session.pnl > 0;
 
   return (
     <div
-      onClick={onSelect}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        flex: 1,
-        minWidth: 0,
-        borderRadius: 16,
-        background: sel
-          ? "linear-gradient(160deg, #141e2e 0%, #0f1a28 100%)"
-          : hov
-          ? "linear-gradient(160deg, #111827 0%, #0d1420 100%)"
-          : "linear-gradient(160deg, #0e1623 0%, #0a1018 100%)",
-        border: `1px solid ${sel ? "rgba(99,210,170,0.45)" : hov ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.06)"}`,
-        boxShadow: sel
-          ? "0 0 0 1px rgba(99,210,170,0.12), 0 16px 48px rgba(0,0,0,0.5), 0 0 32px rgba(99,210,170,0.06)"
-          : hov
-          ? "0 12px 40px rgba(0,0,0,0.4)"
-          : "0 4px 20px rgba(0,0,0,0.3)",
-        cursor: "pointer",
-        padding: "28px 26px",
-        transition: "all 0.3s ease",
-        transform: visible
-          ? hov && !sel ? "translateY(-4px)" : "translateY(0)"
-          : "translateY(20px)",
-        opacity: visible ? 1 : 0,
-        position: "relative",
-        overflow: "hidden",
-      }}
+      style={{ ...styles.card, ...(hovered ? styles.cardHovered : {}) }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {/* Selected top glow line */}
-      {sel && (
-        <div style={{
-          position: "absolute", top: 0, left: "20%", right: "20%", height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(99,210,170,0.8), transparent)",
-        }} />
-      )}
+      <div style={hasData ? styles.accentLine : styles.accentLineEmpty} />
 
-      {/* Top row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-        <span style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: 800,
-          fontSize: 22,
-          letterSpacing: "0.01em",
-          color: sel ? "#e8f4f0" : "#b0bfd4",
-          transition: "color 0.2s ease",
-        }}>
-          {s.name}
-        </span>
-
-        {sel && (
-          <span style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "#63d2aa",
-            background: "rgba(99,210,170,0.1)",
-            border: "1px solid rgba(99,210,170,0.25)",
-            padding: "3px 8px",
-            borderRadius: 5,
-          }}>
-            ACTIVE
-          </span>
-        )}
-      </div>
-
-      {/* Date */}
-      <div style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 10,
-        color: sel ? "rgba(99,210,170,0.45)" : "rgba(255,255,255,0.2)",
-        letterSpacing: "0.05em",
-        marginBottom: 28,
-        transition: "color 0.2s ease",
-      }}>
-        {s.date}
-      </div>
-
-      {/* Separator */}
-      <div style={{
-        height: 1,
-        background: sel
-          ? "linear-gradient(90deg, rgba(99,210,170,0.15), rgba(99,210,170,0.05))"
-          : "rgba(255,255,255,0.05)",
-        marginBottom: 20,
-        transition: "background 0.2s ease",
-      }} />
-
-      {/* Balance */}
-      <div style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 9,
-        letterSpacing: "0.18em",
-        textTransform: "uppercase",
-        color: sel ? "rgba(99,210,170,0.5)" : "rgba(255,255,255,0.22)",
-        marginBottom: 10,
-        transition: "color 0.2s ease",
-      }}>
-        Starting Balance
-      </div>
-      <div style={{
-        fontFamily: "'Montserrat', sans-serif",
-        fontWeight: 800,
-        fontSize: 34,
-        letterSpacing: "-0.02em",
-        color: sel ? "#ffffff" : "#c5d2e8",
-        marginBottom: 28,
-        lineHeight: 1,
-        transition: "color 0.2s ease",
-      }}>
-        {s.balance}
-      </div>
-
-      {/* Footer */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8,
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 9,
-          fontWeight: 500,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          color: "#63d2aa",
-          background: "rgba(99,210,170,0.07)",
-          border: "1px solid rgba(99,210,170,0.14)",
-          padding: "7px 12px",
-          borderRadius: 7,
-        }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
-            background: pulse ? "#63d2aa" : "rgba(99,210,170,0.3)",
-            boxShadow: pulse ? "0 0 6px rgba(99,210,170,0.8)" : "none",
-            transition: "all 0.6s ease",
-          }} />
-          Active
+      <div style={styles.cardTopBar}>
+        <div>
+          <div style={styles.cardName}>{session.name}</div>
+          <div style={styles.cardDate}>{session.date}</div>
         </div>
+        <span style={styles.statusPill}>{session.status}</span>
+      </div>
 
+      <div style={styles.cardBody}>
+        <div style={styles.balanceLabel}>Starting Balance</div>
+        <div style={styles.balanceValue}>
+          ${session.balance.toLocaleString()}
+        </div>
+      </div>
+
+      <div style={styles.statsRow}>
+        <div style={styles.statBox}>
+          <div style={styles.statLabel}>P&L</div>
+          <div
+            style={
+              session.pnl === null
+                ? styles.statValueNeutral
+                : session.pnl < 0
+                ? styles.statValueNeg
+                : { ...styles.statValueWhite, color: "#3dff8f" }
+            }
+          >
+            {session.pnl === null
+              ? "—"
+              : `${session.pnl < 0 ? "" : "+"}${session.pnl.toFixed(2)}`}
+          </div>
+        </div>
+        <div style={styles.statBox}>
+          <div style={styles.statLabel}>Return</div>
+          <div
+            style={
+              session.ret === null
+                ? styles.statValueNeutral
+                : session.ret < 0
+                ? styles.statValueNeg
+                : { ...styles.statValueWhite, color: "#3dff8f" }
+            }
+          >
+            {session.ret === null
+              ? "—"
+              : `${session.ret < 0 ? "" : "+"}${session.ret.toFixed(1)}%`}
+          </div>
+        </div>
+        <div style={styles.statBoxLast}>
+          <div style={styles.statLabel}>Trades</div>
+          <div style={session.trades > 0 ? styles.statValueWhite : styles.statValueNeutral}>
+            {session.trades}
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.cardFooter}>
+        <span style={styles.tradeNote}>
+          {session.trades === 0 ? "No trades yet" : `${session.trades} trade logged`}
+        </span>
         <button
-          onClick={e => e.stopPropagation()}
           style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.07)",
-            cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(255,255,255,0.22)",
-            transition: "all 0.18s ease",
+            ...styles.deleteBtn,
+            ...(deleteHovered ? styles.deleteBtnHovered : {}),
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-            e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
-            e.currentTarget.style.color = "rgba(239,100,100,0.7)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
-            e.currentTarget.style.color = "rgba(255,255,255,0.22)";
-          }}
+          onMouseEnter={() => setDeleteHovered(true)}
+          onMouseLeave={() => setDeleteHovered(false)}
         >
-          <TrashIcon />
+          Delete
         </button>
       </div>
     </div>
@@ -211,97 +310,27 @@ function Card({ s, selected, onSelect, index }) {
 }
 
 export default function TradingSessions() {
-  const [selected, setSelected] = useState(1);
-  const headerVis = useVisible(40);
-
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #080e18; }
-      `}</style>
-
-      <div style={{
-        minHeight: "100vh",
-        background: "#080e18",
-        padding: "56px 48px",
-        fontFamily: "'Montserrat', sans-serif",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Subtle grid */}
-        <div style={{
-          position: "fixed", inset: 0, pointerEvents: "none",
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px)," +
-            "linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)",
-          backgroundSize: "52px 52px",
-        }} />
-
-        {/* Top ambient glow */}
-        <div style={{
-          position: "fixed", top: -180, left: "50%", transform: "translateX(-50%)",
-          width: 700, height: 360,
-          background: "radial-gradient(ellipse, rgba(60,130,100,0.08) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 1060, margin: "0 auto" }}>
-
-          {/* Header */}
-          <div style={{
-            marginBottom: 40,
-            opacity: headerVis ? 1 : 0,
-            transform: headerVis ? "translateY(0)" : "translateY(-10px)",
-            transition: "opacity 0.5s ease, transform 0.5s ease",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <h2 style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 800,
-                fontSize: 20,
-                color: "#e2eaf5",
-                letterSpacing: "0.01em",
-              }}>
-                Trading Sessions
-              </h2>
-              <span style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9,
-                letterSpacing: "0.14em",
-                color: "rgba(99,210,170,0.55)",
-                background: "rgba(99,210,170,0.06)",
-                border: "1px solid rgba(99,210,170,0.14)",
-                padding: "4px 11px",
-                borderRadius: 100,
-              }}>
-                {sessions.length} SESSIONS
-              </span>
-            </div>
-            <p style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: "rgba(255,255,255,0.28)",
-              letterSpacing: "0.04em",
-              lineHeight: 1.7,
-            }}>
-              Select a session to view its data across Dashboard, Metrics, and Trade Vault
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+      />
+      <div style={styles.root}>
+        <div style={styles.header}>
+          <div>
+            <h1 style={styles.title}>Trading Sessions</h1>
+            <p style={styles.subtitle}>
+              Select a session to view dashboard, metrics &amp; trade vault
             </p>
           </div>
+          <span style={styles.sessionCount}>{sessions.length} Sessions</span>
+        </div>
 
-          {/* Cards */}
-          <div style={{ display: "flex", gap: 16 }}>
-            {sessions.map((s, i) => (
-              <Card
-                key={s.id}
-                s={s}
-                selected={selected}
-                onSelect={() => setSelected(s.id)}
-                index={i}
-              />
-            ))}
-          </div>
+        <div style={styles.grid}>
+          {sessions.map((s) => (
+            <SessionCard key={s.id} session={s} />
+          ))}
         </div>
       </div>
     </>
