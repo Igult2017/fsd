@@ -4,20 +4,457 @@ const NURSE_1 = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400
 const NURSE_2 = "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400&h=300&fit=crop&crop=top";
 const NURSE_3 = "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=350&fit=crop&crop=face";
 
-const Check = ({ green }) => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink:0}}>
-    <circle cx="10" cy="10" r="9" fill={green ? "#22c55e" : "#2563eb"} />
+const QUESTIONS = [
+  {
+    section: "Reading",
+    sectionColor: "#2563eb",
+    sectionBg: "#eff6ff",
+    q: "A nursing student reads: 'Hypertension, often called the silent killer, affects nearly 1 in 3 adults. Regular blood pressure monitoring is essential because symptoms rarely appear until the condition has caused serious damage.' What is the main idea?",
+    opts: [
+      "Blood pressure monitors are expensive medical devices",
+      "Hypertension is dangerous partly because it shows no warning signs",
+      "Adults over 40 should visit their doctor annually",
+      "Nurses must specialize in cardiovascular care",
+    ],
+    ans: 1,
+    rationale:
+      "The passage emphasizes that hypertension is dangerous because it has no symptoms ('silent killer') until serious damage occurs — making monitoring essential. This is the central message.",
+  },
+  {
+    section: "Reading",
+    sectionColor: "#2563eb",
+    sectionBg: "#eff6ff",
+    q: "Based on context clues, what does 'benign' most likely mean in: 'The biopsy results showed a benign tumor, so no further treatment was needed.'",
+    opts: [
+      "Malignant and spreading",
+      "Not harmful or cancerous",
+      "Requiring immediate surgery",
+      "Rare and unusual",
+    ],
+    ans: 1,
+    rationale:
+      "The context clue 'no further treatment was needed' signals a positive outcome, indicating benign means not harmful or cancerous.",
+  },
+  {
+    section: "Math",
+    sectionColor: "#7c3aed",
+    sectionBg: "#f5f3ff",
+    q: "A nurse needs to administer 250 mg of medication. It is available as 125 mg/5 mL. How many mL should the nurse give?",
+    opts: ["5 mL", "10 mL", "12.5 mL", "15 mL"],
+    ans: 1,
+    rationale:
+      "Using the proportion: 125mg/5mL = 250mg/x. Cross-multiply: 125x = 1250, so x = 10 mL.",
+  },
+  {
+    section: "Math",
+    sectionColor: "#7c3aed",
+    sectionBg: "#f5f3ff",
+    q: "A patient's IV is set to deliver fluids at 60 mL/hour. How many mL will the patient receive in 8 hours?",
+    opts: ["360 mL", "420 mL", "480 mL", "540 mL"],
+    ans: 2,
+    rationale: "Multiply rate × time: 60 mL/hr × 8 hrs = 480 mL.",
+  },
+  {
+    section: "Math",
+    sectionColor: "#7c3aed",
+    sectionBg: "#f5f3ff",
+    q: "Convert 0.75 to a percentage.",
+    opts: ["0.75%", "7.5%", "75%", "750%"],
+    ans: 2,
+    rationale:
+      "To convert a decimal to a percentage, multiply by 100. 0.75 × 100 = 75%.",
+  },
+  {
+    section: "Science",
+    sectionColor: "#047857",
+    sectionBg: "#f0fdf4",
+    q: "Which chamber of the heart pumps oxygenated blood to the rest of the body?",
+    opts: [
+      "Right atrium",
+      "Right ventricle",
+      "Left atrium",
+      "Left ventricle",
+    ],
+    ans: 3,
+    rationale:
+      "The left ventricle pumps oxygen-rich blood into the aorta and out to the systemic circulation. The right ventricle sends deoxygenated blood to the lungs.",
+  },
+  {
+    section: "Science",
+    sectionColor: "#047857",
+    sectionBg: "#f0fdf4",
+    q: "Which of the following is NOT a function of the lymphatic system?",
+    opts: [
+      "Transporting excess interstitial fluid back to the bloodstream",
+      "Producing red blood cells",
+      "Fighting infections through lymphocytes",
+      "Absorbing dietary fats from the digestive tract",
+    ],
+    ans: 1,
+    rationale:
+      "Red blood cells are produced in the red bone marrow, not the lymphatic system. The lymphatic system handles fluid return, immune defense, and fat absorption.",
+  },
+  {
+    section: "Science",
+    sectionColor: "#047857",
+    sectionBg: "#f0fdf4",
+    q: "During which phase of mitosis do chromosomes line up along the cell's equator?",
+    opts: ["Prophase", "Metaphase", "Anaphase", "Telophase"],
+    ans: 1,
+    rationale:
+      "During metaphase, chromosomes align along the metaphase plate (equator). This ensures each daughter cell receives one copy of each chromosome.",
+  },
+  {
+    section: "English",
+    sectionColor: "#b45309",
+    sectionBg: "#fffbeb",
+    q: "Which sentence uses correct subject-verb agreement?",
+    opts: [
+      "The group of nurses are preparing for rounds.",
+      "Neither the doctor nor the nurses was available.",
+      "The data shows a clear pattern in patient outcomes.",
+      "Each of the students have submitted their assignments.",
+    ],
+    ans: 2,
+    rationale:
+      "'The data shows' is correct — 'data' is treated as a singular collective noun in medical/scientific writing. The other sentences have agreement errors.",
+  },
+  {
+    section: "English",
+    sectionColor: "#b45309",
+    sectionBg: "#fffbeb",
+    q: "Identify the correctly punctuated sentence:",
+    opts: [
+      "The patient, was discharged after three days.",
+      "After surgery the patient felt much better.",
+      "The nurse administered the medication, and documented it immediately.",
+      "Before the procedure, the nurse reviewed the patient's allergies.",
+    ],
+    ans: 3,
+    rationale:
+      "'Before the procedure, the nurse reviewed the patient's allergies.' correctly uses a comma after an introductory phrase. The other sentences have punctuation errors.",
+  },
+];
+
+/* ── Small SVG icons ── */
+const CheckIcon = ({ color = "#22c55e" }) => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
+    <circle cx="10" cy="10" r="9" fill={color} />
     <path d="M6 10l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-
-const X = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink:0}}>
+const XIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
     <circle cx="10" cy="10" r="9" fill="#ef4444" />
     <path d="M7 7l6 6M13 7l-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
+/* ══════════════════════════════════════
+   SAMPLE TEST SECTION (replaces static section)
+══════════════════════════════════════ */
+function SampleTest() {
+  const [answers, setAnswers] = useState(new Array(10).fill(null));
+  const [submitted, setSubmitted] = useState(false);
+  const [showTest, setShowTest] = useState(false);
+
+  const answered = answers.filter((a) => a !== null).length;
+  const pct = submitted ? Math.round((answers.filter((a, i) => a === QUESTIONS[i].ans).length / 10) * 100) : 0;
+  const correctCount = submitted ? answers.filter((a, i) => a === QUESTIONS[i].ans).length : 0;
+
+  const scoreColor = pct >= 70 ? "#16a34a" : pct >= 50 ? "#d97706" : "#dc2626";
+  const scoreMsg =
+    pct >= 70
+      ? "Great score! You're on the right track. 🎉"
+      : pct >= 50
+      ? "Good effort — targeted practice will lift your score significantly."
+      : "Don't worry — this is exactly why practice matters!";
+
+  const sections = ["Reading", "Math", "Science", "English"];
+  const secScores = sections.map((s) => {
+    const qs = QUESTIONS.filter((q) => q.section === s);
+    const c = qs.filter((q) => answers[QUESTIONS.indexOf(q)] === q.ans).length;
+    return { s, c, total: qs.length };
+  });
+
+  const pick = (qi, oi) => {
+    if (submitted) return;
+    const next = [...answers];
+    next[qi] = oi;
+    setAnswers(next);
+  };
+
+  const submit = () => {
+    if (answered < 10) return;
+    setSubmitted(true);
+    setTimeout(() => {
+      document.getElementById("quiz-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  if (!showTest) {
+    return (
+      <section style={{ background: "#fffbeb", padding: "60px 40px", textAlign: "center", borderTop: "3px dashed #f59e0b" }}>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          <span style={{ fontSize: 40 }}>🎁</span>
+          <h2 style={{ fontWeight: 900, fontSize: "clamp(22px,2.5vw,32px)", color: "#111827", marginTop: 12, marginBottom: 12 }}>
+            FREE Sample Test — 10 Questions
+          </h2>
+          <p style={{ fontSize: 15, color: "#374151", fontWeight: 500, lineHeight: 1.7, marginBottom: 24 }}>
+            Try before you buy — experience real exam-level questions covering Reading, Math, Science &amp; English.
+            No credit card, no commitment.
+          </p>
+          <button
+            onClick={() => setShowTest(true)}
+            style={{ background: "#d97706", color: "white", border: "none", padding: "16px 36px", borderRadius: 12, fontSize: 16, fontWeight: 800, cursor: "pointer" }}
+          >
+            👉 Start the Free Sample Test
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section style={{ background: "#f8fafc", padding: "60px 40px" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <span style={{ fontSize: 36 }}>📝</span>
+          <h2 style={{ fontWeight: 900, fontSize: "clamp(22px,2.5vw,32px)", color: "#111827", marginTop: 10, marginBottom: 8 }}>
+            Free Sample Test
+          </h2>
+          <p style={{ fontSize: 14, color: "#6b7280", fontWeight: 500 }}>
+            10 questions · Reading, Math, Science, English
+          </p>
+        </div>
+
+        {/* Progress */}
+        {!submitted && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#6b7280", fontWeight: 600, marginBottom: 8 }}>
+              <span>{answered} of 10 answered</span>
+              <span>{10 - answered} remaining</span>
+            </div>
+            <div style={{ height: 8, background: "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(answered / 10) * 100}%`, background: "#2563eb", borderRadius: 99, transition: "width .3s" }} />
+            </div>
+            {/* Dot indicators */}
+            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+              {answers.map((a, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: 12, height: 12, borderRadius: "50%",
+                    background: a !== null ? "#2563eb" : "#e2e8f0",
+                    border: `1.5px solid ${a !== null ? "#2563eb" : "#cbd5e1"}`,
+                    transition: "background .2s",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Questions */}
+        {QUESTIONS.map((q, qi) => (
+          <div
+            key={qi}
+            style={{
+              background: "white",
+              border: "1.5px solid #e2e8f0",
+              borderRadius: 16,
+              padding: "24px 28px",
+              marginBottom: 20,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+          >
+            {/* Section badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span
+                style={{
+                  display: "inline-block",
+                  background: q.sectionBg,
+                  color: q.sectionColor,
+                  border: `1px solid ${q.sectionColor}33`,
+                  borderRadius: 20,
+                  padding: "3px 12px",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                {q.section}
+              </span>
+              <span style={{ fontSize: 12, color: "#9ca3af", fontWeight: 600 }}>Question {qi + 1} of 10</span>
+            </div>
+
+            {/* Question text */}
+            <p style={{ fontSize: 15, color: "#1e293b", fontWeight: 600, lineHeight: 1.65, marginBottom: 18 }}>
+              {q.q}
+            </p>
+
+            {/* Options */}
+            {q.opts.map((opt, oi) => {
+              const isSelected = answers[qi] === oi;
+              const isCorrect = submitted && oi === q.ans;
+              const isWrong = submitted && isSelected && oi !== q.ans;
+
+              let bg = "white", border = "#e2e8f0", textColor = "#374151";
+              if (isCorrect) { bg = "#f0fdf4"; border = "#22c55e"; textColor = "#15803d"; }
+              else if (isWrong) { bg = "#fef2f2"; border = "#ef4444"; textColor = "#991b1b"; }
+              else if (isSelected && !submitted) { bg = "#eff6ff"; border = "#2563eb"; textColor = "#1d4ed8"; }
+
+              return (
+                <div
+                  key={oi}
+                  onClick={() => pick(qi, oi)}
+                  style={{
+                    display: "flex", alignItems: "flex-start", gap: 12,
+                    padding: "12px 16px", borderRadius: 10,
+                    border: `1.5px solid ${border}`,
+                    background: bg, marginBottom: 10,
+                    cursor: submitted ? "default" : "pointer",
+                    transition: "all .15s",
+                  }}
+                >
+                  {/* Radio / result icon */}
+                  {submitted ? (
+                    isCorrect ? <CheckIcon color="#22c55e" /> : isWrong ? <XIcon /> : (
+                      <div style={{ width: 20, height: 20, borderRadius: "50%", border: "1.5px solid #d1d5db", flexShrink: 0 }} />
+                    )
+                  ) : (
+                    <div style={{
+                      width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                      border: `2px solid ${isSelected ? "#2563eb" : "#d1d5db"}`,
+                      background: isSelected ? "#2563eb" : "white",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      {isSelected && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "white" }} />}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 14, color: textColor, fontWeight: isCorrect || isWrong ? 700 : 500, lineHeight: 1.55 }}>
+                    {opt}
+                    {isCorrect && submitted && " ✓"}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Rationale (shown after submit) */}
+            {submitted && (
+              <div style={{
+                marginTop: 14, padding: "14px 18px", borderRadius: 10,
+                background: answers[qi] === q.ans ? "#f0fdf4" : "#fef2f2",
+                borderLeft: `4px solid ${answers[qi] === q.ans ? "#22c55e" : "#ef4444"}`,
+              }}>
+                <p style={{ fontSize: 13, color: answers[qi] === q.ans ? "#15803d" : "#991b1b", fontWeight: 600, lineHeight: 1.6 }}>
+                  <strong>{answers[qi] === q.ans ? "✅ Correct! " : "❌ Incorrect. "}</strong>
+                  {q.rationale}
+                </p>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Submit button */}
+        {!submitted && (
+          <div style={{ textAlign: "center", marginTop: 12 }}>
+            {answered < 10 && (
+              <p style={{ fontSize: 13, color: "#9ca3af", fontWeight: 600, marginBottom: 14 }}>
+                Answer all 10 questions to submit
+              </p>
+            )}
+            <button
+              onClick={submit}
+              disabled={answered < 10}
+              style={{
+                background: answered < 10 ? "#93c5fd" : "#2563eb",
+                color: "white", border: "none",
+                padding: "16px 48px", borderRadius: 12,
+                fontSize: 16, fontWeight: 800,
+                cursor: answered < 10 ? "not-allowed" : "pointer",
+                transition: "all .2s",
+              }}
+            >
+              Submit My Answers
+            </button>
+          </div>
+        )}
+
+        {/* Results */}
+        {submitted && (
+          <div id="quiz-results" style={{
+            background: "white", border: "2px solid #e2e8f0", borderRadius: 20,
+            padding: "40px 36px", marginTop: 24, textAlign: "center",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+          }}>
+            {/* Score circle */}
+            <div style={{
+              width: 110, height: 110, borderRadius: "50%",
+              border: `5px solid ${scoreColor}`,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              margin: "0 auto 20px",
+            }}>
+              <span style={{ fontSize: 30, fontWeight: 900, color: scoreColor, lineHeight: 1 }}>{correctCount}/10</span>
+              <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 600 }}>{pct}%</span>
+            </div>
+
+            <h3 style={{ fontWeight: 900, fontSize: 22, color: "#111827", marginBottom: 8 }}>
+              Your Results
+            </h3>
+            <p style={{ fontSize: 15, color: "#374151", fontWeight: 600, marginBottom: 28, lineHeight: 1.6 }}>
+              {scoreMsg}
+            </p>
+
+            {/* Section breakdown */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
+              {secScores.map(({ s, c, total }) => {
+                const sp = Math.round((c / total) * 100);
+                const sc = sp === 100 ? "#16a34a" : sp >= 50 ? "#d97706" : "#dc2626";
+                return (
+                  <div key={s} style={{ background: "#f8fafc", borderRadius: 12, padding: "16px 10px", border: "1px solid #e2e8f0" }}>
+                    <p style={{ fontWeight: 900, fontSize: 22, color: sc, marginBottom: 4 }}>{c}/{total}</p>
+                    <p style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{s}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Upsell */}
+            <div style={{ background: "#eff6ff", border: "2px solid #bfdbfe", borderRadius: 14, padding: "20px 24px", marginBottom: 24 }}>
+              <p style={{ fontSize: 15, color: "#1d4ed8", fontWeight: 800, marginBottom: 4 }}>
+                📚 Ready for the full 1,000+ question bank?
+              </p>
+              <p style={{ fontSize: 13, color: "#3b82f6", fontWeight: 500 }}>
+                The full NurseBrace plan covers every topic in detail — with the same quality rationales you just experienced.
+              </p>
+            </div>
+
+            <button
+              style={{ background: "#2563eb", color: "white", border: "none", padding: "16px 40px", borderRadius: 12, fontSize: 16, fontWeight: 800, cursor: "pointer", marginBottom: 12 }}
+            >
+              👉 Get Full Access — Instant
+            </button>
+            <br />
+            <button
+              onClick={() => { setAnswers(new Array(10).fill(null)); setSubmitted(false); window.scrollTo({ top: document.getElementById("sample-test-top")?.offsetTop || 0, behavior: "smooth" }); }}
+              style={{ background: "none", border: "none", color: "#6b7280", fontSize: 13, cursor: "pointer", fontWeight: 600, marginTop: 8 }}
+            >
+              Retake the test
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════
+   MAIN PAGE
+══════════════════════════════════════ */
 export default function NurseBrace() {
   const [timeLeft, setTimeLeft] = useState({ h: 1, m: 47, s: 33 });
   const [showExit, setShowExit] = useState(false);
@@ -25,7 +462,7 @@ export default function NurseBrace() {
 
   useEffect(() => {
     const t = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         let { h, m, s } = prev;
         s--;
         if (s < 0) { s = 59; m--; }
@@ -44,7 +481,7 @@ export default function NurseBrace() {
     return () => document.removeEventListener("mouseleave", handle);
   }, [exitDismissed]);
 
-  const pad = n => String(n).padStart(2, "0");
+  const pad = (n) => String(n).padStart(2, "0");
 
   return (
     <div style={{ fontFamily: "'Montserrat', sans-serif", margin: 0, padding: 0, color: "#1a1a2e", background: "white", paddingBottom: 70 }}>
@@ -93,15 +530,16 @@ export default function NurseBrace() {
           .footer-grid { flex-direction: column !important; gap: 32px !important; }
           .sticky-bar { flex-direction: column; gap: 8px; padding: 12px 16px; }
           .testimonials-grid { flex-direction: column !important; }
+          .sec-grid { grid-template-columns: repeat(2,1fr) !important; }
         }
       `}</style>
 
-      {/* NAVBAR */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: "64px", background: "white", borderBottom: "3px solid #2563eb", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+      {/* ── NAVBAR ── */}
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", height: 64, background: "white", borderBottom: "3px solid #2563eb", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <span style={{ fontWeight: 900, fontSize: 22, color: "#2563eb", letterSpacing: "-0.5px" }}>NurseBrace</span>
         <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
           <a href="#" className="nav-link">Exams</a>
-          <a href="#" className="nav-link">Pricing</a>
+          <a href="#pricing" className="nav-link">Pricing</a>
           <a href="#" className="nav-link">About</a>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -110,8 +548,8 @@ export default function NurseBrace() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%)", padding: "64px 40px", minHeight: "480px", display: "flex", alignItems: "center" }}>
+      {/* ── HERO ── */}
+      <section style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%)", padding: "64px 40px", minHeight: 480, display: "flex", alignItems: "center" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", display: "flex", alignItems: "center", gap: 60 }} className="hero-grid">
           <div style={{ flex: "0 0 52%", color: "white" }}>
             <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 20, padding: "6px 16px", fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 20, textTransform: "uppercase" }}>
@@ -129,11 +567,13 @@ export default function NurseBrace() {
                 <button className="hero-btn-primary">👉 Start Practicing Now (Instant Access)</button>
               </div>
               <div className="hero-btn-wrap">
-                <button className="hero-btn-outline">👉 Try a Free Sample Test</button>
+                <button className="hero-btn-outline" onClick={() => document.getElementById("sample-test-top")?.scrollIntoView({ behavior: "smooth" })}>
+                  👉 Try a Free Sample Test
+                </button>
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-              {["No credit card required", "Cancel anytime", "30-question free trial"].map(t => (
+              {["No credit card required", "Cancel anytime", "30-question free trial"].map((t) => (
                 <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   {t}
@@ -155,7 +595,7 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* PAIN POINT */}
+      {/* ── PAIN POINT ── */}
       <section style={{ background: "#fff7f7", padding: "80px 40px" }}>
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -181,7 +621,7 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* SOLUTION */}
+      {/* ── SOLUTION ── */}
       <section style={{ background: "#f0fdf4", padding: "80px 40px" }}>
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -195,7 +635,7 @@ export default function NurseBrace() {
             "Train you to think the way the exam wants you to think",
           ].map((item, i) => (
             <div key={i} className="solution-item">
-              <Check green />
+              <CheckIcon color="#22c55e" />
               <p style={{ fontSize: 15, color: "#15803d", fontWeight: 700, lineHeight: 1.6 }}>{item}</p>
             </div>
           ))}
@@ -205,7 +645,7 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* WHAT YOU GET */}
+      {/* ── WHAT YOU GET ── */}
       <section style={{ background: "white", padding: "80px 40px" }}>
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -220,7 +660,7 @@ export default function NurseBrace() {
               "Real exam patterns and commonly tested topics",
               "Instant access — start practicing in minutes",
             ].map((item, i) => (
-              <div key={i} className="what-get-item"><Check green /><span>{item}</span></div>
+              <div key={i} className="what-get-item"><CheckIcon color="#22c55e" /><span>{item}</span></div>
             ))}
           </div>
           <div style={{ textAlign: "center", marginTop: 36 }}>
@@ -229,7 +669,7 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* DIFFERENTIATION */}
+      {/* ── DIFFERENTIATION ── */}
       <section style={{ background: "#f8fafc", padding: "80px 40px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -240,20 +680,20 @@ export default function NurseBrace() {
             <div style={{ flex: 1, minWidth: 260 }}>
               <p style={{ fontWeight: 800, fontSize: 14, color: "#ef4444", marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>❌ Free Tests</p>
               {["Too easy or completely outdated", "Don't reflect real exam difficulty", "No proper explanations — just answer keys", "Waste your precious study time"].map((t, i) => (
-                <div key={i} className="diff-bad"><X /><span>{t}</span></div>
+                <div key={i} className="diff-bad"><XIcon /><span>{t}</span></div>
               ))}
             </div>
             <div style={{ flex: 1, minWidth: 260 }}>
               <p style={{ fontWeight: 800, fontSize: 14, color: "#22c55e", marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>✅ NurseBrace</p>
               {["Focuses only on what's actually tested", "Questions match real exam difficulty", "Deep rationales so you understand — not memorize", "Built for students testing THIS month"].map((t, i) => (
-                <div key={i} className="diff-good"><Check green /><span>{t}</span></div>
+                <div key={i} className="diff-good"><CheckIcon color="#22c55e" /><span>{t}</span></div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
+      {/* ── SOCIAL PROOF ── */}
       <section style={{ background: "white", padding: "80px 40px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
@@ -285,13 +725,10 @@ export default function NurseBrace() {
               </div>
             ))}
           </div>
-          <div style={{ textAlign: "center", marginTop: 36, padding: "18px 24px", background: "#fffbeb", borderRadius: 12, border: "2px dashed #f59e0b" }}>
-            <p style={{ fontSize: 14, color: "#92400e", fontWeight: 700 }}>📸 Insert real screenshots / testimonials here — this is the #1 conversion driver on your page</p>
-          </div>
         </div>
       </section>
 
-      {/* STATS */}
+      {/* ── STATS ── */}
       <section style={{ background: "#1e293b", padding: "60px 40px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
           {[
@@ -309,7 +746,7 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* URGENCY */}
+      {/* ── URGENCY ── */}
       <section style={{ background: "#fff7ed", padding: "72px 40px", textAlign: "center" }}>
         <div style={{ maxWidth: 680, margin: "0 auto" }}>
           <span style={{ fontSize: 40 }}>⏳</span>
@@ -336,8 +773,8 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section style={{ background: "#f8fafc", padding: "80px 40px" }}>
+      {/* ── PRICING ── */}
+      <section id="pricing" style={{ background: "#f8fafc", padding: "80px 40px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <span style={{ fontSize: 36 }}>💰</span>
@@ -349,18 +786,20 @@ export default function NurseBrace() {
               <h3 style={{ fontWeight: 800, fontSize: 22, color: "#111827", marginBottom: 4 }}>Free Trial</h3>
               <p style={{ fontWeight: 900, fontSize: 32, color: "#2563eb", marginBottom: 6 }}>$0</p>
               <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 22, fontWeight: 500 }}>No credit card required</p>
-              {["30 practice questions", "All question categories", "Detailed explanations"].map(f => (
-                <div key={f} className="check-item"><Check />{f}</div>
+              {["30 practice questions", "All question categories", "Detailed explanations"].map((f) => (
+                <div key={f} className="check-item"><CheckIcon />{f}</div>
               ))}
-              <button className="subscribe-btn-outline">👉 Try a Free Sample Test</button>
+              <button className="subscribe-btn-outline" onClick={() => document.getElementById("sample-test-top")?.scrollIntoView({ behavior: "smooth" })}>
+                👉 Try a Free Sample Test
+              </button>
             </div>
             <div className="pricing-card popular" style={{ position: "relative" }}>
               <div style={{ position: "absolute", top: -14, left: 24, background: "#2563eb", color: "white", borderRadius: 20, padding: "5px 16px", fontSize: 12, fontWeight: 800 }}>🔥 Most Popular</div>
               <h3 style={{ fontWeight: 800, fontSize: 22, color: "#111827", marginBottom: 4 }}>Monthly Plan</h3>
               <p style={{ fontWeight: 900, fontSize: 32, color: "#2563eb", marginBottom: 2 }}>$49.99<span style={{ fontSize: 15, fontWeight: 600 }}>/mo</span></p>
               <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 22, fontWeight: 500 }}>Full access — cancel anytime</p>
-              {["Unlimited practice sessions", "50 questions per session", "All features included", "Regular content updates"].map(f => (
-                <div key={f} className="check-item"><Check />{f}</div>
+              {["Unlimited practice sessions", "50 questions per session", "All features included", "Regular content updates"].map((f) => (
+                <div key={f} className="check-item"><CheckIcon />{f}</div>
               ))}
               <button className="subscribe-btn">👉 Get Instant Access Now</button>
             </div>
@@ -368,8 +807,8 @@ export default function NurseBrace() {
               <h3 style={{ fontWeight: 800, fontSize: 22, color: "#111827", marginBottom: 4 }}>Weekly Plan</h3>
               <p style={{ fontWeight: 900, fontSize: 32, color: "#2563eb", marginBottom: 6 }}>$19.99<span style={{ fontSize: 15, fontWeight: 600 }}>/wk</span></p>
               <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 22, fontWeight: 500 }}>Perfect for last-minute prep</p>
-              {["Unlimited practice sessions", "50 questions per session", "All features included"].map(f => (
-                <div key={f} className="check-item"><Check />{f}</div>
+              {["Unlimited practice sessions", "50 questions per session", "All features included"].map((f) => (
+                <div key={f} className="check-item"><CheckIcon />{f}</div>
               ))}
               <button className="subscribe-btn-outline">👉 Subscribe</button>
             </div>
@@ -377,7 +816,7 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* RISK REVERSAL */}
+      {/* ── RISK REVERSAL ── */}
       <section style={{ background: "white", padding: "72px 40px", textAlign: "center" }}>
         <div style={{ maxWidth: 600, margin: "0 auto" }}>
           <span style={{ fontSize: 48 }}>🛡️</span>
@@ -392,19 +831,12 @@ export default function NurseBrace() {
         </div>
       </section>
 
-      {/* FREE SAMPLE BONUS */}
-      <section style={{ background: "#fffbeb", padding: "60px 40px", textAlign: "center", borderTop: "3px dashed #f59e0b" }}>
-        <div style={{ maxWidth: 600, margin: "0 auto" }}>
-          <span style={{ fontSize: 40 }}>🎁</span>
-          <h2 style={{ fontWeight: 900, fontSize: "clamp(22px,2.5vw,32px)", color: "#111827", marginTop: 12, marginBottom: 12 }}>FREE Sample Test Available</h2>
-          <p style={{ fontSize: 15, color: "#374151", fontWeight: 500, lineHeight: 1.7, marginBottom: 24 }}>
-            Not sure yet? Try before you buy — see the quality yourself. No credit card, no commitment.
-          </p>
-          <button className="big-cta" style={{ background: "#d97706" }}>👉 Try a Free Sample Test Now</button>
-        </div>
-      </section>
+      {/* ── FREE SAMPLE TEST (Interactive) ── */}
+      <div id="sample-test-top">
+        <SampleTest />
+      </div>
 
-      {/* FINAL CTA */}
+      {/* ── FINAL CTA ── */}
       <section style={{ background: "linear-gradient(135deg, #1d4ed8, #2563eb)", padding: "80px 40px", textAlign: "center", color: "white" }}>
         <div style={{ maxWidth: 660, margin: "0 auto" }}>
           <span style={{ fontSize: 40 }}>🎯</span>
@@ -417,12 +849,15 @@ export default function NurseBrace() {
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <button className="big-cta" style={{ background: "white", color: "#1d4ed8", fontSize: 16 }}>👉 Get Instant Access</button>
-            <button className="big-cta" style={{ background: "rgba(255,255,255,0.12)", border: "2px solid rgba(255,255,255,0.5)", fontSize: 16 }}>👉 Try Free Sample</button>
+            <button className="big-cta" style={{ background: "rgba(255,255,255,0.12)", border: "2px solid rgba(255,255,255,0.5)", fontSize: 16 }}
+              onClick={() => document.getElementById("sample-test-top")?.scrollIntoView({ behavior: "smooth" })}>
+              👉 Try Free Sample
+            </button>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer style={{ background: "#0f172a", padding: "56px 40px 32px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", gap: 60, flexWrap: "wrap", marginBottom: 48 }} className="footer-grid">
@@ -435,10 +870,10 @@ export default function NurseBrace() {
               { label: "Company", links: ["About Us", "Contact"] },
               { label: "Resources", links: ["FAQ"] },
               { label: "Legal", links: ["Privacy Policy", "Terms of Service"] },
-            ].map(col => (
+            ].map((col) => (
               <div key={col.label}>
                 <p style={{ fontWeight: 800, fontSize: 12, color: "#e2e8f0", marginBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: 8, textTransform: "uppercase", letterSpacing: 0.8 }}>{col.label}</p>
-                {col.links.map(l => <a key={l} href="#" className="footer-link">{l}</a>)}
+                {col.links.map((l) => <a key={l} href="#" className="footer-link">{l}</a>)}
               </div>
             ))}
           </div>
@@ -448,24 +883,34 @@ export default function NurseBrace() {
         </div>
       </footer>
 
-      {/* STICKY BAR */}
+      {/* ── STICKY BAR ── */}
       <div className="sticky-bar">
         <p style={{ fontWeight: 600, fontSize: 14 }}>🔥 <strong>Only for students testing this month</strong> — Don't leave without starting your free trial</p>
-        <button className="big-cta" style={{ padding: "11px 28px", fontSize: 14, whiteSpace: "nowrap", background: "#fbbf24", color: "#1e293b" }}>
+        <button
+          className="big-cta"
+          style={{ padding: "11px 28px", fontSize: 14, whiteSpace: "nowrap", background: "#fbbf24", color: "#1e293b" }}
+          onClick={() => document.getElementById("sample-test-top")?.scrollIntoView({ behavior: "smooth" })}
+        >
           👉 Start Now — Free
         </button>
       </div>
 
-      {/* EXIT POPUP */}
+      {/* ── EXIT POPUP ── */}
       {showExit && !exitDismissed && (
         <div className="exit-overlay" onClick={() => { setShowExit(false); setExitDismissed(true); }}>
-          <div className="exit-modal" onClick={e => e.stopPropagation()}>
+          <div className="exit-modal" onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>⏸️</div>
             <h3 style={{ fontWeight: 900, fontSize: 24, color: "#111827", marginBottom: 12 }}>Wait! Don't Leave Empty-Handed</h3>
             <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.7, marginBottom: 24, fontWeight: 500 }}>
               Get a <strong>FREE sample test</strong> before you go — see the quality yourself with zero commitment.
             </p>
-            <button className="big-cta" style={{ width: "100%", marginBottom: 12 }}>🎁 Yes, Give Me the Free Test</button>
+            <button
+              className="big-cta"
+              style={{ width: "100%", marginBottom: 12 }}
+              onClick={() => { setShowExit(false); setExitDismissed(true); document.getElementById("sample-test-top")?.scrollIntoView({ behavior: "smooth" }); }}
+            >
+              🎁 Yes, Give Me the Free Test
+            </button>
             <button onClick={() => { setShowExit(false); setExitDismissed(true); }} style={{ background: "none", border: "none", color: "#9ca3af", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>
               No thanks, I don't want to prepare
             </button>
