@@ -46,7 +46,6 @@ const CSS = `
     font-size: 13px;
     color: var(--c-text);
     background: var(--c-bg);
-    min-height: 100vh;
     line-height: 1.5;
   }
 
@@ -62,12 +61,8 @@ const CSS = `
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding: 2rem 2rem 1.25rem;
+    padding: 0.75rem 2rem 0.75rem;
     border-bottom: 1px solid var(--c-border);
-    position: sticky;
-    top: 0;
-    background: var(--c-bg);
-    z-index: 50;
   }
   .tj-header-eyebrow {
     font-size: 10px;
@@ -401,10 +396,7 @@ const CSS = `
     padding: 1.5rem 2rem;
     border-top: 1px solid var(--c-border);
     margin-top: 1.5rem;
-    position: sticky;
-    bottom: 0;
     background: var(--c-bg);
-    z-index: 50;
   }
   .tj-btn {
     padding: 9px 22px;
@@ -965,17 +957,7 @@ export default function TradingJournal({ onSave }) {
       <Inj css={CSS} />
       <div className="tj-shell">
 
-        {/* Header */}
-        <div className="tj-header">
-          <div>
-            <div className="tj-header-eyebrow">◈ Trade Journal</div>
-            <div className="tj-header-title">New Entry</div>
-          </div>
-          <div className="tj-header-right">
-            <div className="tj-header-step-label">{stepLabels[step - 1]}</div>
-            <div>Step {step} of {STEPS.length}</div>
-          </div>
-        </div>
+
 
         {/* Progress */}
         <div className="tj-progress-bar">
