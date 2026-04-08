@@ -1,0 +1,1105 @@
+import { useState, useEffect } from "react";
+
+/* ── GOOGLE FONT — Inter ───────────────────────────────────── */
+const fontLink = document.createElement("link");
+fontLink.rel = "stylesheet";
+fontLink.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap";
+document.head.appendChild(fontLink);
+
+/* ── DESIGN TOKENS ─────────────────────────────────────────── */
+const T = {
+  bg:       "#080c16",
+  surface:  "#0d1220",
+  card:     "#101828",
+  raised:   "#162035",
+  border:   "#1c2b42",
+  borderHi: "#27405f",
+  blue:     "#2979ff",
+  blueGlow: "#2979ff33",
+  cyan:     "#00e5ff",
+  green:    "#00e676",
+  amber:    "#ffab00",
+  red:      "#ff1744",
+  text:     "#e8edf5",
+  muted:    "#4e6580",
+  dimmed:   "#8094b0",
+  font:     "'Inter', 'Segoe UI', sans-serif",
+  mono:     "'JetBrains Mono', 'Fira Code', monospace",
+};
+
+/* ── GLOBAL STYLE INJECTION ────────────────────────────────── */
+const styleEl = document.createElement("style");
+styleEl.textContent = `
+  * { box-sizing: border-box; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    height: 4px; background: ${T.border}; border-radius: 4px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: ${T.blue}; cursor: pointer;
+    border: 2px solid ${T.bg};
+  }
+  input:focus, select:focus { border-color: ${T.blue} !important; outline: none; }
+  select option { background: ${T.surface}; color: ${T.text}; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
+  }
+`;
+document.head.appendChild(styleEl);
+
+/* ── BROKER SERVERS ────────────────────────────────────────── */
+const BROKER_SERVERS = {
+  MT5: [
+    "Exness-Real","Exness-Trial","ExnessEU-Real",
+    "ICMarketsSC-MT5-1","ICMarketsSC-MT5-2",
+    "Pepperstone-MT5","Pepperstone-MT5-Live01",
+    "XM.COM-Real 15","XM.COM-Real 34","XMGlobal-Real 4",
+    "HFMarketsEU-Live 5","FXTM-Real 14","OctaFX-Real3",
+    "FusionMarkets-Live","Tickmill-Live","Custom…",
+  ],
+  MT4: [
+    "Exness-Real 4","Exness-Trial 4",
+    "ICMarkets-Live04","ICMarkets-Demo04",
+    "Pepperstone-Edge-Live","XM.COM-Real 2",
+    "FxPro.com-Real 3","FXTM-Real3","OctaFX-MT4 Real","Custom…",
+  ],
+  cTrader: ["ICMarkets cTrader","Pepperstone cTrader","FusionMarkets cTrader","Custom…"],
+  DXtrade: ["FTMO DXtrade","MyForexFunds DX","Custom…"],
+};
+
+const PLATFORMS = ["MT5","MT4","cTrader","DXtrade"];
+
+/* ── STEPS ─────────────────────────────────────────────────── */
+const STEPS = [
+  { id: "role",    label: "Your Role" },
+  { id: "connect", label: "Connect" },
+  { id: "link",    label: "Link & Pair" },
+  { id: "copy",    label: "Copy Settings" },
+  { id: "protect", label: "Protection" },
+  { id: "done",    label: "Go Live" },
+];
+
+/* ── SHARED STYLES ─────────────────────────────────────────── */
+const css = {
+  wrap: {
+    background: T.bg,
+    minHeight: "100vh",
+    fontFamily: T.font,
+    color: T.text,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "36px 16px 72px",
+  },
+  header: {
+    display: "flex", alignItems: "center", gap: 12, marginBottom: 36,
+  },
+  logoBox: {
+    width: 42, height: 42, borderRadius: 12,
+    background: `linear-gradient(135deg, ${T.blue}, ${T.cyan})`,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.5px",
+  },
+  logoName: { fontSize: 20, fontWeight: 900, letterSpacing: "-0.8px" },
+  logoTag: { fontSize: 11, color: T.muted, marginLeft: 5, fontWeight: 500 },
+  stepper: {
+    display: "flex", alignItems: "center", gap: 0, marginBottom: 28,
+    background: T.surface, borderRadius: 14, border: `1px solid ${T.border}`,
+    padding: "5px", width: "100%", maxWidth: 780,
+  },
+  stepBtn: (active, done) => ({
+    flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+    gap: 5, padding: "10px 4px", borderRadius: 10, cursor: "pointer",
+    background: active ? T.raised : "transparent",
+    border: active ? `1px solid ${T.borderHi}` : "1px solid transparent",
+    transition: "all 0.2s",
+  }),
+  stepNum: (active, done) => ({
+    width: 24, height: 24, borderRadius: "50%", fontSize: 10, fontWeight: 800,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    background: done ? T.green : active ? T.blue : T.border,
+    color: done ? "#000" : "#fff",
+    transition: "background 0.3s",
+  }),
+  stepLabel: (active) => ({
+    fontSize: 10, fontWeight: active ? 700 : 500,
+    color: active ? T.text : T.muted, textAlign: "center",
+    lineHeight: 1.2, letterSpacing: "0.01em",
+  }),
+  panel: {
+    width: "100%", maxWidth: 780,
+    background: T.card, border: `1px solid ${T.border}`,
+    borderRadius: 18, padding: "36px 40px",
+    animation: "fadeUp 0.3s ease",
+  },
+  panelTitle: {
+    fontSize: 22, fontWeight: 900, marginBottom: 5,
+    letterSpacing: "-0.6px", lineHeight: 1.2,
+  },
+  panelSub: {
+    fontSize: 13, color: T.dimmed, marginBottom: 30,
+    lineHeight: 1.6, fontWeight: 400,
+  },
+  label: {
+    fontSize: 11, fontWeight: 700, color: T.dimmed, marginBottom: 7,
+    display: "block", letterSpacing: "0.06em", textTransform: "uppercase",
+  },
+  input: {
+    width: "100%", background: T.surface, border: `1px solid ${T.border}`,
+    borderRadius: 10, padding: "10px 14px", color: T.text, fontSize: 14,
+    fontFamily: T.font, outline: "none", boxSizing: "border-box",
+    transition: "border 0.2s", fontWeight: 400,
+  },
+  select: {
+    width: "100%", background: T.surface, border: `1px solid ${T.border}`,
+    borderRadius: 10, padding: "10px 14px", color: T.text, fontSize: 14,
+    fontFamily: T.font, outline: "none", boxSizing: "border-box",
+    appearance: "none", cursor: "pointer", fontWeight: 400,
+  },
+  row2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 },
+  row3: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 },
+  field: { marginBottom: 20 },
+  btnPrimary: {
+    background: T.blue, color: "#fff", border: "none", borderRadius: 10,
+    padding: "12px 30px", fontSize: 14, fontWeight: 800, cursor: "pointer",
+    letterSpacing: "0.02em", transition: "opacity 0.15s, transform 0.1s",
+    fontFamily: T.font,
+  },
+  btnGhost: {
+    background: "transparent", color: T.dimmed,
+    border: `1px solid ${T.border}`,
+    borderRadius: 10, padding: "12px 24px", fontSize: 14, fontWeight: 600,
+    cursor: "pointer", fontFamily: T.font,
+  },
+  btnRow: {
+    display: "flex", justifyContent: "space-between",
+    alignItems: "center", marginTop: 34,
+  },
+  divider: { height: 1, background: T.border, margin: "26px 0" },
+  tag: (c) => ({
+    display: "inline-flex", alignItems: "center", gap: 4,
+    padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+    background: `${c}22`, color: c, border: `1px solid ${c}44`,
+  }),
+  info: {
+    background: `${T.blue}11`, border: `1px solid ${T.blue}33`,
+    borderRadius: 10, padding: "13px 16px", fontSize: 13,
+    color: T.dimmed, lineHeight: 1.6, marginBottom: 20,
+  },
+  notice: (c) => ({
+    background: `${c}0f`, border: `1px solid ${c}33`, borderRadius: 10,
+    padding: "11px 15px", fontSize: 12, color: c, marginBottom: 16,
+    fontWeight: 500,
+  }),
+  sectionTitle: {
+    fontSize: 13, fontWeight: 800, marginBottom: 14, color: T.text,
+    letterSpacing: "-0.2px",
+  },
+};
+
+/* ── TOGGLE ─────────────────────────────────────────────────── */
+function Toggle({ on, onChange, label, sub }) {
+  return (
+    <div style={{
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      padding: "13px 0", borderBottom: `1px solid ${T.border}`,
+    }}>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: T.muted, marginTop: 3, fontWeight: 400 }}>{sub}</div>}
+      </div>
+      <div
+        onClick={() => onChange(!on)}
+        style={{
+          width: 44, height: 25, borderRadius: 13,
+          background: on ? T.blue : T.border,
+          cursor: "pointer", position: "relative",
+          transition: "background 0.25s", flexShrink: 0, marginLeft: 16,
+        }}
+      >
+        <div style={{
+          width: 19, height: 19, background: "#fff", borderRadius: "50%",
+          position: "absolute", top: 3,
+          left: on ? 22 : 3, transition: "left 0.25s",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
+        }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── ROLE CARD ─────────────────────────────────────────────── */
+function RoleCard({ icon, title, desc, badges, selected, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: selected ? `${T.blue}12` : T.surface,
+        border: selected ? `2px solid ${T.blue}` : `1px solid ${T.border}`,
+        borderRadius: 14, padding: "22px 20px", cursor: "pointer", flex: 1,
+        transition: "all 0.2s", minWidth: 180,
+      }}
+    >
+      <div style={{ fontSize: 28, marginBottom: 11 }}>{icon}</div>
+      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 7, letterSpacing: "-0.3px" }}>{title}</div>
+      <div style={{ fontSize: 12, color: T.dimmed, lineHeight: 1.65, marginBottom: 14, fontWeight: 400 }}>{desc}</div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {badges.map(b => <span key={b} style={css.tag(T.cyan)}>{b}</span>)}
+      </div>
+    </div>
+  );
+}
+
+/* ── PLATFORM BUTTON ───────────────────────────────────────── */
+function PlatformBtn({ label, sub, selected, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: selected ? `${T.blue}12` : T.surface,
+        border: selected ? `2px solid ${T.blue}` : `1px solid ${T.border}`,
+        borderRadius: 10, padding: "12px 12px", cursor: "pointer",
+        textAlign: "center", transition: "all 0.15s",
+      }}
+    >
+      <div style={{ fontWeight: 800, fontSize: 13, letterSpacing: "-0.2px" }}>{label}</div>
+      {sub && <div style={{ fontSize: 10, color: T.muted, marginTop: 3, fontWeight: 500 }}>{sub}</div>}
+    </div>
+  );
+}
+
+/* ── LOT MODE BUTTON ───────────────────────────────────────── */
+function LotModeBtn({ label, desc, selected, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: selected ? `${T.blue}12` : T.surface,
+        border: selected ? `2px solid ${T.blue}` : `1px solid ${T.border}`,
+        borderRadius: 10, padding: "13px 14px", cursor: "pointer",
+        transition: "all 0.15s",
+      }}
+    >
+      <div style={{ fontWeight: 800, fontSize: 12, letterSpacing: "-0.1px", marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.4, fontWeight: 400 }}>{desc}</div>
+    </div>
+  );
+}
+
+/* ── STEP 1 — ROLE ─────────────────────────────────────────── */
+function StepRole({ data, setData }) {
+  return (
+    <div>
+      <div style={css.panelTitle}>What's your role?</div>
+      <div style={css.panelSub}>Choose how you want to use the trade copier. You can change this later.</div>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+        <RoleCard
+          icon="📡"
+          title="Signal Provider"
+          desc="You trade and other accounts automatically copy your positions in real time. Share your strategy, earn performance fees."
+          badges={["Master Account", "Multi-Follower", "Signal Link"]}
+          selected={data.role === "provider"}
+          onClick={() => setData({ ...data, role: "provider" })}
+        />
+        <RoleCard
+          icon="📋"
+          title="Follower / Copier"
+          desc="Copy trades from a signal provider or another master account. Set your own risk parameters — you stay in control."
+          badges={["Slave Account", "Risk Control", "Symbol Filter"]}
+          selected={data.role === "follower"}
+          onClick={() => setData({ ...data, role: "follower" })}
+        />
+        <RoleCard
+          icon="🔄"
+          title="Both — Self-Copy"
+          desc="Copy between your own accounts, e.g. from a prop firm account to a personal live account, or multiply volume across accounts."
+          badges={["Master + Slave", "Own Accounts", "Volume Scaling"]}
+          selected={data.role === "both"}
+          onClick={() => setData({ ...data, role: "both" })}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ── STEP 2 — CONNECT ACCOUNT ──────────────────────────────── */
+function StepConnect({ data, setData }) {
+  const plat = data.platform || "MT5";
+  const servers = BROKER_SERVERS[plat] || [];
+  const isMaster = data.role !== "follower";
+
+  return (
+    <div>
+      <div style={css.panelTitle}>
+        Connect your {isMaster ? "Master" : "Slave"} account
+      </div>
+      <div style={css.panelSub}>
+        Enter the trading credentials from your broker. Your data is encrypted and never stored in plain text.
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <label style={css.label}>Trading Platform</label>
+        <div style={css.row3}>
+          {PLATFORMS.map(p => (
+            <PlatformBtn
+              key={p} label={p}
+              sub={p === "MT5" ? "Recommended" : p === "cTrader" ? "cBroker" : ""}
+              selected={plat === p}
+              onClick={() => setData({ ...data, platform: p, server: "" })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div style={css.field}>
+        <label style={css.label}>Custom Name (label for this account)</label>
+        <input
+          style={css.input}
+          placeholder='e.g. "Exness-Main" or "ICM Prop Acc"'
+          value={data.accountName || ""}
+          onChange={e => setData({ ...data, accountName: e.target.value })}
+        />
+      </div>
+
+      <div style={css.row2}>
+        <div style={css.field}>
+          <label style={css.label}>Account Login (number)</label>
+          <input
+            style={{ ...css.input, fontFamily: T.mono, letterSpacing: "0.05em" }}
+            placeholder="e.g. 10023847"
+            value={data.login || ""}
+            onChange={e => setData({ ...data, login: e.target.value })}
+          />
+        </div>
+        <div style={css.field}>
+          <label style={css.label}>
+            {isMaster ? "Password (investor OK for master)" : "Trader Password (required for slave)"}
+          </label>
+          <input
+            type="password"
+            style={{ ...css.input, fontFamily: T.mono }}
+            placeholder="••••••••••"
+            value={data.password || ""}
+            onChange={e => setData({ ...data, password: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div style={css.field}>
+        <label style={css.label}>Broker Server</label>
+        <select
+          style={css.select}
+          value={data.server || ""}
+          onChange={e => setData({ ...data, server: e.target.value })}
+        >
+          <option value="">— Select server —</option>
+          {servers.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      {data.server === "Custom…" && (
+        <div style={css.field}>
+          <label style={css.label}>Custom Server Address</label>
+          <input
+            style={{ ...css.input, fontFamily: T.mono }}
+            placeholder="e.g. 192.168.1.1:443 or broker.server.com:443"
+            value={data.customServer || ""}
+            onChange={e => setData({ ...data, customServer: e.target.value })}
+          />
+        </div>
+      )}
+
+      <div style={css.info}>
+        <strong style={{ color: T.text, fontWeight: 700 }}>Master account:</strong> investor (read-only) password is enough — the copier only reads your trades.&nbsp;
+        <strong style={{ color: T.text, fontWeight: 700 }}>Slave account:</strong> you must use the full trader password so the copier can place orders on your behalf.
+      </div>
+
+      <div style={css.divider} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{
+          width: 8, height: 8, borderRadius: "50%",
+          background: T.amber, animation: "pulse 1.5s ease-in-out infinite",
+        }} />
+        <span style={{ fontSize: 12, color: T.dimmed, fontWeight: 500 }}>
+          Not yet connected — credentials will be verified on next step
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ── STEP 3 — LINK & PAIR ──────────────────────────────────── */
+function StepLink({ data, setData }) {
+  const isProvider = data.role === "provider";
+  const isFollower = data.role === "follower";
+  const isBoth     = data.role === "both";
+  const fakeLink   = `https://tradesync.io/follow/${data.login || "XXXXXXX"}`;
+
+  return (
+    <div>
+      <div style={css.panelTitle}>
+        {isProvider ? "Your Signal Link" : "Link to a Signal Provider"}
+      </div>
+      <div style={css.panelSub}>
+        {isProvider
+          ? "Share your signal link with followers. They register, connect their account, and start copying your trades automatically."
+          : "Enter the master account details or paste a signal provider link you received."}
+      </div>
+
+      {isProvider && (
+        <>
+          <div style={{
+            background: T.surface, border: `1px solid ${T.border}`,
+            borderRadius: 12, padding: "16px 18px", marginBottom: 22,
+          }}>
+            <label style={css.label}>Your Unique Signal Link</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{
+                ...css.input, flex: 1, fontFamily: T.mono, fontSize: 12,
+                color: T.cyan, background: T.bg, cursor: "text",
+              }}>
+                {fakeLink}
+              </div>
+              <button style={{ ...css.btnGhost, whiteSpace: "nowrap", fontSize: 12 }}>
+                Copy Link
+              </button>
+            </div>
+          </div>
+
+          <div style={css.field}>
+            <label style={css.label}>Management / Performance Fee (optional)</label>
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="number" style={css.input}
+                  placeholder="0" min={0} max={50}
+                  value={data.perfFee || ""}
+                  onChange={e => setData({ ...data, perfFee: e.target.value })}
+                />
+                <div style={{ fontSize: 10, color: T.muted, marginTop: 5 }}>
+                  % monthly subscription markup charged to followers
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <select
+                  style={css.select}
+                  value={data.feeModel || "subscription"}
+                  onChange={e => setData({ ...data, feeModel: e.target.value })}
+                >
+                  <option value="subscription">Monthly Subscription</option>
+                  <option value="performance">Performance Fee</option>
+                  <option value="free">Free Signal</option>
+                </select>
+                <div style={{ fontSize: 10, color: T.muted, marginTop: 5 }}>
+                  how followers are charged
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Toggle
+            label="Require approval before follower starts copying"
+            sub="You approve each new follower manually"
+            on={data.requireApproval || false}
+            onChange={v => setData({ ...data, requireApproval: v })}
+          />
+          <Toggle
+            label="Allow followers to see your open trades"
+            sub="Gives transparency to your signal subscribers"
+            on={data.showTrades !== false}
+            onChange={v => setData({ ...data, showTrades: v })}
+          />
+        </>
+      )}
+
+      {(isFollower || isBoth) && (
+        <>
+          <div style={css.notice(T.blue)}>
+            If you received a signal link, paste it below. Otherwise enter the master account credentials manually.
+          </div>
+          <div style={css.field}>
+            <label style={css.label}>Signal Provider Link (if you have one)</label>
+            <input
+              style={{ ...css.input, fontFamily: T.mono, fontSize: 12 }}
+              placeholder="https://tradesync.io/follow/..."
+              value={data.signalLink || ""}
+              onChange={e => setData({ ...data, signalLink: e.target.value })}
+            />
+          </div>
+          <div style={{ textAlign: "center", color: T.muted, fontSize: 12, margin: "14px 0", fontWeight: 500 }}>
+            — or enter master account manually —
+          </div>
+          <div style={css.row2}>
+            <div style={css.field}>
+              <label style={css.label}>Master Platform</label>
+              <select
+                style={css.select}
+                value={data.masterPlatform || "MT5"}
+                onChange={e => setData({ ...data, masterPlatform: e.target.value })}
+              >
+                {PLATFORMS.map(p => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <div style={css.field}>
+              <label style={css.label}>Master Broker Server</label>
+              <select
+                style={css.select}
+                value={data.masterServer || ""}
+                onChange={e => setData({ ...data, masterServer: e.target.value })}
+              >
+                <option value="">— Select —</option>
+                {(BROKER_SERVERS[data.masterPlatform || "MT5"]).map(s =>
+                  <option key={s} value={s}>{s}</option>
+                )}
+              </select>
+            </div>
+          </div>
+          <div style={css.row2}>
+            <div style={css.field}>
+              <label style={css.label}>Master Account Login</label>
+              <input
+                style={{ ...css.input, fontFamily: T.mono }}
+                placeholder="Account number"
+                value={data.masterLogin || ""}
+                onChange={e => setData({ ...data, masterLogin: e.target.value })}
+              />
+            </div>
+            <div style={css.field}>
+              <label style={css.label}>Investor (read-only) Password</label>
+              <input
+                type="password"
+                style={{ ...css.input, fontFamily: T.mono }}
+                placeholder="••••••••••"
+                value={data.masterPassword || ""}
+                onChange={e => setData({ ...data, masterPassword: e.target.value })}
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {isBoth && (
+        <>
+          <div style={css.divider} />
+          <div style={css.notice(T.green)}>
+            Self-copy mode — trades will be copied from Master ({data.accountName || "Account A"}) to your Slave account. Add the slave on the next screen.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── STEP 4 — COPY SETTINGS ────────────────────────────────── */
+const LOT_MODES = [
+  { key: "multiplier",   label: "Lot Multiplier",   desc: "Copy lots × a fixed factor (e.g. 0.5x, 2x)" },
+  { key: "fixed",        label: "Fixed Lot",         desc: "Always copy a specific lot size regardless of master" },
+  { key: "proportional", label: "Proportional",      desc: "Scale by balance ratio: slave balance ÷ master balance" },
+  { key: "risk_pct",     label: "Risk %",            desc: "Risk a % of slave balance per copied trade" },
+  { key: "risk_sl",      label: "Risk % (SL-based)", desc: "Risk % calculated from trade's stop loss distance" },
+  { key: "free_margin",  label: "Free Margin %",     desc: "Use a % of slave's free margin for each trade" },
+];
+
+function StepCopy({ data, setData }) {
+  const mode = data.lotMode || "multiplier";
+
+  return (
+    <div>
+      <div style={css.panelTitle}>Copy & Risk Settings</div>
+      <div style={css.panelSub}>
+        Define how trade sizes are calculated on the slave account, and set risk guardrails.
+      </div>
+
+      <label style={css.label}>Lot Size Calculation Mode</label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+        {LOT_MODES.map(m => (
+          <LotModeBtn
+            key={m.key} label={m.label} desc={m.desc}
+            selected={mode === m.key}
+            onClick={() => setData({ ...data, lotMode: m.key })}
+          />
+        ))}
+      </div>
+
+      {mode === "multiplier" && (
+        <div style={css.field}>
+          <label style={css.label}>Lot Multiplier</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <input
+              type="range" min={0.01} max={5} step={0.01}
+              value={data.lotMult || 1}
+              onChange={e => setData({ ...data, lotMult: parseFloat(e.target.value) })}
+              style={{ flex: 1 }}
+            />
+            <span style={{
+              fontFamily: T.mono, fontWeight: 800, fontSize: 17,
+              minWidth: 52, color: T.cyan, textAlign: "right",
+            }}>
+              {(data.lotMult || 1).toFixed(2)}x
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: T.muted, marginTop: 6 }}>
+            Master trades 1.00 lot → Slave trades {(data.lotMult || 1).toFixed(2)} lot
+          </div>
+        </div>
+      )}
+
+      {mode === "fixed" && (
+        <div style={css.field}>
+          <label style={css.label}>Fixed Lot Size</label>
+          <input
+            type="number" style={css.input} min={0.01} step={0.01} placeholder="0.10"
+            value={data.fixedLot || ""}
+            onChange={e => setData({ ...data, fixedLot: e.target.value })}
+          />
+        </div>
+      )}
+
+      {(mode === "risk_pct" || mode === "risk_sl") && (
+        <div style={css.field}>
+          <label style={css.label}>Risk % per trade (of slave balance)</label>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <input
+              type="number" style={css.input} min={0.1} max={10} step={0.1} placeholder="1.0"
+              value={data.riskPct || ""}
+              onChange={e => setData({ ...data, riskPct: e.target.value })}
+            />
+            <span style={{ lineHeight: "38px", color: T.dimmed, fontWeight: 600 }}>%</span>
+          </div>
+        </div>
+      )}
+
+      {mode === "proportional" && (
+        <div style={css.info}>
+          The copier automatically scales lot sizes based on the balance ratio between slave and master accounts.
+          E.g. if master is $10,000 and slave is $5,000, lots are halved.
+        </div>
+      )}
+
+      <div style={css.divider} />
+      <div style={css.sectionTitle}>Risk Guardrails</div>
+
+      <div style={css.row3}>
+        {[
+          { label: "Max Open Trades",   key: "maxTrades", placeholder: "10",  help: "Max simultaneous copied trades" },
+          { label: "Max Lot per Trade", key: "maxLot",    placeholder: "1.00", help: "Single trade size ceiling" },
+          { label: "Max Daily Loss ($)",key: "maxLoss",   placeholder: "200",  help: "Auto-pause when hit" },
+        ].map(f => (
+          <div key={f.key} style={css.field}>
+            <label style={css.label}>{f.label}</label>
+            <input
+              type="number" style={css.input} placeholder={f.placeholder}
+              value={data[f.key] || ""}
+              onChange={e => setData({ ...data, [f.key]: e.target.value })}
+            />
+            <div style={{ fontSize: 10, color: T.muted, marginTop: 5 }}>{f.help}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={css.field}>
+        <label style={css.label}>Copy Direction</label>
+        <select
+          style={css.select}
+          value={data.copyDir || "all"}
+          onChange={e => setData({ ...data, copyDir: e.target.value })}
+        >
+          <option value="all">Copy All — BUY and SELL</option>
+          <option value="buy">BUY orders only</option>
+          <option value="sell">SELL orders only</option>
+          <option value="reverse">Reverse copy (BUY→SELL, SELL→BUY)</option>
+        </select>
+      </div>
+
+      <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
+        <Toggle
+          label="Copy Stop Loss & Take Profit"
+          sub="Replicate SL/TP exactly from master"
+          on={data.copySLTP !== false}
+          onChange={v => setData({ ...data, copySLTP: v })}
+        />
+        <Toggle
+          label="Copy Pending Orders (Limit / Stop)"
+          sub="Also copy limit and stop pending orders"
+          on={data.copyPending || false}
+          onChange={v => setData({ ...data, copyPending: v })}
+        />
+        <Toggle
+          label="Sync partial closes"
+          sub="Close partial positions when master does"
+          on={data.syncPartial !== false}
+          onChange={v => setData({ ...data, syncPartial: v })}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ── STEP 5 — FILTERS & PROTECTION ────────────────────────── */
+function StepProtect({ data, setData }) {
+  const [symInput, setSymInput] = useState("");
+
+  const addSym = () => {
+    if (!symInput.trim()) return;
+    const list = data.symList || [];
+    if (!list.includes(symInput.trim().toUpperCase())) {
+      setData({ ...data, symList: [...list, symInput.trim().toUpperCase()] });
+    }
+    setSymInput("");
+  };
+
+  const removeSym = (s) =>
+    setData({ ...data, symList: (data.symList || []).filter(x => x !== s) });
+
+  return (
+    <div>
+      <div style={css.panelTitle}>Filters & Account Protection</div>
+      <div style={css.panelSub}>
+        Control which symbols get copied and protect your slave account equity from large drawdowns.
+      </div>
+
+      <div style={css.sectionTitle}>Symbol Filter</div>
+      <div style={css.field}>
+        <label style={css.label}>Filter Mode</label>
+        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+          {["Off", "Whitelist (allow only)", "Blacklist (block)"].map((m, i) => {
+            const val = ["off", "whitelist", "blacklist"][i];
+            const active = (data.symFilter || "off") === val;
+            return (
+              <div
+                key={val} onClick={() => setData({ ...data, symFilter: val })}
+                style={{
+                  flex: 1, textAlign: "center", padding: "10px 12px", borderRadius: 10,
+                  cursor: "pointer",
+                  background: active ? `${T.blue}22` : T.surface,
+                  border: active ? `1px solid ${T.blue}` : `1px solid ${T.border}`,
+                  fontSize: 12, fontWeight: 700,
+                  color: active ? T.text : T.muted, transition: "all 0.15s",
+                }}
+              >{m}</div>
+            );
+          })}
+        </div>
+      </div>
+
+      {(data.symFilter === "whitelist" || data.symFilter === "blacklist") && (
+        <div style={css.field}>
+          <label style={css.label}>
+            {data.symFilter === "whitelist" ? "Allowed symbols" : "Blocked symbols"}
+          </label>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <input
+              style={{ ...css.input, flex: 1, textTransform: "uppercase" }}
+              placeholder="e.g. EURUSD, XAUUSD"
+              value={symInput}
+              onChange={e => setSymInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && addSym()}
+            />
+            <button style={css.btnPrimary} onClick={addSym}>Add</button>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {(data.symList || []).map(s => (
+              <div
+                key={s}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  background: T.surface, border: `1px solid ${T.border}`,
+                  borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                }}
+              >
+                <span style={{ fontFamily: T.mono, color: T.cyan }}>{s}</span>
+                <span
+                  onClick={() => removeSym(s)}
+                  style={{ color: T.red, cursor: "pointer", fontSize: 15, lineHeight: 1, fontWeight: 900 }}
+                >×</span>
+              </div>
+            ))}
+            {!(data.symList?.length) && (
+              <span style={{ fontSize: 12, color: T.muted }}>No symbols added yet</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{ marginBottom: 14 }}>
+        <label style={css.label}>Symbol Prefix / Suffix mapping (if brokers use different names)</label>
+        <div style={css.row2}>
+          <div style={css.field}>
+            <label style={{ ...css.label, textTransform: "none", fontSize: 11 }}>Slave symbol prefix</label>
+            <input
+              style={css.input} placeholder='e.g. "c" for cEURUSD'
+              value={data.symPrefix || ""}
+              onChange={e => setData({ ...data, symPrefix: e.target.value })}
+            />
+          </div>
+          <div style={css.field}>
+            <label style={{ ...css.label, textTransform: "none", fontSize: 11 }}>Slave symbol suffix</label>
+            <input
+              style={css.input} placeholder='e.g. ".m" for EURUSD.m'
+              value={data.symSuffix || ""}
+              onChange={e => setData({ ...data, symSuffix: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div style={css.divider} />
+      <div style={css.sectionTitle}>Global Account Protection</div>
+      <div style={css.notice(T.amber)}>
+        If equity hits these levels the copier will trigger the selected action on your slave account.
+      </div>
+
+      <div style={css.row3}>
+        <div style={css.field}>
+          <label style={css.label}>Equity Stop Loss ($)</label>
+          <input
+            type="number" style={css.input} placeholder="e.g. 4500"
+            value={data.eqSL || ""}
+            onChange={e => setData({ ...data, eqSL: e.target.value })}
+          />
+        </div>
+        <div style={css.field}>
+          <label style={css.label}>Equity Take Profit ($)</label>
+          <input
+            type="number" style={css.input} placeholder="e.g. 8000"
+            value={data.eqTP || ""}
+            onChange={e => setData({ ...data, eqTP: e.target.value })}
+          />
+        </div>
+        <div style={css.field}>
+          <label style={css.label}>Protection Action</label>
+          <select
+            style={css.select}
+            value={data.protectMode || "frozen"}
+            onChange={e => setData({ ...data, protectMode: e.target.value })}
+          >
+            <option value="frozen">Freeze — stop copying</option>
+            <option value="close_only">Close Only — no new copies</option>
+            <option value="sell_out">Sell Out — close all & stop</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={css.divider} />
+      <div style={css.sectionTitle}>Notifications</div>
+      <Toggle
+        label="Alert on disconnection"
+        sub="Email when master or slave loses connection"
+        on={data.notifDisconnect !== false}
+        onChange={v => setData({ ...data, notifDisconnect: v })}
+      />
+      <Toggle
+        label="Alert when trade fails to copy"
+        sub="Email on order rejection or copy error"
+        on={data.notifFail !== false}
+        onChange={v => setData({ ...data, notifFail: v })}
+      />
+      <Toggle
+        label="Daily P&L summary email"
+        sub="End-of-day report on copied trades"
+        on={data.notifDaily || false}
+        onChange={v => setData({ ...data, notifDaily: v })}
+      />
+    </div>
+  );
+}
+
+/* ── STEP 6 — GO LIVE ──────────────────────────────────────── */
+function StepDone({ data }) {
+  const [status, setStatus] = useState("connecting");
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStatus("verifying"), 1200);
+    const t2 = setTimeout(() => setStatus("live"), 2800);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  const stages = [
+    { key: "connecting", label: "Connecting to broker server…" },
+    { key: "verifying",  label: "Verifying credentials…" },
+    { key: "live",       label: "Account live & copying" },
+  ];
+  const idx = stages.findIndex(s => s.key === status);
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ fontSize: 44, marginBottom: 14, animation: status !== "live" ? "pulse 1.2s ease-in-out infinite" : "none" }}>
+        {status === "live" ? "✅" : "🔄"}
+      </div>
+      <div style={{ ...css.panelTitle, textAlign: "center" }}>
+        {status === "live" ? "You're Live!" : "Setting up your copier…"}
+      </div>
+      <div style={{ ...css.panelSub, maxWidth: 460, margin: "0 auto 32px", textAlign: "center" }}>
+        {status === "live"
+          ? "Your copier is active. Trades from the master account will now be copied automatically."
+          : "Please wait while we establish a secure connection to your broker."}
+      </div>
+
+      <div style={{ maxWidth: 420, margin: "0 auto 36px", textAlign: "left" }}>
+        {stages.map((s, i) => (
+          <div
+            key={s.key}
+            style={{
+              display: "flex", alignItems: "center", gap: 14,
+              padding: "12px 0",
+              borderBottom: i < 2 ? `1px solid ${T.border}` : "none",
+            }}
+          >
+            <div style={{
+              width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
+              background: i < idx ? T.green : i === idx ? T.blue : T.border,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 10, color: i < idx ? "#000" : "#fff", fontWeight: 800,
+              transition: "background 0.4s",
+            }}>
+              {i < idx ? "✓" : i + 1}
+            </div>
+            <span style={{ fontSize: 13, fontWeight: i <= idx ? 600 : 400, color: i <= idx ? T.text : T.muted }}>
+              {s.label}
+            </span>
+            {i === idx && status !== "live" && (
+              <div style={{
+                width: 16, height: 16, borderRadius: "50%",
+                border: `2px solid ${T.blue}`, borderTopColor: "transparent",
+                animation: "spin 0.75s linear infinite", marginLeft: "auto",
+              }} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {status === "live" && (
+        <div style={{
+          background: T.surface, border: `1px solid ${T.border}`,
+          borderRadius: 14, padding: "22px 28px", maxWidth: 500,
+          margin: "0 auto", textAlign: "left",
+          animation: "fadeUp 0.4s ease",
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 800, color: T.muted,
+            textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 16,
+          }}>
+            Setup Summary
+          </div>
+          {[
+            ["Role", data.role === "provider" ? "Signal Provider (Master)" : data.role === "follower" ? "Follower (Slave)" : "Self-Copy (Both)"],
+            ["Platform", data.platform || "MT5"],
+            ["Account", data.accountName || "—"],
+            ["Server", data.server || "—"],
+            ["Lot Mode", LOT_MODES.find(m => m.key === (data.lotMode || "multiplier"))?.label || "—"],
+            ["Copy Direction", { all: "BUY + SELL", buy: "BUY only", sell: "SELL only", reverse: "Reverse" }[data.copyDir || "all"]],
+          ].map(([k, v]) => (
+            <div
+              key={k}
+              style={{
+                display: "flex", justifyContent: "space-between",
+                padding: "8px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13,
+              }}
+            >
+              <span style={{ color: T.muted, fontWeight: 500 }}>{k}</span>
+              <span style={{ fontWeight: 700, color: T.text }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── MAIN APP ───────────────────────────────────────────────── */
+export default function TradeCopierSetup() {
+  const [step, setStep] = useState(0);
+  const [data, setData] = useState({
+    role: null, platform: "MT5",
+    lotMode: "multiplier", lotMult: 1, copyDir: "all",
+  });
+
+  const canNext = () => {
+    if (step === 0) return !!data.role;
+    if (step === 1) return !!(data.login && data.password && data.server);
+    return true;
+  };
+
+  const stepComponents = [
+    <StepRole     data={data} setData={setData} />,
+    <StepConnect  data={data} setData={setData} />,
+    <StepLink     data={data} setData={setData} />,
+    <StepCopy     data={data} setData={setData} />,
+    <StepProtect  data={data} setData={setData} />,
+    <StepDone     data={data} />,
+  ];
+
+  return (
+    <div style={css.wrap}>
+
+      {/* ── Header ── */}
+      <div style={css.header}>
+        <div style={css.logoBox}>TS</div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+          <span style={css.logoName}>TradeSync</span>
+          <span style={css.logoTag}>Copier Setup</span>
+        </div>
+      </div>
+
+      {/* ── Stepper ── */}
+      <div style={css.stepper}>
+        {STEPS.map((s, i) => (
+          <div
+            key={s.id}
+            style={css.stepBtn(i === step, i < step)}
+            onClick={() => i < step && setStep(i)}
+          >
+            <div style={css.stepNum(i === step, i < step)}>
+              {i < step ? "✓" : i + 1}
+            </div>
+            <div style={css.stepLabel(i === step)}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Panel ── */}
+      <div style={css.panel} key={step}>
+        {stepComponents[step]}
+
+        {step < STEPS.length - 1 && (
+          <div style={css.btnRow}>
+            <button
+              style={{ ...css.btnGhost, opacity: step === 0 ? 0.4 : 1 }}
+              onClick={() => step > 0 && setStep(step - 1)}
+              disabled={step === 0}
+            >
+              ← Back
+            </button>
+            <button
+              style={{ ...css.btnPrimary, opacity: canNext() ? 1 : 0.35 }}
+              onClick={() => canNext() && setStep(step + 1)}
+            >
+              {step === STEPS.length - 2 ? "Go Live →" : "Continue →"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Progress dots ── */}
+      <div style={{ display: "flex", gap: 7, marginTop: 22 }}>
+        {STEPS.map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: i === step ? 24 : 7, height: 7, borderRadius: 4,
+              background: i <= step ? T.blue : T.border,
+              transition: "all 0.35s ease",
+            }}
+          />
+        ))}
+      </div>
+
+    </div>
+  );
+}
