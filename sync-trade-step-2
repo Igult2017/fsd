@@ -6,20 +6,15 @@ import {
   Globe, 
   User, 
   ChevronRight, 
-  ChevronLeft, 
-  Plus, 
-  X, 
   CheckCircle2, 
   Zap,
   Activity,
   Cpu,
   BarChart3,
-  Lock,
   Bell,
-  Monitor
+  ArrowRight
 } from 'lucide-react';
 
-/* ── UI CONSTANTS ─────────────────────────────────────────── */
 const ALL_STEPS = [
   { id: "role", label: "Identity", icon: User },
   { id: "connect", label: "Broker", icon: Globe },
@@ -28,8 +23,6 @@ const ALL_STEPS = [
   { id: "protect", label: "Shield", icon: Shield },
   { id: "go-live", label: "Live", icon: Zap },
 ];
-
-/* ── ATOMS ────────────────────────────────────────────────── */
 
 const GlowButton = ({ children, onClick, active, danger }) => (
   <button 
@@ -86,8 +79,6 @@ const Toggle = ({ label, sub, on, onChange }) => (
   </div>
 );
 
-/* ── VIEWS ────────────────────────────────────────────────── */
-
 const StepRole = ({ data, setData }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
     <FeatureCard 
@@ -113,7 +104,6 @@ const StepProtect = ({ data, setData }) => (
       <TerminalInput label="Symbol Prefix" placeholder="e.g. .m" />
       <TerminalInput label="Symbol Suffix" placeholder="e.g. +f" />
     </div>
-    
     <div className="space-y-6">
       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Safety Notifications</label>
       <div className="grid md:grid-cols-2 gap-4">
@@ -134,33 +124,57 @@ const StepProtect = ({ data, setData }) => (
   </div>
 );
 
-/* ── MAIN TERMINAL ─────────────────────────────────────────── */
-
 export default function App() {
   const [step, setStep] = useState(0);
-  const [data, setData] = useState({ role: 'follower', action: 'Freeze', platform: 'MT5', lotMode: 'mult', riskAmount: '1' });
+  const [isDeployed, setIsDeployed] = useState(false);
+  const [data, setData] = useState({ role: 'follower', platform: 'MT5', lotMode: 'mult', riskAmount: '1' });
 
-  // Dynamically calculate which steps to show based on role
   const getVisibleSteps = () => {
-    if (data.role === 'provider') {
-      return ALL_STEPS.filter(s => ['role', 'connect', 'go-live'].includes(s.id));
-    }
-    if (data.role === 'self') {
-      return ALL_STEPS.filter(s => ['role', 'connect', 'copy', 'protect', 'go-live'].includes(s.id));
-    }
-    return ALL_STEPS; // Follower sees all
+    if (data.role === 'provider') return ALL_STEPS.filter(s => ['role', 'connect', 'go-live'].includes(s.id));
+    if (data.role === 'self') return ALL_STEPS.filter(s => ['role', 'connect', 'copy', 'protect', 'go-live'].includes(s.id));
+    return ALL_STEPS;
   };
 
   const visibleSteps = getVisibleSteps();
   const currentStepData = visibleSteps[step] || visibleSteps[0];
 
-  const handleNext = () => {
-    if (step < visibleSteps.length - 1) setStep(step + 1);
-  };
+  const handleNext = () => { if (step < visibleSteps.length - 1) setStep(step + 1); };
+  const handlePrev = () => { if (step > 0) setStep(step - 1); };
 
-  const handlePrev = () => {
-    if (step > 0) setStep(step - 1);
-  };
+  if (isDeployed) {
+    return (
+      <div className="min-h-screen bg-[#020203] text-white flex items-center justify-center p-6 text-center">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        `}</style>
+        <div className="max-w-xl space-y-8 animate-in zoom-in-95 fade-in duration-1000">
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-blue-600 blur-3xl opacity-20 animate-pulse" />
+            <div className="w-24 h-24 border border-blue-500 rounded-full flex items-center justify-center mx-auto relative z-10">
+              <CheckCircle2 size={48} className="text-blue-400" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-extralight tracking-tighter">Terminal Live</h1>
+            <p className="text-slate-500 font-light leading-relaxed">
+              Link established successfully. Your account is now monitoring the 
+              <span className="text-blue-400 font-mono mx-1">@TradeSync_Main_Bridge</span> 
+              for real-time executions.
+            </p>
+          </div>
+          <div className="pt-8 flex flex-col items-center gap-4">
+            <GlowButton active onClick={() => window.location.reload()}>
+              Go To Dashboard <ArrowRight size={14} />
+            </GlowButton>
+            <button className="text-[10px] uppercase tracking-widest text-slate-700 hover:text-slate-400 transition-colors">
+              View Bridge Logs
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#020203] text-white selection:bg-blue-500/40 font-light overflow-hidden">
@@ -169,65 +183,41 @@ export default function App() {
         body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .vertical-text { writing-mode: vertical-rl; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* SCANLINE EFFECT */}
       <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
-      <div className="flex h-screen">
-        
-        {/* LEFT NAV */}
-        <aside className="w-20 md:w-24 border-r border-white/5 flex flex-col items-center py-8 gap-12 bg-black/40 backdrop-blur-xl">
-          <div className="w-10 h-10 border border-blue-500 flex items-center justify-center relative">
-            <div className="absolute inset-0 bg-blue-500/20 blur-md" />
-            <Zap size={18} className="text-blue-400 relative z-10" />
-          </div>
-          
-          <nav className="flex-1 flex flex-col gap-8">
+      <div className="flex h-screen flex-row-reverse">
+
+        {/* RIGHT SIDEBAR — no logo, no version string */}
+        <aside className="w-20 md:w-24 border-l border-white/5 flex flex-col items-center py-8 gap-12 bg-black/40 backdrop-blur-xl z-20 overflow-y-auto hide-scrollbar">
+          <nav className="flex-1 flex flex-col gap-8 justify-center">
             {visibleSteps.map((s, i) => {
               const Icon = s.icon;
               return (
                 <div key={s.id} className="relative group flex items-center justify-center">
                   <Icon 
                     size={20} 
-                    className={`transition-all duration-500 cursor-pointer ${i <= step ? 'text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.5)]' : 'text-slate-700 hover:text-slate-400'}`}
+                    className={`transition-all duration-500 cursor-pointer ${i <= step ? 'text-blue-400' : 'text-slate-700 hover:text-slate-400'}`}
                     onClick={() => i < step && setStep(i)}
                   />
-                  {i === step && <div className="absolute -right-[1px] w-[2px] h-8 bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,1)]" />}
+                  {i === step && <div className="absolute -left-[1px] w-[2px] h-8 bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,1)]" />}
                 </div>
               );
             })}
           </nav>
-
-          <div className="text-[10px] font-mono text-slate-700 vertical-text origin-center rotate-180 uppercase tracking-widest">
-            v2.4.0_STABLE
-          </div>
         </aside>
 
         {/* MAIN TERMINAL AREA */}
         <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.03),transparent_40%)]">
-          
-          {/* TOP STATUS BAR */}
-          <header className="h-20 border-b border-white/5 flex items-center justify-between px-12">
-            <div className="flex items-center gap-8">
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mr-4">Node Status</span>
-                <span className="text-[10px] font-mono text-blue-400">READY_FOR_HANDSHAKE</span>
-              </div>
-              <div className="w-px h-4 bg-white/10" />
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mr-4">Identity</span>
-                <span className="text-[10px] font-mono text-slate-400 uppercase">{data.role || "Pending"}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-slate-500">
-               <Lock size={14} />
-               <span className="text-[10px] font-bold uppercase tracking-widest">Secure Link Active</span>
-            </div>
-          </header>
+
+          {/* TOP BAR — completely empty, just a thin border line for structure */}
+          <header className="h-20 border-b border-white/5" />
 
           {/* CONTENT AREA */}
-          <section className="flex-1 overflow-y-auto p-12 md:p-20">
+          <section className="flex-1 overflow-y-auto p-12 md:p-20 hide-scrollbar">
             <div className="max-w-6xl">
               <div className="mb-16">
                 <span className="text-blue-500 font-mono text-xs mb-2 block tracking-widest">0{step + 1} // {currentStepData.id.toUpperCase()}</span>
@@ -244,54 +234,55 @@ export default function App() {
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 {currentStepData.id === 'role' && <StepRole data={data} setData={(newData) => { setData(newData); setStep(0); }} />}
-                
+
                 {currentStepData.id === 'connect' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
                     <div className="space-y-8">
-                       <div className="space-y-2">
+                      <div className="space-y-2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Type</label>
                         <div className="grid grid-cols-2 gap-3">
                           {["MT4", "MT5", "cTrader", "Proprietary"].map(p => (
                             <button 
                               key={p} onClick={() => setData({...data, platform: p})}
-                              className={`px-4 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between ${data.platform === p ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.1)]' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
+                              className={`px-4 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between ${data.platform === p ? 'bg-white text-black border-white' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
                             >
                               {p}
                               {data.platform === p && <CheckCircle2 size={12} />}
                             </button>
                           ))}
                         </div>
-                       </div>
-                       
-                       {data.platform === 'Proprietary' ? (
-                          <div className="animate-in fade-in slide-in-from-left-2 duration-500 space-y-8">
-                            <TerminalInput label="Broker Platform Name" placeholder="e.g. ThinkTrader, Oanda Desktop" />
-                            <TerminalInput label="API Endpoint (Optional)" placeholder="https://api.broker.com/v1" />
-                            <div className="grid grid-cols-2 gap-8">
-                              <TerminalInput label="API Key" type="password" placeholder="pk_live_..." />
-                              <TerminalInput label="Secret" type="password" placeholder="••••••••" />
-                            </div>
+                      </div>
+                      {data.platform === 'Proprietary' ? (
+                        <div className="animate-in fade-in slide-in-from-left-2 duration-500 space-y-8">
+                          <TerminalInput label="Broker Platform Name" placeholder="e.g. ThinkTrader, Oanda Desktop" />
+                          <TerminalInput label="API Endpoint (Optional)" placeholder="https://api.broker.com/v1" />
+                          <div className="grid grid-cols-2 gap-8">
+                            <TerminalInput label="API Key" type="password" placeholder="pk_live_..." />
+                            <TerminalInput label="Secret" type="password" placeholder="••••••••" />
                           </div>
-                       ) : (
-                          <div className="animate-in fade-in duration-500 space-y-8">
-                            <TerminalInput label="Friendly Name" placeholder="Personal Live Account" />
-                            <TerminalInput label="Broker Server" placeholder="IC-Markets-Live-02" />
-                            <div className="grid grid-cols-2 gap-8">
-                              <TerminalInput label="Login ID" placeholder="1029384" />
-                              <TerminalInput label="Investor Password" type="password" placeholder="••••••••" />
-                            </div>
+                        </div>
+                      ) : (
+                        <div className="animate-in fade-in duration-500 space-y-8">
+                          <TerminalInput label="Friendly Name" placeholder="Personal Live Account" />
+                          <TerminalInput label="Broker Server" placeholder="IC-Markets-Live-02" />
+                          <div className="grid grid-cols-2 gap-8">
+                            <TerminalInput label="Login ID" placeholder="1029384" />
+                            <TerminalInput label="Investor Password" type="password" placeholder="••••••••" />
                           </div>
-                       )}
+                        </div>
+                      )}
                     </div>
-                    <div className="p-8 border border-white/5 bg-white/[0.01] flex flex-col justify-center">
-                       <div className="flex items-center gap-3 mb-4 text-blue-400">
-                         <Shield size={18} />
-                         <span className="text-[10px] font-bold uppercase tracking-widest">Security Protocol</span>
-                       </div>
-                       <p className="text-xs text-slate-500 leading-relaxed italic">
-                         TradeSync uses isolated bridge technology to monitor your margin and mirror executions. No withdrawal or sensitive personal data permissions are ever required. 
-                         {data.platform === 'Proprietary' && " Proprietary connections may require manual API token generation from your broker dashboard."}
-                       </p>
+                    <div className="flex flex-col justify-end pb-2">
+                      <div className="p-8 border border-white/5 bg-white/[0.01]">
+                        <div className="flex items-center gap-3 mb-4 text-blue-400">
+                          <Shield size={18} />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">Security Protocol</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed italic">
+                          TradeSync uses isolated bridge technology to monitor your margin and mirror executions. No withdrawal or sensitive personal data permissions are ever required.
+                          {data.platform === 'Proprietary' && " Proprietary connections may require manual API token generation from your broker dashboard."}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -302,7 +293,7 @@ export default function App() {
                     <div className="space-y-4">
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified Providers</label>
                       {["Quantum Core (Live-01)", "Titanium Scalp v4", "Black Edge HFT"].map(v => (
-                        <div key={v} className="flex justify-between items-center p-6 border border-white/5 bg-white/[0.01] hover:border-blue-500/30 transition-all group cursor-pointer">
+                        <div key={v} className="flex justify-between items-center p-6 border border-white/5 bg-white/[0.01] hover:border-blue-500/30 transition-all cursor-pointer">
                           <span className="font-light tracking-tight">{v}</span>
                           <span className="text-[10px] font-mono text-blue-500 border border-blue-500/20 px-2 py-1">PUBLIC</span>
                         </div>
@@ -327,7 +318,6 @@ export default function App() {
                         sub="Dynamic sizing based on current free margin per trade."
                       />
                     </div>
-
                     {data.lotMode === 'risk' && (
                       <div className="max-w-md animate-in slide-in-from-top-4 duration-500">
                         <TerminalInput 
@@ -338,8 +328,8 @@ export default function App() {
                           placeholder="1.0" 
                         />
                         <p className="mt-4 text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                           <Bell size={12} className="text-blue-500" />
-                           Engine will auto-calculate lot size based on stop-loss distance.
+                          <Bell size={12} className="text-blue-500" />
+                          Engine will auto-calculate lot size based on stop-loss distance.
                         </p>
                       </div>
                     )}
@@ -350,36 +340,35 @@ export default function App() {
 
                 {currentStepData.id === 'go-live' && (
                   <div className="border border-white/5 p-20 flex flex-col items-center justify-center text-center space-y-8">
-                     <div className="w-32 h-32 rounded-full border border-blue-500/20 flex items-center justify-center relative">
-                        <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
-                        <Zap size={48} className="text-blue-500" />
-                     </div>
-                     <h2 className="text-3xl font-light">System Ready</h2>
-                     <p className="text-slate-500 text-sm max-w-md">
-                       {data.role === 'provider' ? "Your master signal is ready to broadcast." : "All nodes are synchronized. Your trades will now mirror in real-time."}
-                     </p>
-                     <GlowButton active onClick={() => alert("Deployment Initialized")}>DEPLOY TERMINAL</GlowButton>
+                    <div className="w-32 h-32 rounded-full border border-blue-500/20 flex items-center justify-center relative">
+                      <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
+                      <Zap size={48} className="text-blue-500" />
+                    </div>
+                    <h2 className="text-3xl font-light">System Ready</h2>
+                    <p className="text-slate-500 text-sm max-w-md">
+                      {data.role === 'provider' ? "Your master signal is ready to broadcast." : "All nodes are synchronized. Your trades will now mirror in real-time."}
+                    </p>
+                    <GlowButton active onClick={() => setIsDeployed(true)}>DEPLOY TERMINAL</GlowButton>
                   </div>
                 )}
               </div>
             </div>
           </section>
 
-          {/* DYNAMIC FOOTER */}
+          {/* FOOTER */}
           <footer className="h-24 border-t border-white/5 bg-black/40 flex items-center justify-between px-12">
             <button 
               onClick={handlePrev}
-              className={`text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600 hover:text-white transition-colors ${step === 0 ? 'opacity-0' : ''}`}
+              className={`text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600 hover:text-white transition-colors ${step === 0 ? 'opacity-0 pointer-events-none' : ''}`}
             >
               [ Previous ]
             </button>
-
             <div className="flex gap-4">
-               {step < visibleSteps.length - 1 && (
-                 <GlowButton onClick={handleNext}>
-                   Proceed <ChevronRight size={14} />
-                 </GlowButton>
-               )}
+              {step < visibleSteps.length - 1 && (
+                <GlowButton onClick={handleNext}>
+                  Proceed <ChevronRight size={14} />
+                </GlowButton>
+              )}
             </div>
           </footer>
 
