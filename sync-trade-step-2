@@ -7,7 +7,6 @@ import {
   User, 
   ChevronRight, 
   CheckCircle2, 
-  Zap,
   Bell,
   ArrowRight,
   Radio,
@@ -16,6 +15,7 @@ import {
   Scale,
   Anchor,
   TrendingUp,
+  Rocket,
 } from 'lucide-react';
 
 const ALL_STEPS = [
@@ -24,7 +24,7 @@ const ALL_STEPS = [
   { id: "link", label: "Linkage", icon: Link2 },
   { id: "copy", label: "Engine", icon: Settings2 },
   { id: "protect", label: "Shield", icon: Shield },
-  { id: "go-live", label: "Live", icon: Zap },
+  { id: "go-live", label: "Live", icon: Rocket },
 ];
 
 const GlowButton = ({ children, onClick, active, danger }) => (
@@ -85,23 +85,17 @@ const Toggle = ({ label, sub, on, onChange }) => (
 const StepRole = ({ data, setData }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
     <FeatureCard 
-      icon={Radio}
-      title="Signal Provider"
-      active={data.role === 'provider'}
+      icon={Radio} title="Signal Provider" active={data.role === 'provider'}
       onClick={() => setData({...data, role: 'provider'})}
       sub="Master account. Your trades are broadcast to followers instantly."
     />
     <FeatureCard 
-      icon={Users}
-      title="Follower"
-      active={data.role === 'follower'}
+      icon={Users} title="Follower" active={data.role === 'follower'}
       onClick={() => setData({...data, role: 'follower'})}
       sub="Slave account. Copy trades instantly from a master source."
     />
     <FeatureCard 
-      icon={GitFork}
-      title="Self-Copy"
-      active={data.role === 'self'}
+      icon={GitFork} title="Self-Copy" active={data.role === 'self'}
       onClick={() => setData({...data, role: 'self'})}
       sub="Internal linkage. Duplicate trades between your own accounts."
     />
@@ -211,7 +205,8 @@ export default function App() {
               return (
                 <div key={s.id} className="relative group flex items-center justify-center">
                   <Icon 
-                    size={20} 
+                    size={20}
+                    strokeWidth={1.5}
                     className={`transition-all duration-500 cursor-pointer ${i <= step ? 'text-blue-400' : 'text-slate-700 hover:text-slate-400'}`}
                     onClick={() => i < step && setStep(i)}
                   />
@@ -316,27 +311,18 @@ export default function App() {
                 {currentStepData.id === 'copy' && (
                   <div className="space-y-12">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
-                      {/* Balance Multiplier — Scale icon */}
                       <FeatureCard 
-                        icon={Scale}
-                        title="Balance Multiplier"
-                        active={data.lotMode === 'mult'}
+                        icon={Scale} title="Balance Multiplier" active={data.lotMode === 'mult'}
                         onClick={() => setData({...data, lotMode: 'mult'})}
                         sub="Scale based on relative account size. Safest for most users."
                       />
-                      {/* Fixed Lot Size — Anchor icon */}
                       <FeatureCard 
-                        icon={Anchor}
-                        title="Fixed Lot Size"
-                        active={data.lotMode === 'fixed'}
+                        icon={Anchor} title="Fixed Lot Size" active={data.lotMode === 'fixed'}
                         onClick={() => setData({...data, lotMode: 'fixed'})}
                         sub="Ignores master lot; always opens set value (e.g. 0.01)."
                       />
-                      {/* Equity Risk % — TrendingUp icon */}
                       <FeatureCard 
-                        icon={TrendingUp}
-                        title="Equity Risk %"
-                        active={data.lotMode === 'risk'}
+                        icon={TrendingUp} title="Equity Risk %" active={data.lotMode === 'risk'}
                         onClick={() => setData({...data, lotMode: 'risk'})}
                         sub="Dynamic sizing based on current free margin per trade."
                       />
@@ -365,7 +351,7 @@ export default function App() {
                   <div className="border border-white/5 p-20 flex flex-col items-center justify-center text-center space-y-8">
                     <div className="w-32 h-32 rounded-full border border-blue-500/20 flex items-center justify-center relative">
                       <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
-                      <Zap size={48} className="text-blue-500" />
+                      <Rocket size={48} className="text-blue-500" strokeWidth={1.5} />
                     </div>
                     <h2 className="text-3xl font-light">System Ready</h2>
                     <p className="text-slate-500 text-sm max-w-md">
