@@ -15,11 +15,12 @@ import {
   Cpu,
   BarChart3,
   Lock,
-  Bell
+  Bell,
+  Monitor
 } from 'lucide-react';
 
 /* ── UI CONSTANTS ─────────────────────────────────────────── */
-const STEPS = [
+const ALL_STEPS = [
   { id: "role", label: "Identity", icon: User },
   { id: "connect", label: "Broker", icon: Globe },
   { id: "link", label: "Linkage", icon: Link2 },
@@ -137,7 +138,29 @@ const StepProtect = ({ data, setData }) => (
 
 export default function App() {
   const [step, setStep] = useState(0);
-  const [data, setData] = useState({ role: 'follower', action: 'Freeze', platform: 'MT5' });
+  const [data, setData] = useState({ role: 'follower', action: 'Freeze', platform: 'MT5', lotMode: 'mult', riskAmount: '1' });
+
+  // Dynamically calculate which steps to show based on role
+  const getVisibleSteps = () => {
+    if (data.role === 'provider') {
+      return ALL_STEPS.filter(s => ['role', 'connect', 'go-live'].includes(s.id));
+    }
+    if (data.role === 'self') {
+      return ALL_STEPS.filter(s => ['role', 'connect', 'copy', 'protect', 'go-live'].includes(s.id));
+    }
+    return ALL_STEPS; // Follower sees all
+  };
+
+  const visibleSteps = getVisibleSteps();
+  const currentStepData = visibleSteps[step] || visibleSteps[0];
+
+  const handleNext = () => {
+    if (step < visibleSteps.length - 1) setStep(step + 1);
+  };
+
+  const handlePrev = () => {
+    if (step > 0) setStep(step - 1);
+  };
 
   return (
     <div className="min-h-screen bg-[#020203] text-white selection:bg-blue-500/40 font-light overflow-hidden">
@@ -161,7 +184,7 @@ export default function App() {
           </div>
           
           <nav className="flex-1 flex flex-col gap-8">
-            {STEPS.map((s, i) => {
+            {visibleSteps.map((s, i) => {
               const Icon = s.icon;
               return (
                 <div key={s.id} className="relative group flex items-center justify-center">
@@ -207,51 +230,73 @@ export default function App() {
           <section className="flex-1 overflow-y-auto p-12 md:p-20">
             <div className="max-w-6xl">
               <div className="mb-16">
-                <span className="text-blue-500 font-mono text-xs mb-2 block tracking-widest">0{step + 1} // {STEPS[step].id.toUpperCase()}</span>
+                <span className="text-blue-500 font-mono text-xs mb-2 block tracking-widest">0{step + 1} // {currentStepData.id.toUpperCase()}</span>
                 <h1 className="text-5xl font-extralight tracking-tighter mb-4">
-                  {step === 0 && "Define your role."}
-                  {step === 1 && "Terminal Access"}
-                  {step === 2 && "Bridge Linkage"}
-                  {step === 3 && "Lot Engine"}
-                  {step === 4 && "Protection Shield"}
-                  {step === 5 && "Deployment Protocol"}
+                  {currentStepData.id === 'role' && "Define your role."}
+                  {currentStepData.id === 'connect' && "Terminal Access"}
+                  {currentStepData.id === 'link' && "Bridge Linkage"}
+                  {currentStepData.id === 'copy' && "Lot Engine"}
+                  {currentStepData.id === 'protect' && "Protection Shield"}
+                  {currentStepData.id === 'go-live' && "Deployment Protocol"}
                 </h1>
                 <div className="w-24 h-[1px] bg-blue-500/50" />
               </div>
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                {step === 0 && <StepRole data={data} setData={setData} />}
+                {currentStepData.id === 'role' && <StepRole data={data} setData={(newData) => { setData(newData); setStep(0); }} />}
                 
-                {step === 1 && (
+                {currentStepData.id === 'connect' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
                     <div className="space-y-8">
                        <div className="space-y-2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Type</label>
-                        <div className="flex gap-4">
-                          {["MT4", "MT5"].map(p => (
+                        <div className="grid grid-cols-2 gap-3">
+                          {["MT4", "MT5", "cTrader", "Proprietary"].map(p => (
                             <button 
                               key={p} onClick={() => setData({...data, platform: p})}
-                              className={`px-4 py-2 border text-[10px] font-bold uppercase tracking-widest transition-all ${data.platform === p ? 'bg-white text-black border-white' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
-                            >{p}</button>
+                              className={`px-4 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between ${data.platform === p ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.1)]' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
+                            >
+                              {p}
+                              {data.platform === p && <CheckCircle2 size={12} />}
+                            </button>
                           ))}
                         </div>
                        </div>
-                       <TerminalInput label="Friendly Name" placeholder="Personal Live Account" />
-                       <TerminalInput label="Broker Server" placeholder="IC-Markets-Live-02" />
-                       <div className="grid grid-cols-2 gap-8">
-                         <TerminalInput label="Login ID" placeholder="1029384" />
-                         <TerminalInput label="Investor Password" type="password" placeholder="••••••••" />
-                       </div>
+                       
+                       {data.platform === 'Proprietary' ? (
+                          <div className="animate-in fade-in slide-in-from-left-2 duration-500 space-y-8">
+                            <TerminalInput label="Broker Platform Name" placeholder="e.g. ThinkTrader, Oanda Desktop" />
+                            <TerminalInput label="API Endpoint (Optional)" placeholder="https://api.broker.com/v1" />
+                            <div className="grid grid-cols-2 gap-8">
+                              <TerminalInput label="API Key" type="password" placeholder="pk_live_..." />
+                              <TerminalInput label="Secret" type="password" placeholder="••••••••" />
+                            </div>
+                          </div>
+                       ) : (
+                          <div className="animate-in fade-in duration-500 space-y-8">
+                            <TerminalInput label="Friendly Name" placeholder="Personal Live Account" />
+                            <TerminalInput label="Broker Server" placeholder="IC-Markets-Live-02" />
+                            <div className="grid grid-cols-2 gap-8">
+                              <TerminalInput label="Login ID" placeholder="1029384" />
+                              <TerminalInput label="Investor Password" type="password" placeholder="••••••••" />
+                            </div>
+                          </div>
+                       )}
                     </div>
                     <div className="p-8 border border-white/5 bg-white/[0.01] flex flex-col justify-center">
+                       <div className="flex items-center gap-3 mb-4 text-blue-400">
+                         <Shield size={18} />
+                         <span className="text-[10px] font-bold uppercase tracking-widest">Security Protocol</span>
+                       </div>
                        <p className="text-xs text-slate-500 leading-relaxed italic">
-                         TradeSync uses Read-Only (Investor) access to monitor your margin and mirror executions. No withdrawal permissions are ever requested.
+                         TradeSync uses isolated bridge technology to monitor your margin and mirror executions. No withdrawal or sensitive personal data permissions are ever required. 
+                         {data.platform === 'Proprietary' && " Proprietary connections may require manual API token generation from your broker dashboard."}
                        </p>
                     </div>
                   </div>
                 )}
 
-                {step === 2 && (
+                {currentStepData.id === 'link' && (
                   <div className="max-w-2xl space-y-12">
                     <TerminalInput label="Master Search ID" placeholder="Enter Provider UUID or Account ID..." />
                     <div className="space-y-4">
@@ -266,33 +311,53 @@ export default function App() {
                   </div>
                 )}
 
-                {step === 3 && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
-                    <FeatureCard 
-                      icon={Activity} title="Balance Multiplier" active={data.lotMode === 'mult'} onClick={() => setData({...data, lotMode: 'mult'})}
-                      sub="Scale based on relative account size. Safest for most users."
-                    />
-                    <FeatureCard 
-                      icon={Cpu} title="Fixed Lot Size" active={data.lotMode === 'fixed'} onClick={() => setData({...data, lotMode: 'fixed'})}
-                      sub="Ignores master lot; always opens set value (e.g. 0.01)."
-                    />
-                    <FeatureCard 
-                      icon={BarChart3} title="Equity Risk %" active={data.lotMode === 'risk'} onClick={() => setData({...data, lotMode: 'risk'})}
-                      sub="Dynamic sizing based on current free margin."
-                    />
+                {currentStepData.id === 'copy' && (
+                  <div className="space-y-12">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
+                      <FeatureCard 
+                        icon={Activity} title="Balance Multiplier" active={data.lotMode === 'mult'} onClick={() => setData({...data, lotMode: 'mult'})}
+                        sub="Scale based on relative account size. Safest for most users."
+                      />
+                      <FeatureCard 
+                        icon={Cpu} title="Fixed Lot Size" active={data.lotMode === 'fixed'} onClick={() => setData({...data, lotMode: 'fixed'})}
+                        sub="Ignores master lot; always opens set value (e.g. 0.01)."
+                      />
+                      <FeatureCard 
+                        icon={BarChart3} title="Equity Risk %" active={data.lotMode === 'risk'} onClick={() => setData({...data, lotMode: 'risk'})}
+                        sub="Dynamic sizing based on current free margin per trade."
+                      />
+                    </div>
+
+                    {data.lotMode === 'risk' && (
+                      <div className="max-w-md animate-in slide-in-from-top-4 duration-500">
+                        <TerminalInput 
+                          label="Risk Amount Per Trade (%)" 
+                          type="number" 
+                          value={data.riskAmount}
+                          onChange={(e) => setData({...data, riskAmount: e.target.value})}
+                          placeholder="1.0" 
+                        />
+                        <p className="mt-4 text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                           <Bell size={12} className="text-blue-500" />
+                           Engine will auto-calculate lot size based on stop-loss distance.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {step === 4 && <StepProtect data={data} setData={setData} />}
+                {currentStepData.id === 'protect' && <StepProtect data={data} setData={setData} />}
 
-                {step === 5 && (
+                {currentStepData.id === 'go-live' && (
                   <div className="border border-white/5 p-20 flex flex-col items-center justify-center text-center space-y-8">
                      <div className="w-32 h-32 rounded-full border border-blue-500/20 flex items-center justify-center relative">
                         <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
                         <Zap size={48} className="text-blue-500" />
                      </div>
                      <h2 className="text-3xl font-light">System Ready</h2>
-                     <p className="text-slate-500 text-sm max-w-md">All nodes are synchronized. Your trades will now mirror in real-time under high-frequency execution.</p>
+                     <p className="text-slate-500 text-sm max-w-md">
+                       {data.role === 'provider' ? "Your master signal is ready to broadcast." : "All nodes are synchronized. Your trades will now mirror in real-time."}
+                     </p>
                      <GlowButton active onClick={() => alert("Deployment Initialized")}>DEPLOY TERMINAL</GlowButton>
                   </div>
                 )}
@@ -303,15 +368,15 @@ export default function App() {
           {/* DYNAMIC FOOTER */}
           <footer className="h-24 border-t border-white/5 bg-black/40 flex items-center justify-between px-12">
             <button 
-              onClick={() => setStep(s => Math.max(0, s-1))}
+              onClick={handlePrev}
               className={`text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600 hover:text-white transition-colors ${step === 0 ? 'opacity-0' : ''}`}
             >
               [ Previous ]
             </button>
 
             <div className="flex gap-4">
-               {step < 5 && (
-                 <GlowButton onClick={() => setStep(s => s + 1)}>
+               {step < visibleSteps.length - 1 && (
+                 <GlowButton onClick={handleNext}>
                    Proceed <ChevronRight size={14} />
                  </GlowButton>
                )}
