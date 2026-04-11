@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 
-/* ── GOOGLE FONT — Inter ───────────────────────────────────── */
+/* ── GOOGLE FONT — Montserrat ───────────────────────────────── */
 const fontLink = document.createElement("link");
 fontLink.rel = "stylesheet";
-fontLink.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap";
+fontLink.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap";
 document.head.appendChild(fontLink);
 
 /* ── DESIGN TOKENS ─────────────────────────────────────────── */
@@ -23,7 +23,7 @@ const T = {
   text:     "#e8edf5",
   muted:    "#4e6580",
   dimmed:   "#8094b0",
-  font:     "'Inter', 'Segoe UI', sans-serif",
+  font:     "'Montserrat', 'Segoe UI', sans-serif",
   mono:     "'JetBrains Mono', 'Fira Code', monospace",
 };
 
@@ -101,81 +101,87 @@ const css = {
     display: "flex", alignItems: "center", gap: 12, marginBottom: 36,
   },
   logoBox: {
-    width: 42, height: 42, borderRadius: 12,
+    width: 42, height: 42, borderRadius: 8,
     background: `linear-gradient(135deg, ${T.blue}, ${T.cyan})`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.5px",
+    fontFamily: T.font,
   },
-  logoName: { fontSize: 20, fontWeight: 900, letterSpacing: "-0.8px" },
-  logoTag: { fontSize: 11, color: T.muted, marginLeft: 5, fontWeight: 500 },
+  logoName: { fontSize: 22, fontWeight: 900, letterSpacing: "-1px", fontFamily: T.font },
+  logoTag:  { fontSize: 11, color: T.muted, marginLeft: 5, fontWeight: 600, fontFamily: T.font, letterSpacing: "0.04em" },
   stepper: {
     display: "flex", alignItems: "center", gap: 0, marginBottom: 28,
-    background: T.surface, borderRadius: 14, border: `1px solid ${T.border}`,
-    padding: "5px", width: "100%", maxWidth: 780,
+    background: T.surface, borderRadius: 8, border: `1px solid ${T.border}`,
+    padding: "5px", width: "100%", maxWidth: 1080,
   },
   stepBtn: (active, done) => ({
     flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-    gap: 5, padding: "10px 4px", borderRadius: 10, cursor: "pointer",
+    gap: 5, padding: "10px 4px", borderRadius: 6, cursor: "pointer",
     background: active ? T.raised : "transparent",
     border: active ? `1px solid ${T.borderHi}` : "1px solid transparent",
     transition: "all 0.2s",
   }),
   stepNum: (active, done) => ({
-    width: 24, height: 24, borderRadius: "50%", fontSize: 10, fontWeight: 800,
+    width: 24, height: 24, borderRadius: "50%", fontSize: 10, fontWeight: 900,
     display: "flex", alignItems: "center", justifyContent: "center",
     background: done ? T.green : active ? T.blue : T.border,
     color: done ? "#000" : "#fff",
-    transition: "background 0.3s",
+    transition: "background 0.3s", fontFamily: T.font,
   }),
   stepLabel: (active) => ({
-    fontSize: 10, fontWeight: active ? 700 : 500,
+    fontSize: 10, fontWeight: active ? 800 : 600,
     color: active ? T.text : T.muted, textAlign: "center",
-    lineHeight: 1.2, letterSpacing: "0.01em",
+    lineHeight: 1.2, letterSpacing: "0.04em", fontFamily: T.font,
+    textTransform: "uppercase",
   }),
   panel: {
-    width: "100%", maxWidth: 780,
+    width: "100%", maxWidth: 1080,
     background: T.card, border: `1px solid ${T.border}`,
-    borderRadius: 18, padding: "36px 40px",
+    borderRadius: 10, padding: "36px 40px",
     animation: "fadeUp 0.3s ease",
   },
   panelTitle: {
-    fontSize: 22, fontWeight: 900, marginBottom: 5,
-    letterSpacing: "-0.6px", lineHeight: 1.2,
+    fontSize: 26, fontWeight: 900, marginBottom: 6,
+    letterSpacing: "-0.5px", lineHeight: 1.15, fontFamily: T.font,
+    textTransform: "uppercase",
   },
   panelSub: {
     fontSize: 13, color: T.dimmed, marginBottom: 30,
-    lineHeight: 1.6, fontWeight: 400,
+    lineHeight: 1.6, fontWeight: 500, fontFamily: T.font,
   },
   label: {
-    fontSize: 11, fontWeight: 700, color: T.dimmed, marginBottom: 7,
-    display: "block", letterSpacing: "0.06em", textTransform: "uppercase",
+    fontSize: 11, fontWeight: 800, color: T.dimmed, marginBottom: 7,
+    display: "block", letterSpacing: "0.08em", textTransform: "uppercase",
+    fontFamily: T.font,
   },
   input: {
     width: "100%", background: T.surface, border: `1px solid ${T.border}`,
-    borderRadius: 10, padding: "10px 14px", color: T.text, fontSize: 14,
+    borderRadius: 6, padding: "10px 14px", color: T.text, fontSize: 14,
     fontFamily: T.font, outline: "none", boxSizing: "border-box",
-    transition: "border 0.2s", fontWeight: 400,
+    transition: "border 0.2s", fontWeight: 600,
   },
   select: {
     width: "100%", background: T.surface, border: `1px solid ${T.border}`,
-    borderRadius: 10, padding: "10px 14px", color: T.text, fontSize: 14,
+    borderRadius: 6, padding: "10px 14px", color: T.text, fontSize: 14,
     fontFamily: T.font, outline: "none", boxSizing: "border-box",
-    appearance: "none", cursor: "pointer", fontWeight: 400,
+    appearance: "none", cursor: "pointer", fontWeight: 600,
   },
   row2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 },
   row3: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 },
   field: { marginBottom: 20 },
   btnPrimary: {
-    background: T.blue, color: "#fff", border: "none", borderRadius: 10,
-    padding: "12px 30px", fontSize: 14, fontWeight: 800, cursor: "pointer",
-    letterSpacing: "0.02em", transition: "opacity 0.15s, transform 0.1s",
+    background: T.blue, color: "#fff", border: "none", borderRadius: 6,
+    padding: "12px 30px", fontSize: 13, fontWeight: 900, cursor: "pointer",
+    letterSpacing: "0.08em", textTransform: "uppercase",
+    transition: "opacity 0.15s, transform 0.1s",
     fontFamily: T.font,
   },
   btnGhost: {
     background: "transparent", color: T.dimmed,
     border: `1px solid ${T.border}`,
-    borderRadius: 10, padding: "12px 24px", fontSize: 14, fontWeight: 600,
-    cursor: "pointer", fontFamily: T.font,
+    borderRadius: 6, padding: "12px 24px", fontSize: 13, fontWeight: 800,
+    cursor: "pointer", fontFamily: T.font, letterSpacing: "0.06em",
+    textTransform: "uppercase",
   },
   btnRow: {
     display: "flex", justifyContent: "space-between",
@@ -184,22 +190,23 @@ const css = {
   divider: { height: 1, background: T.border, margin: "26px 0" },
   tag: (c) => ({
     display: "inline-flex", alignItems: "center", gap: 4,
-    padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+    padding: "3px 10px", borderRadius: 4, fontSize: 10, fontWeight: 800,
     background: `${c}22`, color: c, border: `1px solid ${c}44`,
+    fontFamily: T.font, letterSpacing: "0.05em", textTransform: "uppercase",
   }),
   info: {
     background: `${T.blue}11`, border: `1px solid ${T.blue}33`,
-    borderRadius: 10, padding: "13px 16px", fontSize: 13,
-    color: T.dimmed, lineHeight: 1.6, marginBottom: 20,
+    borderRadius: 6, padding: "13px 16px", fontSize: 13,
+    color: T.dimmed, lineHeight: 1.6, marginBottom: 20, fontWeight: 500,
   },
   notice: (c) => ({
-    background: `${c}0f`, border: `1px solid ${c}33`, borderRadius: 10,
+    background: `${c}0f`, border: `1px solid ${c}33`, borderRadius: 6,
     padding: "11px 15px", fontSize: 12, color: c, marginBottom: 16,
-    fontWeight: 500,
+    fontWeight: 700, letterSpacing: "0.02em",
   }),
   sectionTitle: {
-    fontSize: 13, fontWeight: 800, marginBottom: 14, color: T.text,
-    letterSpacing: "-0.2px",
+    fontSize: 13, fontWeight: 900, marginBottom: 14, color: T.text,
+    letterSpacing: "0.06em", textTransform: "uppercase", fontFamily: T.font,
   },
 };
 
@@ -211,8 +218,8 @@ function Toggle({ on, onChange, label, sub }) {
       padding: "13px 0", borderBottom: `1px solid ${T.border}`,
     }}>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        {sub && <div style={{ fontSize: 11, color: T.muted, marginTop: 3, fontWeight: 400 }}>{sub}</div>}
+        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: T.font }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: T.muted, marginTop: 3, fontWeight: 500, fontFamily: T.font }}>{sub}</div>}
       </div>
       <div
         onClick={() => onChange(!on)}
@@ -242,13 +249,13 @@ function RoleCard({ icon, title, desc, badges, selected, onClick }) {
       style={{
         background: selected ? `${T.blue}12` : T.surface,
         border: selected ? `2px solid ${T.blue}` : `1px solid ${T.border}`,
-        borderRadius: 14, padding: "22px 20px", cursor: "pointer", flex: 1,
+        borderRadius: 8, padding: "22px 20px", cursor: "pointer", flex: 1,
         transition: "all 0.2s", minWidth: 180,
       }}
     >
       <div style={{ fontSize: 28, marginBottom: 11 }}>{icon}</div>
-      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 7, letterSpacing: "-0.3px" }}>{title}</div>
-      <div style={{ fontSize: 12, color: T.dimmed, lineHeight: 1.65, marginBottom: 14, fontWeight: 400 }}>{desc}</div>
+      <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 7, letterSpacing: "-0.2px", fontFamily: T.font, textTransform: "uppercase" }}>{title}</div>
+      <div style={{ fontSize: 12, color: T.dimmed, lineHeight: 1.65, marginBottom: 14, fontWeight: 500, fontFamily: T.font }}>{desc}</div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         {badges.map(b => <span key={b} style={css.tag(T.cyan)}>{b}</span>)}
       </div>
@@ -264,12 +271,12 @@ function PlatformBtn({ label, sub, selected, onClick }) {
       style={{
         background: selected ? `${T.blue}12` : T.surface,
         border: selected ? `2px solid ${T.blue}` : `1px solid ${T.border}`,
-        borderRadius: 10, padding: "12px 12px", cursor: "pointer",
+        borderRadius: 6, padding: "12px 12px", cursor: "pointer",
         textAlign: "center", transition: "all 0.15s",
       }}
     >
-      <div style={{ fontWeight: 800, fontSize: 13, letterSpacing: "-0.2px" }}>{label}</div>
-      {sub && <div style={{ fontSize: 10, color: T.muted, marginTop: 3, fontWeight: 500 }}>{sub}</div>}
+      <div style={{ fontWeight: 900, fontSize: 13, letterSpacing: "0.04em", fontFamily: T.font, textTransform: "uppercase" }}>{label}</div>
+      {sub && <div style={{ fontSize: 10, color: T.muted, marginTop: 3, fontWeight: 600, fontFamily: T.font }}>{sub}</div>}
     </div>
   );
 }
@@ -282,12 +289,12 @@ function LotModeBtn({ label, desc, selected, onClick }) {
       style={{
         background: selected ? `${T.blue}12` : T.surface,
         border: selected ? `2px solid ${T.blue}` : `1px solid ${T.border}`,
-        borderRadius: 10, padding: "13px 14px", cursor: "pointer",
+        borderRadius: 6, padding: "13px 14px", cursor: "pointer",
         transition: "all 0.15s",
       }}
     >
-      <div style={{ fontWeight: 800, fontSize: 12, letterSpacing: "-0.1px", marginBottom: 5 }}>{label}</div>
-      <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.4, fontWeight: 400 }}>{desc}</div>
+      <div style={{ fontWeight: 900, fontSize: 12, letterSpacing: "0.04em", marginBottom: 5, fontFamily: T.font, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.4, fontWeight: 500, fontFamily: T.font }}>{desc}</div>
     </div>
   );
 }
@@ -416,8 +423,8 @@ function StepConnect({ data, setData }) {
       )}
 
       <div style={css.info}>
-        <strong style={{ color: T.text, fontWeight: 700 }}>Master account:</strong> investor (read-only) password is enough — the copier only reads your trades.&nbsp;
-        <strong style={{ color: T.text, fontWeight: 700 }}>Slave account:</strong> you must use the full trader password so the copier can place orders on your behalf.
+        <strong style={{ color: T.text, fontWeight: 800 }}>Master account:</strong> investor (read-only) password is enough — the copier only reads your trades.&nbsp;
+        <strong style={{ color: T.text, fontWeight: 800 }}>Slave account:</strong> you must use the full trader password so the copier can place orders on your behalf.
       </div>
 
       <div style={css.divider} />
@@ -426,7 +433,7 @@ function StepConnect({ data, setData }) {
           width: 8, height: 8, borderRadius: "50%",
           background: T.amber, animation: "pulse 1.5s ease-in-out infinite",
         }} />
-        <span style={{ fontSize: 12, color: T.dimmed, fontWeight: 500 }}>
+        <span style={{ fontSize: 12, color: T.dimmed, fontWeight: 600, fontFamily: T.font }}>
           Not yet connected — credentials will be verified on next step
         </span>
       </div>
@@ -456,7 +463,7 @@ function StepLink({ data, setData }) {
         <>
           <div style={{
             background: T.surface, border: `1px solid ${T.border}`,
-            borderRadius: 12, padding: "16px 18px", marginBottom: 22,
+            borderRadius: 8, padding: "16px 18px", marginBottom: 22,
           }}>
             <label style={css.label}>Your Unique Signal Link</label>
             <div style={{ display: "flex", gap: 8 }}>
@@ -482,7 +489,7 @@ function StepLink({ data, setData }) {
                   value={data.perfFee || ""}
                   onChange={e => setData({ ...data, perfFee: e.target.value })}
                 />
-                <div style={{ fontSize: 10, color: T.muted, marginTop: 5 }}>
+                <div style={{ fontSize: 10, color: T.muted, marginTop: 5, fontWeight: 600, fontFamily: T.font }}>
                   % monthly subscription markup charged to followers
                 </div>
               </div>
@@ -496,7 +503,7 @@ function StepLink({ data, setData }) {
                   <option value="performance">Performance Fee</option>
                   <option value="free">Free Signal</option>
                 </select>
-                <div style={{ fontSize: 10, color: T.muted, marginTop: 5 }}>
+                <div style={{ fontSize: 10, color: T.muted, marginTop: 5, fontWeight: 600, fontFamily: T.font }}>
                   how followers are charged
                 </div>
               </div>
@@ -532,7 +539,7 @@ function StepLink({ data, setData }) {
               onChange={e => setData({ ...data, signalLink: e.target.value })}
             />
           </div>
-          <div style={{ textAlign: "center", color: T.muted, fontSize: 12, margin: "14px 0", fontWeight: 500 }}>
+          <div style={{ textAlign: "center", color: T.muted, fontSize: 12, margin: "14px 0", fontWeight: 700, fontFamily: T.font, letterSpacing: "0.04em" }}>
             — or enter master account manually —
           </div>
           <div style={css.row2}>
@@ -644,7 +651,7 @@ function StepCopy({ data, setData }) {
               {(data.lotMult || 1).toFixed(2)}x
             </span>
           </div>
-          <div style={{ fontSize: 11, color: T.muted, marginTop: 6 }}>
+          <div style={{ fontSize: 11, color: T.muted, marginTop: 6, fontWeight: 600, fontFamily: T.font }}>
             Master trades 1.00 lot → Slave trades {(data.lotMult || 1).toFixed(2)} lot
           </div>
         </div>
@@ -670,7 +677,7 @@ function StepCopy({ data, setData }) {
               value={data.riskPct || ""}
               onChange={e => setData({ ...data, riskPct: e.target.value })}
             />
-            <span style={{ lineHeight: "38px", color: T.dimmed, fontWeight: 600 }}>%</span>
+            <span style={{ lineHeight: "38px", color: T.dimmed, fontWeight: 800, fontFamily: T.font }}>%</span>
           </div>
         </div>
       )}
@@ -687,9 +694,9 @@ function StepCopy({ data, setData }) {
 
       <div style={css.row3}>
         {[
-          { label: "Max Open Trades",   key: "maxTrades", placeholder: "10",  help: "Max simultaneous copied trades" },
-          { label: "Max Lot per Trade", key: "maxLot",    placeholder: "1.00", help: "Single trade size ceiling" },
-          { label: "Max Daily Loss ($)",key: "maxLoss",   placeholder: "200",  help: "Auto-pause when hit" },
+          { label: "Max Open Trades",    key: "maxTrades", placeholder: "10",   help: "Max simultaneous copied trades" },
+          { label: "Max Lot per Trade",  key: "maxLot",    placeholder: "1.00", help: "Single trade size ceiling" },
+          { label: "Max Daily Loss ($)", key: "maxLoss",   placeholder: "200",  help: "Auto-pause when hit" },
         ].map(f => (
           <div key={f.key} style={css.field}>
             <label style={css.label}>{f.label}</label>
@@ -698,7 +705,7 @@ function StepCopy({ data, setData }) {
               value={data[f.key] || ""}
               onChange={e => setData({ ...data, [f.key]: e.target.value })}
             />
-            <div style={{ fontSize: 10, color: T.muted, marginTop: 5 }}>{f.help}</div>
+            <div style={{ fontSize: 10, color: T.muted, marginTop: 5, fontWeight: 600, fontFamily: T.font }}>{f.help}</div>
           </div>
         ))}
       </div>
@@ -775,11 +782,12 @@ function StepProtect({ data, setData }) {
               <div
                 key={val} onClick={() => setData({ ...data, symFilter: val })}
                 style={{
-                  flex: 1, textAlign: "center", padding: "10px 12px", borderRadius: 10,
+                  flex: 1, textAlign: "center", padding: "10px 12px", borderRadius: 6,
                   cursor: "pointer",
                   background: active ? `${T.blue}22` : T.surface,
                   border: active ? `1px solid ${T.blue}` : `1px solid ${T.border}`,
-                  fontSize: 12, fontWeight: 700,
+                  fontSize: 12, fontWeight: 800, fontFamily: T.font,
+                  letterSpacing: "0.04em", textTransform: "uppercase",
                   color: active ? T.text : T.muted, transition: "all 0.15s",
                 }}
               >{m}</div>
@@ -810,7 +818,8 @@ function StepProtect({ data, setData }) {
                 style={{
                   display: "flex", alignItems: "center", gap: 6,
                   background: T.surface, border: `1px solid ${T.border}`,
-                  borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                  borderRadius: 4, padding: "4px 12px", fontSize: 12, fontWeight: 800,
+                  fontFamily: T.font,
                 }}
               >
                 <span style={{ fontFamily: T.mono, color: T.cyan }}>{s}</span>
@@ -821,7 +830,7 @@ function StepProtect({ data, setData }) {
               </div>
             ))}
             {!(data.symList?.length) && (
-              <span style={{ fontSize: 12, color: T.muted }}>No symbols added yet</span>
+              <span style={{ fontSize: 12, color: T.muted, fontWeight: 600, fontFamily: T.font }}>No symbols added yet</span>
             )}
           </div>
         </div>
@@ -955,12 +964,12 @@ function StepDone({ data }) {
               width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
               background: i < idx ? T.green : i === idx ? T.blue : T.border,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 10, color: i < idx ? "#000" : "#fff", fontWeight: 800,
-              transition: "background 0.4s",
+              fontSize: 10, color: i < idx ? "#000" : "#fff", fontWeight: 900,
+              transition: "background 0.4s", fontFamily: T.font,
             }}>
               {i < idx ? "✓" : i + 1}
             </div>
-            <span style={{ fontSize: 13, fontWeight: i <= idx ? 600 : 400, color: i <= idx ? T.text : T.muted }}>
+            <span style={{ fontSize: 13, fontWeight: i <= idx ? 700 : 500, color: i <= idx ? T.text : T.muted, fontFamily: T.font }}>
               {s.label}
             </span>
             {i === idx && status !== "live" && (
@@ -977,13 +986,14 @@ function StepDone({ data }) {
       {status === "live" && (
         <div style={{
           background: T.surface, border: `1px solid ${T.border}`,
-          borderRadius: 14, padding: "22px 28px", maxWidth: 500,
+          borderRadius: 8, padding: "22px 28px", maxWidth: 500,
           margin: "0 auto", textAlign: "left",
           animation: "fadeUp 0.4s ease",
         }}>
           <div style={{
-            fontSize: 11, fontWeight: 800, color: T.muted,
-            textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 16,
+            fontSize: 11, fontWeight: 900, color: T.muted,
+            textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16,
+            fontFamily: T.font,
           }}>
             Setup Summary
           </div>
@@ -1002,8 +1012,8 @@ function StepDone({ data }) {
                 padding: "8px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13,
               }}
             >
-              <span style={{ color: T.muted, fontWeight: 500 }}>{k}</span>
-              <span style={{ fontWeight: 700, color: T.text }}>{v}</span>
+              <span style={{ color: T.muted, fontWeight: 600, fontFamily: T.font }}>{k}</span>
+              <span style={{ fontWeight: 800, color: T.text, fontFamily: T.font }}>{v}</span>
             </div>
           ))}
         </div>
