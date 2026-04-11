@@ -14,17 +14,18 @@ import {
   Activity,
   Cpu,
   BarChart3,
-  Lock
+  Lock,
+  Bell
 } from 'lucide-react';
 
 /* ── UI CONSTANTS ─────────────────────────────────────────── */
 const STEPS = [
-  { id: "identity", label: "Identity", icon: User },
-  { id: "broker", label: "Broker", icon: Globe },
+  { id: "role", label: "Identity", icon: User },
+  { id: "connect", label: "Broker", icon: Globe },
   { id: "link", label: "Linkage", icon: Link2 },
-  { id: "engine", label: "Engine", icon: Settings2 },
-  { id: "shield", label: "Shield", icon: Shield },
-  { id: "deploy", label: "Deploy", icon: Zap },
+  { id: "copy", label: "Engine", icon: Settings2 },
+  { id: "protect", label: "Shield", icon: Shield },
+  { id: "go-live", label: "Live", icon: Zap },
 ];
 
 /* ── ATOMS ────────────────────────────────────────────────── */
@@ -69,26 +70,41 @@ const FeatureCard = ({ title, sub, icon: Icon, active, onClick }) => (
   </div>
 );
 
+const Toggle = ({ label, sub, on, onChange }) => (
+  <div className="flex items-center justify-between p-4 border border-white/5 bg-white/[0.01] mb-3">
+    <div>
+      <div className="text-xs font-bold text-slate-300 tracking-tight">{label}</div>
+      <div className="text-[10px] text-slate-500 font-light">{sub}</div>
+    </div>
+    <button 
+      onClick={() => onChange(!on)}
+      className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${on ? 'bg-blue-600' : 'bg-slate-800'}`}
+    >
+      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300 ${on ? 'left-6' : 'left-1'}`} />
+    </button>
+  </div>
+);
+
 /* ── VIEWS ────────────────────────────────────────────────── */
 
-const IdentityView = ({ data, setData }) => (
+const StepRole = ({ data, setData }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
     <FeatureCard 
-      icon={Activity} title="Signal Master" active={data.role === 'master'} onClick={() => setData({...data, role: 'master'})}
-      sub="Broadcast your algorithmic or manual executions to a secure cloud network."
+      icon={Activity} title="Signal Provider" active={data.role === 'provider'} onClick={() => setData({...data, role: 'provider'})}
+      sub="Master account. Your trades are broadcast to followers instantly."
     />
     <FeatureCard 
-      icon={Cpu} title="Execution Node" active={data.role === 'node'} onClick={() => setData({...data, role: 'node'})}
-      sub="Receive and execute trades with sub-millisecond latency from a master source."
+      icon={Globe} title="Follower" active={data.role === 'follower'} onClick={() => setData({...data, role: 'follower'})}
+      sub="Slave account. Copy trades instantly from a master source."
     />
     <FeatureCard 
-      icon={BarChart3} title="Hybrid Link" active={data.role === 'hybrid'} onClick={() => setData({...data, role: 'hybrid'})}
-      sub="Complex internal routing between multiple self-owned accounts."
+      icon={Zap} title="Self-Copy" active={data.role === 'self'} onClick={() => setData({...data, role: 'self'})}
+      sub="Internal linkage. Duplicate trades between your own accounts."
     />
   </div>
 );
 
-const ShieldView = ({ data, setData }) => (
+const StepProtect = ({ data, setData }) => (
   <div className="space-y-12 max-w-2xl">
     <div className="grid grid-cols-2 gap-x-12 gap-y-8">
       <TerminalInput label="Global Drawdown (%)" placeholder="5.0" type="number" />
@@ -96,19 +112,22 @@ const ShieldView = ({ data, setData }) => (
       <TerminalInput label="Symbol Prefix" placeholder="e.g. .m" />
       <TerminalInput label="Symbol Suffix" placeholder="e.g. +f" />
     </div>
-    <div className="space-y-4">
-      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Auto-Killswitch Actions</label>
-      <div className="flex gap-4">
-        {['Freeze', 'Close Only', 'Liquidate'].map(action => (
-          <button 
-            key={action}
-            onClick={() => setData({...data, action})}
-            className={`px-4 py-2 border text-[10px] font-bold uppercase tracking-widest transition-all 
-              ${data.action === action ? 'bg-white text-black border-white' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
-          >
-            {action}
-          </button>
-        ))}
+    
+    <div className="space-y-6">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Safety Notifications</label>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Toggle 
+          label="Disconnection Alert" 
+          sub="Alert if servers lose bridge connection" 
+          on={data.notif1 ?? true} 
+          onChange={v => setData({...data, notif1: v})} 
+        />
+        <Toggle 
+          label="Execution Fail" 
+          sub="Alert when an order is rejected" 
+          on={data.notif2 ?? true} 
+          onChange={v => setData({...data, notif2: v})} 
+        />
       </div>
     </div>
   </div>
@@ -118,15 +137,15 @@ const ShieldView = ({ data, setData }) => (
 
 export default function App() {
   const [step, setStep] = useState(0);
-  const [data, setData] = useState({ role: 'node', action: 'Freeze' });
+  const [data, setData] = useState({ role: 'follower', action: 'Freeze', platform: 'MT5' });
 
   return (
     <div className="min-h-screen bg-[#020203] text-white selection:bg-blue-500/40 font-light overflow-hidden">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .gradient-line { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); height: 1px; width: 100%; }
+        .vertical-text { writing-mode: vertical-rl; }
       `}</style>
 
       {/* SCANLINE EFFECT */}
@@ -134,7 +153,7 @@ export default function App() {
 
       <div className="flex h-screen">
         
-        {/* LEFT NAV - MINIMALIST */}
+        {/* LEFT NAV */}
         <aside className="w-20 md:w-24 border-r border-white/5 flex flex-col items-center py-8 gap-12 bg-black/40 backdrop-blur-xl">
           <div className="w-10 h-10 border border-blue-500 flex items-center justify-center relative">
             <div className="absolute inset-0 bg-blue-500/20 blur-md" />
@@ -174,13 +193,13 @@ export default function App() {
               </div>
               <div className="w-px h-4 bg-white/10" />
               <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mr-4">Session ID</span>
-                <span className="text-[10px] font-mono text-slate-400">0xCF42...E9A</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mr-4">Identity</span>
+                <span className="text-[10px] font-mono text-slate-400 uppercase">{data.role || "Pending"}</span>
               </div>
             </div>
             <div className="flex items-center gap-4 text-slate-500">
                <Lock size={14} />
-               <span className="text-[10px] font-bold uppercase tracking-widest">AES-256 Encrypted</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest">Secure Link Active</span>
             </div>
           </header>
 
@@ -190,34 +209,81 @@ export default function App() {
               <div className="mb-16">
                 <span className="text-blue-500 font-mono text-xs mb-2 block tracking-widest">0{step + 1} // {STEPS[step].id.toUpperCase()}</span>
                 <h1 className="text-5xl font-extralight tracking-tighter mb-4">
-                  {step === 0 && "Initialize Network Role"}
-                  {step === 1 && "Secure Broker Gateway"}
-                  {step === 4 && "System Hardening"}
+                  {step === 0 && "Define your role."}
+                  {step === 1 && "Terminal Access"}
+                  {step === 2 && "Bridge Linkage"}
+                  {step === 3 && "Lot Engine"}
+                  {step === 4 && "Protection Shield"}
                   {step === 5 && "Deployment Protocol"}
-                  {step !== 0 && step !== 1 && step !== 4 && step !== 5 && STEPS[step].label}
                 </h1>
                 <div className="w-24 h-[1px] bg-blue-500/50" />
               </div>
 
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                {step === 0 && <IdentityView data={data} setData={setData} />}
+                {step === 0 && <StepRole data={data} setData={setData} />}
                 
                 {step === 1 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
                     <div className="space-y-8">
-                       <TerminalInput label="Broker Server Address" placeholder="Access code or hostname..." />
-                       <TerminalInput label="Account Number" placeholder="882901..." />
-                       <TerminalInput label="Security Token" type="password" placeholder="••••••••••••" />
+                       <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Type</label>
+                        <div className="flex gap-4">
+                          {["MT4", "MT5"].map(p => (
+                            <button 
+                              key={p} onClick={() => setData({...data, platform: p})}
+                              className={`px-4 py-2 border text-[10px] font-bold uppercase tracking-widest transition-all ${data.platform === p ? 'bg-white text-black border-white' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
+                            >{p}</button>
+                          ))}
+                        </div>
+                       </div>
+                       <TerminalInput label="Friendly Name" placeholder="Personal Live Account" />
+                       <TerminalInput label="Broker Server" placeholder="IC-Markets-Live-02" />
+                       <div className="grid grid-cols-2 gap-8">
+                         <TerminalInput label="Login ID" placeholder="1029384" />
+                         <TerminalInput label="Investor Password" type="password" placeholder="••••••••" />
+                       </div>
                     </div>
                     <div className="p-8 border border-white/5 bg-white/[0.01] flex flex-col justify-center">
                        <p className="text-xs text-slate-500 leading-relaxed italic">
-                         "Connect via our secure bridge. Your primary trading password is never stored; only execution tokens are utilized for the copy protocol."
+                         TradeSync uses Read-Only (Investor) access to monitor your margin and mirror executions. No withdrawal permissions are ever requested.
                        </p>
                     </div>
                   </div>
                 )}
 
-                {step === 4 && <ShieldView data={data} setData={setData} />}
+                {step === 2 && (
+                  <div className="max-w-2xl space-y-12">
+                    <TerminalInput label="Master Search ID" placeholder="Enter Provider UUID or Account ID..." />
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified Providers</label>
+                      {["Quantum Core (Live-01)", "Titanium Scalp v4", "Black Edge HFT"].map(v => (
+                        <div key={v} className="flex justify-between items-center p-6 border border-white/5 bg-white/[0.01] hover:border-blue-500/30 transition-all group cursor-pointer">
+                          <span className="font-light tracking-tight">{v}</span>
+                          <span className="text-[10px] font-mono text-blue-500 border border-blue-500/20 px-2 py-1">PUBLIC</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {step === 3 && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
+                    <FeatureCard 
+                      icon={Activity} title="Balance Multiplier" active={data.lotMode === 'mult'} onClick={() => setData({...data, lotMode: 'mult'})}
+                      sub="Scale based on relative account size. Safest for most users."
+                    />
+                    <FeatureCard 
+                      icon={Cpu} title="Fixed Lot Size" active={data.lotMode === 'fixed'} onClick={() => setData({...data, lotMode: 'fixed'})}
+                      sub="Ignores master lot; always opens set value (e.g. 0.01)."
+                    />
+                    <FeatureCard 
+                      icon={BarChart3} title="Equity Risk %" active={data.lotMode === 'risk'} onClick={() => setData({...data, lotMode: 'risk'})}
+                      sub="Dynamic sizing based on current free margin."
+                    />
+                  </div>
+                )}
+
+                {step === 4 && <StepProtect data={data} setData={setData} />}
 
                 {step === 5 && (
                   <div className="border border-white/5 p-20 flex flex-col items-center justify-center text-center space-y-8">
@@ -225,9 +291,9 @@ export default function App() {
                         <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
                         <Zap size={48} className="text-blue-500" />
                      </div>
-                     <h2 className="text-3xl font-light">Node Deployment Ready</h2>
-                     <p className="text-slate-500 text-sm max-w-md">Configuration validated. Initializing secure handshake with TradeSync cluster in Frankfurt (AWS-EU1).</p>
-                     <GlowButton active onClick={() => alert("System Online")}>Execute Launch Protocol</GlowButton>
+                     <h2 className="text-3xl font-light">System Ready</h2>
+                     <p className="text-slate-500 text-sm max-w-md">All nodes are synchronized. Your trades will now mirror in real-time under high-frequency execution.</p>
+                     <GlowButton active onClick={() => alert("Deployment Initialized")}>DEPLOY TERMINAL</GlowButton>
                   </div>
                 )}
               </div>
@@ -246,7 +312,7 @@ export default function App() {
             <div className="flex gap-4">
                {step < 5 && (
                  <GlowButton onClick={() => setStep(s => s + 1)}>
-                   Next Phase <ChevronRight size={14} />
+                   Proceed <ChevronRight size={14} />
                  </GlowButton>
                )}
             </div>
