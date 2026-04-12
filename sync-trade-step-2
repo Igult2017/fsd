@@ -1,69 +1,97 @@
 import React, { useState } from 'react';
-import { 
-  Shield, 
-  Settings2, 
-  Link2, 
-  Globe, 
-  User, 
-  ChevronRight, 
-  CheckCircle2, 
-  Bell,
-  ArrowRight,
-  Radio,
-  Users,
-  GitFork,
-  Scale,
-  Anchor,
-  TrendingUp,
-  Rocket,
+import {
+  Shield, Settings2, Link2, Globe, User, ChevronRight, CheckCircle2,
+  Bell, ArrowRight, Radio, Users, GitFork, Scale, Anchor, TrendingUp,
+  Rocket, Info, AlertTriangle, Filter, Clock, Hash, Send, Zap,
+  MessageSquare, Eye, EyeOff, RefreshCw, GitMerge, Repeat2,
 } from 'lucide-react';
 
-const ALL_STEPS = [
-  { id: "role", label: "Identity", icon: User },
-  { id: "connect", label: "Broker", icon: Globe },
-  { id: "link", label: "Linkage", icon: Link2 },
-  { id: "copy", label: "Engine", icon: Settings2 },
-  { id: "protect", label: "Shield", icon: Shield },
-  { id: "go-live", label: "Live", icon: Rocket },
+// ─── Fonts ────────────────────────────────────────────────────────────────────
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');`;
+
+// ─── Step Definitions Per Role ────────────────────────────────────────────────
+const STEPS_FOLLOWER = [
+  { id: 'role',       label: 'Identity',   icon: User },
+  { id: 'connect',    label: 'Broker',     icon: Globe },
+  { id: 'link',       label: 'Provider',   icon: Link2 },
+  { id: 'filters',    label: 'Filters',    icon: Filter },
+  { id: 'copy',       label: 'Engine',     icon: Settings2 },
+  { id: 'protect',    label: 'Shield',     icon: Shield },
+  { id: 'risk',       label: 'Risk',       icon: AlertTriangle },
+  { id: 'go-live',    label: 'Live',       icon: Rocket },
 ];
 
-const GlowButton = ({ children, onClick, active, danger }) => (
-  <button 
-    onClick={onClick}
-    className={`relative px-6 py-3 rounded-sm font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden border
-      ${active 
-        ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]' 
-        : 'bg-transparent border-white/10 text-slate-400 hover:border-white/30 hover:text-white'
-      } ${danger ? 'hover:border-red-500 hover:text-red-500' : ''}`}
-  >
-    <div className="relative z-10 flex items-center gap-2">{children}</div>
+const STEPS_PROVIDER = [
+  { id: 'role',       label: 'Identity',   icon: User },
+  { id: 'connect',    label: 'Broker',     icon: Globe },
+  { id: 'strategy',   label: 'Strategy',   icon: TrendingUp },
+  { id: 'limits',     label: 'Limits',     icon: Shield },
+  { id: 'notif',      label: 'Notify',     icon: Bell },
+  { id: 'risk',       label: 'Disclosure', icon: AlertTriangle },
+  { id: 'go-live',    label: 'Live',       icon: Rocket },
+];
+
+const STEPS_SELF = [
+  { id: 'role',       label: 'Identity',   icon: User },
+  { id: 'connect',    label: 'Source',     icon: Globe },
+  { id: 'connect2',   label: 'Target',     icon: Globe },
+  { id: 'mapping',    label: 'Mapping',    icon: GitMerge },
+  { id: 'copy',       label: 'Engine',     icon: Settings2 },
+  { id: 'protect',    label: 'Shield',     icon: Shield },
+  { id: 'go-live',    label: 'Live',       icon: Rocket },
+];
+
+const STEPS_TELEGRAM = [
+  { id: 'role',       label: 'Identity',   icon: User },
+  { id: 'connect',    label: 'Broker',     icon: Globe },
+  { id: 'tg-auth',    label: 'Telegram',   icon: MessageSquare },
+  { id: 'tg-channel', label: 'Channel',    icon: Hash },
+  { id: 'tg-parser',  label: 'Parser',     icon: Zap },
+  { id: 'tg-test',    label: 'Test',       icon: Send },
+  { id: 'filters',    label: 'Filters',    icon: Filter },
+  { id: 'protect',    label: 'Shield',     icon: Shield },
+  { id: 'risk',       label: 'Risk',       icon: AlertTriangle },
+  { id: 'go-live',    label: 'Live',       icon: Rocket },
+];
+
+// ─── Shared UI Primitives ─────────────────────────────────────────────────────
+const GlowButton = ({ children, onClick, active, small }) => (
+  <button onClick={onClick}
+    className={`relative font-bold uppercase tracking-[0.2em] transition-all duration-500 border flex items-center gap-2
+      ${small ? 'px-4 py-2 text-[9px]' : 'px-6 py-3 text-[10px]'}
+      ${active
+        ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'
+        : 'bg-transparent border-white/10 text-slate-400 hover:border-white/30 hover:text-white'}`}>
+    {children}
   </button>
 );
 
-const TerminalInput = ({ label, ...props }) => (
-  <div className="group space-y-2">
-    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-focus-within:text-blue-500 transition-colors">
-      {label}
-    </label>
-    <input 
-      {...props}
-      className="w-full bg-white/[0.01] border-b border-white/10 py-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono"
-    />
+const TInput = ({ label, hint, ...props }) => (
+  <div className="group space-y-1.5">
+    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-focus-within:text-blue-500 transition-colors">{label}</label>
+    {hint && <p className="text-[11px] text-slate-600 leading-relaxed">{hint}</p>}
+    <input {...props}
+      className="w-full bg-white/[0.01] border-b border-white/10 py-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono" />
   </div>
 );
 
-const FeatureCard = ({ title, sub, icon: Icon, active, onClick }) => (
-  <div 
-    onClick={onClick}
-    className={`relative p-8 border cursor-pointer transition-all duration-700 group
-      ${active ? 'bg-blue-600/5 border-blue-500/50 shadow-[inset_0_0_40px_rgba(37,99,235,0.05)]' : 'bg-transparent border-white/5 hover:border-white/20'}`}
-  >
-    <div className={`mb-6 transition-transform duration-500 ${active ? 'scale-110' : 'group-hover:scale-105'}`}>
-      <Icon size={28} className={active ? 'text-blue-400' : 'text-slate-600'} strokeWidth={1.5} />
-    </div>
-    <h3 className={`text-lg font-light tracking-tight mb-2 ${active ? 'text-white' : 'text-slate-400'}`}>{title}</h3>
-    <p className="text-xs text-slate-500 leading-relaxed font-light">{sub}</p>
-    {active && <div className="absolute bottom-0 left-0 h-[2px] bg-blue-500 w-full shadow-[0_0_15px_rgba(37,99,235,1)]" />}
+const TTextarea = ({ label, hint, ...props }) => (
+  <div className="group space-y-1.5">
+    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-focus-within:text-blue-500 transition-colors">{label}</label>
+    {hint && <p className="text-[11px] text-slate-600 leading-relaxed">{hint}</p>}
+    <textarea {...props}
+      className="w-full bg-white/[0.03] border border-white/10 p-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono resize-none rounded-sm" />
+  </div>
+);
+
+const TSelect = ({ label, hint, options, value, onChange }) => (
+  <div className="space-y-1.5">
+    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</label>
+    {hint && <p className="text-[11px] text-slate-600 leading-relaxed">{hint}</p>}
+    <select value={value} onChange={e => onChange(e.target.value)}
+      className="w-full bg-[#0a0a0f] border-b border-white/10 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all font-mono">
+      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
   </div>
 );
 
@@ -71,89 +99,771 @@ const Toggle = ({ label, sub, on, onChange }) => (
   <div className="flex items-center justify-between p-4 border border-white/5 bg-white/[0.01] mb-3">
     <div>
       <div className="text-xs font-bold text-slate-300 tracking-tight">{label}</div>
-      <div className="text-[10px] text-slate-500 font-light">{sub}</div>
+      {sub && <div className="text-[10px] text-slate-500 font-light mt-0.5">{sub}</div>}
     </div>
-    <button 
-      onClick={() => onChange(!on)}
-      className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${on ? 'bg-blue-600' : 'bg-slate-800'}`}
-    >
+    <button onClick={() => onChange(!on)}
+      className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${on ? 'bg-blue-600' : 'bg-slate-800'}`}>
       <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300 ${on ? 'left-6' : 'left-1'}`} />
     </button>
   </div>
 );
 
-const StepRole = ({ data, setData }) => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
-    <FeatureCard 
-      icon={Radio} title="Signal Provider" active={data.role === 'provider'}
-      onClick={() => setData({...data, role: 'provider'})}
-      sub="Master account. Your trades are broadcast to followers instantly."
-    />
-    <FeatureCard 
-      icon={Users} title="Follower" active={data.role === 'follower'}
-      onClick={() => setData({...data, role: 'follower'})}
-      sub="Slave account. Copy trades instantly from a master source."
-    />
-    <FeatureCard 
-      icon={GitFork} title="Self-Copy" active={data.role === 'self'}
-      onClick={() => setData({...data, role: 'self'})}
-      sub="Internal linkage. Duplicate trades between your own accounts."
-    />
+const InfoBox = ({ children, color = 'blue' }) => {
+  const styles = {
+    blue:   'border-blue-500/20 bg-blue-500/5 text-blue-300',
+    amber:  'border-amber-500/20 bg-amber-500/5 text-amber-300',
+    red:    'border-red-500/20 bg-red-500/5 text-red-300',
+    green:  'border-green-500/20 bg-green-500/5 text-green-300',
+  };
+  return (
+    <div className={`flex items-start gap-3 p-4 border rounded-sm ${styles[color]}`}>
+      <Info size={14} className="mt-0.5 flex-shrink-0" />
+      <p className="text-[11px] leading-relaxed">{children}</p>
+    </div>
+  );
+};
+
+const SectionTitle = ({ step, id, title }) => (
+  <div className="mb-16">
+    <span className="text-blue-500 font-mono text-xs mb-2 block tracking-widest">0{step + 1} // {id.toUpperCase()}</span>
+    <h1 className="text-5xl font-extralight tracking-tighter mb-4">{title}</h1>
+    <div className="w-24 h-[1px] bg-blue-500/50" />
   </div>
 );
 
-const StepProtect = ({ data, setData }) => (
-  <div className="space-y-12 max-w-2xl">
-    <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-      <TerminalInput label="Global Drawdown (%)" placeholder="5.0" type="number" />
-      <TerminalInput label="Max Daily Loss ($)" placeholder="1000" type="number" />
-      <TerminalInput label="Symbol Prefix" placeholder="e.g. .m" />
-      <TerminalInput label="Symbol Suffix" placeholder="e.g. +f" />
+const FeatureCard = ({ title, sub, icon: Icon, active, onClick, accent }) => (
+  <div onClick={onClick}
+    className={`relative p-8 border cursor-pointer transition-all duration-700 group
+      ${active ? 'bg-blue-600/5 border-blue-500/50' : 'bg-transparent border-white/5 hover:border-white/20'}`}>
+    <div className={`mb-6 transition-transform duration-500 ${active ? 'scale-110' : 'group-hover:scale-105'}`}>
+      <Icon size={28} className={active ? (accent || 'text-blue-400') : 'text-slate-600'} strokeWidth={1.5} />
     </div>
-    <div className="space-y-6">
-      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Safety Notifications</label>
-      <div className="grid md:grid-cols-2 gap-4">
-        <Toggle 
-          label="Disconnection Alert" 
-          sub="Alert if servers lose bridge connection" 
-          on={data.notif1 ?? true} 
-          onChange={v => setData({...data, notif1: v})} 
-        />
-        <Toggle 
-          label="Execution Fail" 
-          sub="Alert when an order is rejected" 
-          on={data.notif2 ?? true} 
-          onChange={v => setData({...data, notif2: v})} 
-        />
+    <h3 className={`text-lg font-light tracking-tight mb-2 ${active ? 'text-white' : 'text-slate-400'}`}>{title}</h3>
+    <p className="text-xs text-slate-500 leading-relaxed font-light">{sub}</p>
+    {active && <div className="absolute bottom-0 left-0 h-[2px] bg-blue-500 w-full shadow-[0_0_15px_rgba(37,99,235,1)]" />}
+  </div>
+);
+
+// ─── Provider cards ───────────────────────────────────────────────────────────
+const MARKET_COLORS = {
+  FX:          'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  Crypto:      'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  Stocks:      'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  Commodities: 'bg-green-500/10 text-green-400 border-green-500/20',
+};
+const MarketBadge = ({ market }) => (
+  <span className={`text-[10px] font-bold px-2 py-0.5 border rounded-sm uppercase tracking-wider ${MARKET_COLORS[market] ?? 'bg-white/5 text-slate-400 border-white/10'}`}>{market}</span>
+);
+const WinBar = ({ rate }) => {
+  const color = rate >= 70 ? 'bg-green-500' : rate >= 55 ? 'bg-amber-500' : 'bg-red-500';
+  return (
+    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+      <div className={`h-full rounded-full ${color}`} style={{ width: `${rate}%` }} />
+    </div>
+  );
+};
+
+const PROVIDERS = [
+  { id: 'qc', name: 'Quantum Core (Live-01)', initials: 'QC', avatarClass: 'bg-blue-500/20 text-blue-400', since: 'Jan 2022', followers: 1204, winRate: 73.4, totalTrades: 3812, avgMonthly: 8.2, maxDrawdown: 12.1, markets: ['FX', 'Commodities', 'Crypto'], style: 'Swing', sessions: ['London', 'NY'] },
+  { id: 'ts', name: 'Titanium Scalp v4',      initials: 'TS', avatarClass: 'bg-teal-500/20 text-teal-400',  since: 'Mar 2023', followers: 587,  winRate: 61.0, totalTrades: 9450,  avgMonthly: 5.7, maxDrawdown: 7.4,  markets: ['FX'], style: 'Scalp', sessions: ['London'] },
+  { id: 'be', name: 'Black Edge HFT',          initials: 'BE', avatarClass: 'bg-amber-500/20 text-amber-400', since: 'Aug 2021', followers: 2031, winRate: 81.9, totalTrades: 21340, avgMonthly: 14.3, maxDrawdown: 19.8, markets: ['FX', 'Stocks', 'Crypto', 'Commodities'], style: 'HFT', sessions: ['London', 'NY', 'Asia'] },
+];
+
+const ProviderCard = ({ provider, selected, onSelect }) => {
+  const ddColor = provider.maxDrawdown <= 10 ? 'text-yellow-400' : provider.maxDrawdown <= 18 ? 'text-orange-400' : 'text-red-400';
+  const winColor = provider.winRate >= 70 ? 'text-green-400' : provider.winRate >= 55 ? 'text-yellow-400' : 'text-red-400';
+  return (
+    <div onClick={() => onSelect(provider.id)}
+      className={`relative p-5 border cursor-pointer transition-all duration-300
+        ${selected ? 'border-blue-500/60 bg-blue-600/5' : 'border-white/5 bg-white/[0.01] hover:border-white/20'}`}>
+      {selected && <div className="absolute top-0 left-0 h-[2px] bg-blue-500 w-full" />}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${provider.avatarClass}`}>{provider.initials}</div>
+          <div>
+            <div className="text-sm font-semibold text-white">{provider.name}</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Active since {provider.since} · {provider.followers.toLocaleString()} followers · <span className="text-slate-400">{provider.style}</span></div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          <span className="text-[10px] font-bold text-green-400 border border-green-500/20 bg-green-500/10 px-2 py-0.5 rounded-sm">✓ Verified</span>
+          <span className="text-[10px] font-bold text-blue-400 border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 rounded-sm font-mono">PUBLIC</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {[
+          { label: 'Win Rate',     value: `${provider.winRate}%`,          cls: winColor },
+          { label: 'Total Trades', value: provider.totalTrades.toLocaleString(), cls: 'text-white' },
+          { label: 'Avg / Month',  value: `+${provider.avgMonthly}%`,      cls: 'text-green-400' },
+          { label: 'Max DD',       value: `-${provider.maxDrawdown}%`,     cls: ddColor },
+        ].map(s => (
+          <div key={s.label} className="bg-white/[0.03] border border-white/5 p-3">
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{s.label}</div>
+            <div className={`text-base font-bold font-mono ${s.cls}`}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mb-4">
+        <div className="flex justify-between text-[10px] text-slate-500 mb-1.5"><span>Win rate</span><span>{provider.winRate}%</span></div>
+        <WinBar rate={provider.winRate} />
+      </div>
+      <div className="flex items-center justify-between pt-3 border-t border-white/5">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {provider.markets.map(m => <MarketBadge key={m} market={m} />)}
+          {provider.sessions.map(s => (
+            <span key={s} className="text-[10px] text-slate-500 border border-white/5 px-2 py-0.5 rounded-sm">{s}</span>
+          ))}
+        </div>
+        <span className="text-[10px] text-blue-400 hover:underline cursor-pointer ml-2">View full stats →</span>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STEP COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const StepRole = ({ data, setData, resetStep }) => (
+  <div className="space-y-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-white/5 divide-x divide-white/5">
+      <FeatureCard icon={Radio}        title="Signal Provider"  active={data.role === 'provider'}  onClick={() => { setData({ ...data, role: 'provider' }); resetStep(); }} sub="Master account. Broadcast your trades to followers in real-time." />
+      <FeatureCard icon={Users}        title="Copy Follower"    active={data.role === 'follower'}  onClick={() => { setData({ ...data, role: 'follower' }); resetStep(); }} sub="Follow a verified provider. Trades mirror automatically." />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-white/5 divide-x divide-white/5">
+      <FeatureCard icon={GitFork}      title="Self-Copy"        active={data.role === 'self'}      onClick={() => { setData({ ...data, role: 'self' }); resetStep(); }}     sub="Duplicate trades between your own accounts on any broker." />
+      <FeatureCard icon={MessageSquare} title="Telegram Signals" active={data.role === 'telegram'} onClick={() => { setData({ ...data, role: 'telegram' }); resetStep(); }} sub="Parse and auto-execute signals from a Telegram channel." accent="text-sky-400" />
+    </div>
+  </div>
+);
+
+// ── Connect (Broker) ──────────────────────────────────────────────────────────
+const StepConnect = ({ data, setData, label = "Trading Account" }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Type</label>
+        <div className="grid grid-cols-2 gap-3">
+          {["MT4", "MT5", "cTrader", "Proprietary"].map(p => (
+            <button key={p} onClick={() => setData({ ...data, platform: p })}
+              className={`px-4 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between
+                ${data.platform === p ? 'bg-white text-black border-white' : 'border-white/10 text-slate-500 hover:border-white/30'}`}>
+              {p}{data.platform === p && <CheckCircle2 size={12} />}
+            </button>
+          ))}
+        </div>
+      </div>
+      {data.platform === 'Proprietary' ? (
+        <div className="space-y-8">
+          <TInput label="Broker Platform Name" placeholder="e.g. ThinkTrader, Oanda Desktop" />
+          <TInput label="API Endpoint (Optional)" placeholder="https://api.broker.com/v1" />
+          <div className="grid grid-cols-2 gap-8">
+            <TInput label="API Key" type="password" placeholder="pk_live_..." />
+            <TInput label="Secret"  type="password" placeholder="••••••••" />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <TInput label={`${label} Nickname`} placeholder="e.g. IC Markets Live" />
+          <TInput label="Broker Server" placeholder="IC-Markets-Live-02" />
+          <div className="grid grid-cols-2 gap-8">
+            <TInput label="Login ID"           placeholder="1029384" />
+            <TInput label="Investor Password"  type="password" placeholder="••••••••" />
+          </div>
+        </div>
+      )}
+    </div>
+    <div className="flex flex-col justify-end pb-2">
+      <div className="p-8 border border-white/5 bg-white/[0.01]">
+        <div className="flex items-center gap-3 mb-4 text-blue-400">
+          <Shield size={18} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Security Protocol</span>
+        </div>
+        <p className="text-xs text-slate-500 leading-relaxed italic">
+          TradeSync uses isolated bridge technology to monitor your margin and mirror executions. No withdrawal or sensitive personal data permissions are ever required.
+        </p>
       </div>
     </div>
   </div>
 );
 
+// ── Provider Link ─────────────────────────────────────────────────────────────
+const StepLink = ({ data, setData }) => (
+  <div className="max-w-3xl space-y-10">
+    <TInput label="Master Search ID" placeholder="Enter Provider UUID or Account ID..." />
+    <div className="space-y-4">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified Providers</label>
+      <div className="space-y-3">
+        {PROVIDERS.map(p => (
+          <ProviderCard key={p.id} provider={p} selected={data.selectedProvider === p.id} onSelect={id => setData({ ...data, selectedProvider: id })} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ── Copy Filters (Follower & Telegram) ────────────────────────────────────────
+const StepFilters = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-10">
+    <InfoBox>These filters control which trades from the provider actually get copied to your account. Leave blank to copy everything.</InfoBox>
+    <div className="space-y-8">
+      <TInput label="Symbol Whitelist" hint="Only copy trades on these symbols. Comma-separated. Leave blank for all." placeholder="EURUSD, XAUUSD, BTCUSD" />
+      <TInput label="Symbol Blacklist" hint="Never copy trades on these symbols, even if the provider opens them." placeholder="GBPJPY, USDZAR" />
+    </div>
+    <div className="grid grid-cols-2 gap-8">
+      <TInput label="Max Open Trades" hint="Cap on simultaneous copied positions." placeholder="10" type="number" />
+      <TInput label="Trade Delay (seconds)" hint="Buffer time before a copied trade executes. Useful for slippage control." placeholder="0" type="number" />
+    </div>
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Auto-Pause Conditions</label>
+      <Toggle label="Pause if provider hasn't traded in 7 days" sub="Prevents copying stale or abandoned signals" on={data.pauseInactive ?? true} onChange={v => setData({ ...data, pauseInactive: v })} />
+      <Toggle label="Pause if my drawdown exceeds threshold" sub="Set your drawdown limit in the Shield step" on={data.pauseDD ?? true} onChange={v => setData({ ...data, pauseDD: v })} />
+      <Toggle label="Only copy during market sessions" sub="Restrict copying to London / NY / Asia hours" on={data.sessionFilter ?? false} onChange={v => setData({ ...data, sessionFilter: v })} />
+    </div>
+    {data.sessionFilter && (
+      <div className="space-y-3 pl-4 border-l border-blue-500/30">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Sessions</label>
+        {['London (08:00–17:00 GMT)', 'New York (13:00–22:00 GMT)', 'Asia (00:00–09:00 GMT)'].map(s => (
+          <Toggle key={s} label={s} on={data[`session_${s}`] ?? false} onChange={v => setData({ ...data, [`session_${s}`]: v })} />
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+// ── Lot Engine ────────────────────────────────────────────────────────────────
+const StepCopy = ({ data, setData }) => (
+  <div className="space-y-12">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
+      <FeatureCard icon={Scale}     title="Balance Multiplier" active={data.lotMode === 'mult'}  onClick={() => setData({ ...data, lotMode: 'mult' })}  sub="Scale lot relative to account size. Recommended for most users." />
+      <FeatureCard icon={Anchor}    title="Fixed Lot Size"     active={data.lotMode === 'fixed'} onClick={() => setData({ ...data, lotMode: 'fixed' })} sub="Always open a fixed lot regardless of the provider's size." />
+      <FeatureCard icon={TrendingUp} title="Equity Risk %"     active={data.lotMode === 'risk'}  onClick={() => setData({ ...data, lotMode: 'risk' })}  sub="Dynamic sizing based on free margin and stop-loss distance." />
+    </div>
+    <div className="max-w-lg space-y-8">
+      {data.lotMode === 'mult' && (
+        <TInput label="Multiplier" hint="1.0 = mirror exactly. 0.5 = half the provider's lot. 2.0 = double." placeholder="1.0" type="number" />
+      )}
+      {data.lotMode === 'fixed' && (
+        <TInput label="Fixed Lot Size" hint="This value will be used for every trade regardless of the provider." placeholder="0.01" type="number" />
+      )}
+      {data.lotMode === 'risk' && (
+        <TInput label="Risk Per Trade (%)" hint="Engine calculates lot size from your free margin and the trade's stop-loss distance." placeholder="1.0" type="number"
+          value={data.riskAmount} onChange={e => setData({ ...data, riskAmount: e.target.value })} />
+      )}
+      <TSelect label="Direction Mode" hint="How trades are copied relative to the provider's direction."
+        options={[
+          { value: 'same',    label: 'Same direction (standard copy)' },
+          { value: 'reverse', label: 'Reverse direction (counter-trade)' },
+          { value: 'hedge',   label: 'Hedge mode (open opposite simultaneously)' },
+        ]}
+        value={data.direction ?? 'same'} onChange={v => setData({ ...data, direction: v })} />
+    </div>
+  </div>
+);
+
+// ── Protection Shield ─────────────────────────────────────────────────────────
+const StepProtect = ({ data, setData }) => (
+  <div className="space-y-10 max-w-2xl">
+    <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+      <TInput label="Global Drawdown (%)" hint="Stop all copying if total account drawdown exceeds this." placeholder="5.0" type="number" />
+      <TInput label="Max Daily Loss ($)"  hint="Halt copying for the rest of the day if this dollar loss is hit." placeholder="1000" type="number" />
+      <div className="space-y-2">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Symbol Prefix</label>
+        <p className="text-[11px] text-slate-600 leading-relaxed">Characters your broker adds <span className="text-slate-300">before</span> the symbol. Check your broker's market watch.</p>
+        <input type="text" placeholder="e.g. .m"
+          className="w-full bg-white/[0.01] border-b border-white/10 py-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono" />
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[10px] font-mono text-slate-600 bg-white/5 border border-white/5 px-2 py-1">EURUSD</span>
+          <span className="text-[10px] text-slate-600">→</span>
+          <span className="text-[10px] font-mono text-blue-400 bg-blue-500/5 border border-blue-500/10 px-2 py-1">.mEURUSD</span>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Symbol Suffix</label>
+        <p className="text-[11px] text-slate-600 leading-relaxed">Characters your broker adds <span className="text-slate-300">after</span> the symbol. Common on ECN/raw accounts.</p>
+        <input type="text" placeholder="e.g. +f"
+          className="w-full bg-white/[0.01] border-b border-white/10 py-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono" />
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[10px] font-mono text-slate-600 bg-white/5 border border-white/5 px-2 py-1">EURUSD</span>
+          <span className="text-[10px] text-slate-600">→</span>
+          <span className="text-[10px] font-mono text-blue-400 bg-blue-500/5 border border-blue-500/10 px-2 py-1">EURUSD+f</span>
+        </div>
+      </div>
+    </div>
+    <InfoBox>Leave prefix/suffix blank if unsure — most brokers don't need them. Contact your broker or check the symbol list in your trading terminal.</InfoBox>
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Safety Notifications</label>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Toggle label="Disconnection Alert" sub="Alert if bridge loses connection"  on={data.notif1 ?? true} onChange={v => setData({ ...data, notif1: v })} />
+        <Toggle label="Execution Fail"      sub="Alert when an order is rejected"   on={data.notif2 ?? true} onChange={v => setData({ ...data, notif2: v })} />
+        <Toggle label="Drawdown Warning"    sub="Alert at 80% of your DD threshold" on={data.notif3 ?? true} onChange={v => setData({ ...data, notif3: v })} />
+        <Toggle label="Daily Loss Warning"  sub="Alert at 80% of your daily limit"  on={data.notif4 ?? true} onChange={v => setData({ ...data, notif4: v })} />
+      </div>
+    </div>
+  </div>
+);
+
+// ── Risk Acknowledgement ──────────────────────────────────────────────────────
+const StepRisk = ({ data, setData, isProvider }) => (
+  <div className="max-w-2xl space-y-8">
+    <div className="p-8 border border-red-500/20 bg-red-500/5 space-y-4">
+      <div className="flex items-center gap-3 text-red-400 mb-2">
+        <AlertTriangle size={20} />
+        <span className="text-xs font-bold uppercase tracking-widest">{isProvider ? 'Provider Liability Disclosure' : 'Risk Warning'}</span>
+      </div>
+      {isProvider ? (
+        <p className="text-xs text-slate-400 leading-relaxed">
+          As a signal provider, you acknowledge that followers will execute real-money trades based on your signals.
+          TradeSync does not verify your trading strategy or guarantee follower profitability.
+          You are solely responsible for the quality and timing of your signals.
+          Past performance does not guarantee future results.
+        </p>
+      ) : (
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Copy trading involves significant risk and may not be suitable for all investors.
+          Past performance of a signal provider does not guarantee future results.
+          You may lose some or all of your invested capital. Never trade with money you cannot afford to lose.
+          You remain solely responsible for any trading activity on your account.
+        </p>
+      )}
+    </div>
+    <div className="space-y-4">
+      <Toggle label="I have read and understand the risk warning above" on={data.riskAccepted ?? false} onChange={v => setData({ ...data, riskAccepted: v })} />
+      {isProvider && <Toggle label="I confirm I am a genuine signal provider and not operating a fraudulent scheme" on={data.providerConfirmed ?? false} onChange={v => setData({ ...data, providerConfirmed: v })} />}
+      <Toggle label={`I confirm I am ${isProvider ? 'broadcasting' : 'trading'} with funds I can afford to lose`} on={data.affordConfirmed ?? false} onChange={v => setData({ ...data, affordConfirmed: v })} />
+    </div>
+    {!(data.riskAccepted && data.affordConfirmed) && (
+      <InfoBox color="amber">You must accept all disclosures above before proceeding to deployment.</InfoBox>
+    )}
+  </div>
+);
+
+// ── Provider Strategy ─────────────────────────────────────────────────────────
+const StepStrategy = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-10">
+    <TInput label="Strategy Name / Nickname" hint="Public-facing name followers will see on your profile." placeholder="e.g. Quantum Swing EA v3" />
+    <TTextarea label="Strategy Description" hint="Describe your trading approach so followers know what to expect." placeholder="Describe your edge, timeframes, risk management approach..." rows={4} />
+    <div className="grid grid-cols-2 gap-8">
+      <TSelect label="Trading Style" hint="Primary style that best describes your approach."
+        options={[
+          { value: 'scalp',     label: 'Scalping (< 1 hour holds)' },
+          { value: 'intraday',  label: 'Intraday (same-day close)' },
+          { value: 'swing',     label: 'Swing (multi-day holds)' },
+          { value: 'position',  label: 'Position (weeks/months)' },
+          { value: 'hft',       label: 'High-Frequency (HFT)' },
+        ]}
+        value={data.tradingStyle ?? 'swing'} onChange={v => setData({ ...data, tradingStyle: v })} />
+      <TSelect label="Primary Markets" hint="Markets you primarily trade."
+        options={[
+          { value: 'fx',        label: 'Forex (FX)' },
+          { value: 'crypto',    label: 'Cryptocurrency' },
+          { value: 'stocks',    label: 'Stocks / Indices' },
+          { value: 'commodities', label: 'Commodities' },
+          { value: 'mixed',     label: 'Mixed / All markets' },
+        ]}
+        value={data.primaryMarket ?? 'fx'} onChange={v => setData({ ...data, primaryMarket: v })} />
+    </div>
+    <TInput label="Typical Symbols Traded" hint="Comma-separated list of instruments your strategy focuses on." placeholder="EURUSD, XAUUSD, GBPUSD" />
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Trading Sessions</label>
+      {['London (08:00–17:00 GMT)', 'New York (13:00–22:00 GMT)', 'Asia (00:00–09:00 GMT)'].map(s => (
+        <Toggle key={s} label={s} on={data[`prov_session_${s}`] ?? false} onChange={v => setData({ ...data, [`prov_session_${s}`]: v })} />
+      ))}
+    </div>
+  </div>
+);
+
+// ── Provider Limits ───────────────────────────────────────────────────────────
+const StepLimits = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-10">
+    <InfoBox>These limits protect your followers from overexposure and help them size positions correctly.</InfoBox>
+    <div className="grid grid-cols-2 gap-8">
+      <TInput label="Max Lot Size Per Signal" hint="Highest lot you will ever broadcast. Followers use this to calculate their own sizing." placeholder="1.00" type="number" />
+      <TInput label="Max Open Trades at Once" hint="Maximum simultaneous open positions you'll carry." placeholder="5" type="number" />
+      <TInput label="Typical Stop-Loss (pips)" hint="Average SL distance. Gives followers an idea of your risk per trade." placeholder="30" type="number" />
+      <TInput label="Typical Take-Profit (pips)" hint="Average TP distance. Helps followers understand your R:R ratio." placeholder="60" type="number" />
+    </div>
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Signal Visibility</label>
+      <Toggle label="Make profile publicly discoverable" sub="Appear in the verified providers list for all users" on={data.isPublic ?? true} onChange={v => setData({ ...data, isPublic: v })} />
+      <Toggle label="Require approval before followers can copy" sub="You manually approve each follower request" on={data.requireApproval ?? false} onChange={v => setData({ ...data, requireApproval: v })} />
+      <Toggle label="Show live open trades to followers" sub="Followers can see your current open positions" on={data.showOpenTrades ?? true} onChange={v => setData({ ...data, showOpenTrades: v })} />
+    </div>
+  </div>
+);
+
+// ── Provider Notifications ────────────────────────────────────────────────────
+const StepProviderNotif = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-8">
+    <TInput label="Notification Email" hint="Where to receive follower and performance alerts." placeholder="you@example.com" type="email" />
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Alert Events</label>
+      <Toggle label="New follower joined"         sub="Alert when someone starts copying you"          on={data.nNewFollower ?? true}  onChange={v => setData({ ...data, nNewFollower: v })} />
+      <Toggle label="Follower stopped copying"    sub="Alert when someone disconnects from your signal" on={data.nDropped ?? true}     onChange={v => setData({ ...data, nDropped: v })} />
+      <Toggle label="Execution failure on follower" sub="Alert if a follower's copy trade was rejected"  on={data.nExecFail ?? true}   onChange={v => setData({ ...data, nExecFail: v })} />
+      <Toggle label="Bridge disconnection"        sub="Alert if your bridge loses server connection"    on={data.nDisconnect ?? true} onChange={v => setData({ ...data, nDisconnect: v })} />
+      <Toggle label="Weekly performance digest"   sub="Receive a weekly summary of follower performance" on={data.nWeekly ?? false}   onChange={v => setData({ ...data, nWeekly: v })} />
+    </div>
+  </div>
+);
+
+// ── Self-Copy: Source & Target ─────────────────────────────────────────────────
+const StepConnect2 = ({ data, setData }) => (
+  <StepConnect data={{ ...data, platform: data.platform2 ?? 'MT5' }} setData={d => setData({ ...data, platform2: d.platform })} label="Target Account" />
+);
+
+// ── Self-Copy: Symbol Mapping ─────────────────────────────────────────────────
+const StepMapping = ({ data, setData }) => {
+  const copyAll = data.copyAllSymbols ?? true;
+  return (
+    <div className="max-w-2xl space-y-10">
+
+      {/* Copy mode selector */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-white/5 divide-x divide-white/5">
+        <div
+          onClick={() => setData({ ...data, copyAllSymbols: true })}
+          className={`relative p-6 cursor-pointer transition-all duration-300 group
+            ${copyAll ? 'bg-blue-600/5 border-b-0 border-blue-500/50 border' : 'border border-transparent hover:border-white/10'}`}
+        >
+          <div className="flex items-start gap-4">
+            <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
+              ${copyAll ? 'border-blue-500' : 'border-slate-600'}`}>
+              {copyAll && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+            </div>
+            <div>
+              <p className={`text-sm font-semibold mb-1 transition-colors ${copyAll ? 'text-white' : 'text-slate-400'}`}>
+                Copy everything
+              </p>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Mirror all symbols traded on the source account. No configuration needed — the bridge handles everything automatically.
+              </p>
+            </div>
+          </div>
+          {copyAll && <div className="absolute bottom-0 left-0 h-[2px] bg-blue-500 w-full" />}
+        </div>
+
+        <div
+          onClick={() => setData({ ...data, copyAllSymbols: false })}
+          className={`relative p-6 cursor-pointer transition-all duration-300 group
+            ${!copyAll ? 'bg-blue-600/5 border-blue-500/50 border' : 'border border-transparent hover:border-white/10'}`}
+        >
+          <div className="flex items-start gap-4">
+            <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
+              ${!copyAll ? 'border-blue-500' : 'border-slate-600'}`}>
+              {!copyAll && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+            </div>
+            <div>
+              <p className={`text-sm font-semibold mb-1 transition-colors ${!copyAll ? 'text-white' : 'text-slate-400'}`}>
+                Custom symbol mapping
+              </p>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Specify exactly which symbols to copy and rename them if your target broker uses different instrument names.
+              </p>
+            </div>
+          </div>
+          {!copyAll && <div className="absolute bottom-0 left-0 h-[2px] bg-blue-500 w-full" />}
+        </div>
+      </div>
+
+      {/* Copy everything — confirmation info */}
+      {copyAll && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+          <InfoBox color="green">
+            All instruments traded on the source account will be mirrored to the target automatically.
+            If the two brokers use different symbol names (e.g. <span className="font-mono">XAUUSD</span> vs <span className="font-mono">GOLD</span>),
+            switch to Custom Mapping to define those differences.
+          </InfoBox>
+        </div>
+      )}
+
+      {/* Custom mapping fields */}
+      {!copyAll && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-500 space-y-6">
+          <InfoBox>
+            Map each source symbol to its equivalent on the target broker.
+            Only symbols listed here will be copied — all others will be ignored.
+          </InfoBox>
+
+          {/* Column headers */}
+          <div className="grid grid-cols-2 gap-8 px-1">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Source Symbol</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Symbol</span>
+          </div>
+
+          {(data.symbolMaps ?? [{ from: '', to: '' }, { from: '', to: '' }]).map((m, i) => (
+            <div key={i} className="grid grid-cols-2 gap-8 items-center group">
+              <div className="relative">
+                <input
+                  placeholder="e.g. XAUUSD"
+                  value={m.from}
+                  onChange={e => {
+                    const maps = [...(data.symbolMaps ?? [])];
+                    maps[i] = { ...maps[i], from: e.target.value };
+                    setData({ ...data, symbolMaps: maps });
+                  }}
+                  className="w-full bg-white/[0.01] border-b border-white/10 py-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-slate-700 text-xs flex-shrink-0">→</span>
+                <input
+                  placeholder="e.g. GOLD  (leave blank = same name)"
+                  value={m.to}
+                  onChange={e => {
+                    const maps = [...(data.symbolMaps ?? [])];
+                    maps[i] = { ...maps[i], to: e.target.value };
+                    setData({ ...data, symbolMaps: maps });
+                  }}
+                  className="w-full bg-white/[0.01] border-b border-white/10 py-3 text-sm font-medium text-white placeholder:text-slate-700 focus:outline-none focus:border-blue-500 transition-all font-mono"
+                />
+                {(data.symbolMaps ?? []).length > 1 && (
+                  <button
+                    onClick={() => {
+                      const maps = (data.symbolMaps ?? []).filter((_, idx) => idx !== i);
+                      setData({ ...data, symbolMaps: maps });
+                    }}
+                    className="text-slate-700 hover:text-red-400 transition-colors text-xs flex-shrink-0 font-mono"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          <button
+            onClick={() => setData({ ...data, symbolMaps: [...(data.symbolMaps ?? []), { from: '', to: '' }] })}
+            className="text-[10px] uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors border border-blue-500/20 px-4 py-2"
+          >
+            + Add Symbol
+          </button>
+        </div>
+      )}
+
+      {/* Direction & reconnect — always visible */}
+      <div className="space-y-8 pt-2 border-t border-white/5">
+        <TSelect label="Direction Mode" hint="How to copy relative to source direction."
+          options={[
+            { value: 'same',    label: 'Same direction (mirror)' },
+            { value: 'reverse', label: 'Reverse direction (counter)' },
+            { value: 'hedge',   label: 'Hedge (open both directions)' },
+          ]}
+          value={data.selfDirection ?? 'same'} onChange={v => setData({ ...data, selfDirection: v })} />
+        <Toggle
+          label="Replay missed trades on reconnect"
+          sub="If the bridge was offline, catch up on trades that were missed"
+          on={data.replayMissed ?? false}
+          onChange={v => setData({ ...data, replayMissed: v })}
+        />
+      </div>
+    </div>
+  );
+};
+
+// ── Telegram Auth ─────────────────────────────────────────────────────────────
+const StepTgAuth = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-10">
+    <div className="p-8 border border-sky-500/20 bg-sky-500/5 flex items-start gap-4">
+      <MessageSquare size={24} className="text-sky-400 flex-shrink-0 mt-1" />
+      <div>
+        <p className="text-xs font-bold text-sky-400 uppercase tracking-widest mb-2">Connect Your Telegram Account</p>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          TradeSync uses a read-only Telegram bot to monitor signal channels. Your account credentials are never stored — only a revocable session token is used.
+        </p>
+      </div>
+    </div>
+    <div className="space-y-8">
+      <TInput label="Bot API Token" hint="Create a bot via @BotFather on Telegram and paste the token here. The bot must be added to the signal channel as a member." placeholder="1234567890:AAF..." />
+      <TInput label="Telegram Phone Number" hint="Your personal Telegram number linked to the account that has access to the signal channel." placeholder="+254 7XX XXX XXX" type="tel" />
+      <div className="grid grid-cols-2 gap-8">
+        <TInput label="API ID" hint="Get from my.telegram.org → API development tools." placeholder="12345678" />
+        <TInput label="API Hash" hint="Generated alongside your API ID on my.telegram.org." placeholder="abc123def456..." />
+      </div>
+    </div>
+    <InfoBox color="blue">After entering your credentials, a verification code will be sent to your Telegram app. You'll enter it in the next step.</InfoBox>
+  </div>
+);
+
+// ── Telegram Channel ──────────────────────────────────────────────────────────
+const StepTgChannel = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-10">
+    <TInput label="Verification Code" hint="Enter the code sent to your Telegram app to confirm account access." placeholder="12345" />
+    <div className="border-t border-white/5 pt-8 space-y-8">
+      <TInput label="Channel / Group Name or Link" hint="The exact username or invite link of the signal channel. The bot must already be a member." placeholder="@forex_signals_channel or https://t.me/..." />
+      <TSelect label="Channel Type"
+        hint="Select the type of Telegram source you're connecting to."
+        options={[
+          { value: 'public_channel',  label: 'Public channel (@username)' },
+          { value: 'private_channel', label: 'Private channel (invite link)' },
+          { value: 'group',           label: 'Group or supergroup' },
+          { value: 'bot',             label: 'Direct bot signals' },
+        ]}
+        value={data.tgChannelType ?? 'public_channel'} onChange={v => setData({ ...data, tgChannelType: v })} />
+    </div>
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Signal Source Options</label>
+      <Toggle label="Monitor multiple channels" sub="Connect up to 5 channels and merge their signals" on={data.tgMultiChannel ?? false} onChange={v => setData({ ...data, tgMultiChannel: v })} />
+      <Toggle label="Only copy signals from specific sender" sub="Filter by a specific admin or bot username in the channel" on={data.tgFilterSender ?? false} onChange={v => setData({ ...data, tgFilterSender: v })} />
+      {data.tgFilterSender && (
+        <div className="pl-4 border-l border-blue-500/30 pt-2">
+          <TInput label="Sender Username" placeholder="@signal_admin" />
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+// ── Telegram Parser ───────────────────────────────────────────────────────────
+const StepTgParser = ({ data, setData }) => (
+  <div className="max-w-2xl space-y-10">
+    <InfoBox>Signal channels format messages differently. Tell the parser what keywords your channel uses so it can extract entry, stop-loss, and take-profit correctly.</InfoBox>
+    <div className="grid grid-cols-2 gap-8">
+      <TInput label="Entry Keyword" hint="Word that precedes the entry price in the signal message." placeholder="e.g. Entry, Buy at, Sell at" />
+      <TInput label="Stop-Loss Keyword" hint="Word that precedes the stop-loss value." placeholder="e.g. SL, Stop, Stop Loss" />
+      <TInput label="Take-Profit Keyword" hint="Word preceding the take-profit value. Supports multiple TPs." placeholder="e.g. TP, Target, Take Profit" />
+      <TInput label="Symbol Keyword" hint="How the symbol is labelled in the message, if labelled at all." placeholder="e.g. Pair, Symbol, Instrument" />
+    </div>
+    <div className="space-y-3">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Partial Signal Handling</label>
+      <Toggle label="Execute if no Stop-Loss provided" sub="Opens the trade without an SL — use with caution" on={data.tgNoSL ?? false} onChange={v => setData({ ...data, tgNoSL: v })} />
+      <Toggle label="Execute if no Take-Profit provided" sub="Leaves trade open until manually closed or SL hit" on={data.tgNoTP ?? true} onChange={v => setData({ ...data, tgNoTP: v })} />
+      <Toggle label="Use first TP only (ignore multiple TPs)" sub="For multi-TP signals, only execute against TP1" on={data.tgFirstTP ?? true} onChange={v => setData({ ...data, tgFirstTP: v })} />
+      <Toggle label="Auto-close on signal update" sub="If the channel posts an update to a signal, modify the open trade" on={data.tgAutoUpdate ?? false} onChange={v => setData({ ...data, tgAutoUpdate: v })} />
+    </div>
+  </div>
+);
+
+// ── Telegram Parser Test ──────────────────────────────────────────────────────
+const StepTgTest = ({ data, setData }) => {
+  const [parsed, setParsed] = useState(null);
+  const sampleMsg = data.testMessage ?? '';
+  const runTest = () => {
+    if (!sampleMsg.trim()) return;
+    setParsed({
+      symbol: 'EURUSD', direction: 'BUY', entry: '1.08450',
+      sl: '1.08100', tp1: '1.08800', tp2: '1.09100', confidence: 'High',
+    });
+  };
+  return (
+    <div className="max-w-2xl space-y-10">
+      <InfoBox>Paste a real signal message from the channel below. The parser will attempt to extract the trade details so you can verify it before going live.</InfoBox>
+      <TTextarea label="Sample Signal Message" hint="Copy and paste an example message exactly as it appears in the channel."
+        placeholder={`BUY EURUSD\nEntry: 1.08450\nSL: 1.08100\nTP1: 1.08800\nTP2: 1.09100`}
+        rows={6} value={sampleMsg} onChange={e => setData({ ...data, testMessage: e.target.value })} />
+      <GlowButton active={!!sampleMsg.trim()} onClick={runTest}>
+        <Zap size={14} /> Run Parser Test
+      </GlowButton>
+      {parsed && (
+        <div className="border border-green-500/20 bg-green-500/5 p-6 space-y-4">
+          <div className="flex items-center gap-2 text-green-400 mb-2">
+            <CheckCircle2 size={16} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Parser Result — Confidence: {parsed.confidence}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Symbol',    value: parsed.symbol },
+              { label: 'Direction', value: parsed.direction },
+              { label: 'Entry',     value: parsed.entry },
+              { label: 'Stop-Loss', value: parsed.sl },
+              { label: 'TP 1',      value: parsed.tp1 },
+              { label: 'TP 2',      value: parsed.tp2 },
+            ].map(f => (
+              <div key={f.label} className="bg-white/[0.03] border border-white/5 p-3">
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{f.label}</div>
+                <div className="text-sm font-bold font-mono text-white">{f.value}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-500">If any field looks incorrect, go back and adjust the parser keywords.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Go Live ───────────────────────────────────────────────────────────────────
+const StepGoLive = ({ data, role, setDeployed }) => {
+  const provider = PROVIDERS.find(p => p.id === data.selectedProvider);
+  const allAccepted = data.riskAccepted && data.affordConfirmed;
+  const canDeploy = role === 'provider' ? (data.riskAccepted && data.affordConfirmed && data.providerConfirmed) : (role === 'telegram' ? allAccepted : allAccepted);
+
+  const summaries = {
+    follower: provider ? `Copying ${provider.name} · ${data.lotMode ?? 'mult'} lot mode` : 'Configure provider in Bridge Linkage step',
+    provider: `Broadcasting as ${data.strategy ?? 'your strategy'} · ${data.isPublic ? 'Public' : 'Private'}`,
+    self:     'Self-copy bridge between your two accounts',
+    telegram: data.tgChannel ? `Telegram channel: ${data.tgChannel}` : 'Telegram signal parser configured',
+  };
+
+  return (
+    <div className="border border-white/5 p-20 flex flex-col items-center justify-center text-center space-y-8 max-w-2xl mx-auto">
+      <div className="w-32 h-32 rounded-full border border-blue-500/20 flex items-center justify-center relative">
+        <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
+        <Rocket size={48} className="text-blue-500" strokeWidth={1.5} />
+      </div>
+      <h2 className="text-3xl font-light">System Ready</h2>
+      <p className="text-slate-500 text-sm max-w-md">{summaries[role]}</p>
+      {!canDeploy && (
+        <div className="flex items-center gap-2 text-amber-400 text-xs border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+          <AlertTriangle size={14} />
+          <span>Please complete the Risk Disclosure step before deploying.</span>
+        </div>
+      )}
+      <GlowButton active={canDeploy} onClick={() => canDeploy && setDeployed(true)}>
+        DEPLOY TERMINAL <ArrowRight size={14} />
+      </GlowButton>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════════════════════
+const STEP_TITLES = {
+  role:       "Define your role.",
+  connect:    "Terminal Access",
+  connect2:   "Target Account",
+  link:       "Bridge Linkage",
+  filters:    "Copy Filters",
+  copy:       "Lot Engine",
+  protect:    "Protection Shield",
+  risk:       "Risk Disclosure",
+  strategy:   "Your Strategy",
+  limits:     "Signal Limits",
+  notif:      "Notifications",
+  mapping:    "Symbol Mapping",
+  'tg-auth':    "Telegram Auth",
+  'tg-channel': "Channel Setup",
+  'tg-parser':  "Signal Parser",
+  'tg-test':    "Parser Test",
+  'go-live':    "Deployment Protocol",
+};
+
 export default function App() {
   const [step, setStep] = useState(0);
   const [isDeployed, setIsDeployed] = useState(false);
-  const [data, setData] = useState({ role: 'follower', platform: 'MT5', lotMode: 'mult', riskAmount: '1' });
+  const [data, setData] = useState({
+    role: 'follower', platform: 'MT5', lotMode: 'mult', riskAmount: '1',
+    selectedProvider: null, symbolMaps: [{ from: '', to: '' }, { from: '', to: '' }],
+  });
 
-  const getVisibleSteps = () => {
-    if (data.role === 'provider') return ALL_STEPS.filter(s => ['role', 'connect', 'go-live'].includes(s.id));
-    if (data.role === 'self') return ALL_STEPS.filter(s => ['role', 'connect', 'copy', 'protect', 'go-live'].includes(s.id));
-    return ALL_STEPS;
+  const getSteps = () => {
+    if (data.role === 'provider') return STEPS_PROVIDER;
+    if (data.role === 'self')     return STEPS_SELF;
+    if (data.role === 'telegram') return STEPS_TELEGRAM;
+    return STEPS_FOLLOWER;
   };
 
-  const visibleSteps = getVisibleSteps();
-  const currentStepData = visibleSteps[step] || visibleSteps[0];
+  const steps = getSteps();
+  const cur = steps[step] || steps[0];
 
-  const handleNext = () => { if (step < visibleSteps.length - 1) setStep(step + 1); };
-  const handlePrev = () => { if (step > 0) setStep(step - 1); };
+  const handleNext = () => { if (step < steps.length - 1) setStep(s => s + 1); };
+  const handlePrev = () => { if (step > 0) setStep(s => s - 1); };
 
   if (isDeployed) {
+    const provider = PROVIDERS.find(p => p.id === data.selectedProvider);
     return (
       <div className="min-h-screen bg-[#020203] text-white flex items-center justify-center p-6 text-center">
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        `}</style>
+        <style>{FONTS + `body { font-family: 'Plus Jakarta Sans', sans-serif; }`}</style>
         <div className="max-w-xl space-y-8 animate-in zoom-in-95 fade-in duration-1000">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-blue-600 blur-3xl opacity-20 animate-pulse" />
@@ -164,9 +874,10 @@ export default function App() {
           <div className="space-y-4">
             <h1 className="text-4xl font-extralight tracking-tighter">Terminal Live</h1>
             <p className="text-slate-500 font-light leading-relaxed">
-              Link established successfully. Your account is now monitoring the 
-              <span className="text-blue-400 font-mono mx-1">@TradeSync_Main_Bridge</span> 
-              for real-time executions.
+              {data.role === 'follower' && provider && <>Copying <span className="text-blue-400 font-mono">{provider.name}</span> in real-time.</>}
+              {data.role === 'provider' && <>Your signals are now broadcasting to followers.</>}
+              {data.role === 'self'     && <>Self-copy bridge is active between your accounts.</>}
+              {data.role === 'telegram' && <>Telegram signal parser is live and monitoring the channel.</>}
             </p>
           </div>
           <div className="pt-8 flex flex-col items-center gap-4">
@@ -182,13 +893,34 @@ export default function App() {
     );
   }
 
+  const renderStep = () => {
+    switch (cur.id) {
+      case 'role':       return <StepRole       data={data} setData={setData} resetStep={() => setStep(0)} />;
+      case 'connect':    return <StepConnect    data={data} setData={setData} label={data.role === 'self' ? 'Source Account' : 'Trading Account'} />;
+      case 'connect2':   return <StepConnect2   data={data} setData={setData} />;
+      case 'link':       return <StepLink       data={data} setData={setData} />;
+      case 'filters':    return <StepFilters    data={data} setData={setData} />;
+      case 'copy':       return <StepCopy       data={data} setData={setData} />;
+      case 'protect':    return <StepProtect    data={data} setData={setData} />;
+      case 'risk':       return <StepRisk       data={data} setData={setData} isProvider={data.role === 'provider'} />;
+      case 'strategy':   return <StepStrategy   data={data} setData={setData} />;
+      case 'limits':     return <StepLimits     data={data} setData={setData} />;
+      case 'notif':      return <StepProviderNotif data={data} setData={setData} />;
+      case 'mapping':    return <StepMapping    data={data} setData={setData} />;
+      case 'tg-auth':    return <StepTgAuth     data={data} setData={setData} />;
+      case 'tg-channel': return <StepTgChannel  data={data} setData={setData} />;
+      case 'tg-parser':  return <StepTgParser   data={data} setData={setData} />;
+      case 'tg-test':    return <StepTgTest     data={data} setData={setData} />;
+      case 'go-live':    return <StepGoLive     data={data} role={data.role} setDeployed={setIsDeployed} />;
+      default:           return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#020203] text-white selection:bg-blue-500/40 font-light overflow-hidden">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+      <style>{FONTS + `
         body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .vertical-text { writing-mode: vertical-rl; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
@@ -196,191 +928,72 @@ export default function App() {
       <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
       <div className="flex h-screen flex-row-reverse">
-
-        {/* RIGHT SIDEBAR */}
-        <aside className="w-20 md:w-24 border-l border-white/5 flex flex-col items-center py-8 gap-12 bg-black/40 backdrop-blur-xl z-20 overflow-y-auto hide-scrollbar">
-          <nav className="flex-1 flex flex-col gap-8 justify-center">
-            {visibleSteps.map((s, i) => {
+        {/* SIDEBAR */}
+        <aside className="w-20 md:w-24 border-l border-white/5 flex flex-col items-center py-8 gap-6 bg-black/40 backdrop-blur-xl z-20 overflow-y-auto hide-scrollbar">
+          <nav className="flex-1 flex flex-col gap-6 justify-center">
+            {steps.map((s, i) => {
               const Icon = s.icon;
+              const done = i < step;
+              const active = i === step;
               return (
-                <div key={s.id} className="relative group flex items-center justify-center">
-                  <Icon 
-                    size={20}
-                    strokeWidth={1.5}
-                    className={`transition-all duration-500 cursor-pointer ${i <= step ? 'text-blue-400' : 'text-slate-700 hover:text-slate-400'}`}
-                    onClick={() => i < step && setStep(i)}
-                  />
-                  {i === step && <div className="absolute -left-[1px] w-[2px] h-8 bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,1)]" />}
+                <div key={s.id} className="relative group flex flex-col items-center gap-1">
+                  <div className="relative flex items-center justify-center">
+                    <Icon size={18} strokeWidth={1.5}
+                      className={`transition-all duration-500 cursor-pointer
+                        ${active ? 'text-blue-400' : done ? 'text-blue-600' : 'text-slate-700 hover:text-slate-400'}`}
+                      onClick={() => done && setStep(i)} />
+                    {active && <div className="absolute -left-[13px] w-[2px] h-6 bg-blue-500 shadow-[0_0_15px_rgba(37,99,235,1)]" />}
+                  </div>
+                  <span className={`text-[8px] uppercase tracking-widest transition-colors ${active ? 'text-blue-400' : done ? 'text-slate-600' : 'text-slate-800'}`}>
+                    {s.label}
+                  </span>
                 </div>
               );
             })}
           </nav>
         </aside>
 
-        {/* MAIN TERMINAL AREA */}
+        {/* MAIN */}
         <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.03),transparent_40%)]">
+          <header className="h-20 border-b border-white/5 flex items-center px-12 justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">TradeSync Terminal</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {['follower','provider','self','telegram'].map(r => (
+                <span key={r} className={`text-[9px] uppercase tracking-widest px-2 py-1 border transition-colors cursor-pointer
+                  ${data.role === r ? 'border-blue-500/40 text-blue-400 bg-blue-500/5' : 'border-white/5 text-slate-700 hover:text-slate-500'}`}
+                  onClick={() => { setData({ ...data, role: r }); setStep(0); }}>
+                  {r}
+                </span>
+              ))}
+            </div>
+          </header>
 
-          <header className="h-20 border-b border-white/5" />
-
-          {/* CONTENT AREA */}
           <section className="flex-1 overflow-y-auto p-12 md:p-20 hide-scrollbar">
             <div className="max-w-6xl">
-              <div className="mb-16">
-                <span className="text-blue-500 font-mono text-xs mb-2 block tracking-widest">0{step + 1} // {currentStepData.id.toUpperCase()}</span>
-                <h1 className="text-5xl font-extralight tracking-tighter mb-4">
-                  {currentStepData.id === 'role' && "Define your role."}
-                  {currentStepData.id === 'connect' && "Terminal Access"}
-                  {currentStepData.id === 'link' && "Bridge Linkage"}
-                  {currentStepData.id === 'copy' && "Lot Engine"}
-                  {currentStepData.id === 'protect' && "Protection Shield"}
-                  {currentStepData.id === 'go-live' && "Deployment Protocol"}
-                </h1>
-                <div className="w-24 h-[1px] bg-blue-500/50" />
-              </div>
-
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                {currentStepData.id === 'role' && <StepRole data={data} setData={(newData) => { setData(newData); setStep(0); }} />}
-
-                {currentStepData.id === 'connect' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
-                    <div className="space-y-8">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Type</label>
-                        <div className="grid grid-cols-2 gap-3">
-                          {["MT4", "MT5", "cTrader", "Proprietary"].map(p => (
-                            <button 
-                              key={p} onClick={() => setData({...data, platform: p})}
-                              className={`px-4 py-3 border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between ${data.platform === p ? 'bg-white text-black border-white' : 'border-white/10 text-slate-500 hover:border-white/30'}`}
-                            >
-                              {p}
-                              {data.platform === p && <CheckCircle2 size={12} />}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      {data.platform === 'Proprietary' ? (
-                        <div className="animate-in fade-in slide-in-from-left-2 duration-500 space-y-8">
-                          <TerminalInput label="Broker Platform Name" placeholder="e.g. ThinkTrader, Oanda Desktop" />
-                          <TerminalInput label="API Endpoint (Optional)" placeholder="https://api.broker.com/v1" />
-                          <div className="grid grid-cols-2 gap-8">
-                            <TerminalInput label="API Key" type="password" placeholder="pk_live_..." />
-                            <TerminalInput label="Secret" type="password" placeholder="••••••••" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="animate-in fade-in duration-500 space-y-8">
-                          <TerminalInput label="Friendly Name" placeholder="Personal Live Account" />
-                          <TerminalInput label="Broker Server" placeholder="IC-Markets-Live-02" />
-                          <div className="grid grid-cols-2 gap-8">
-                            <TerminalInput label="Login ID" placeholder="1029384" />
-                            <TerminalInput label="Investor Password" type="password" placeholder="••••••••" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col justify-end pb-2">
-                      <div className="p-8 border border-white/5 bg-white/[0.01]">
-                        <div className="flex items-center gap-3 mb-4 text-blue-400">
-                          <Shield size={18} />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">Security Protocol</span>
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed italic">
-                          TradeSync uses isolated bridge technology to monitor your margin and mirror executions. No withdrawal or sensitive personal data permissions are ever required.
-                          {data.platform === 'Proprietary' && " Proprietary connections may require manual API token generation from your broker dashboard."}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {currentStepData.id === 'link' && (
-                  <div className="max-w-2xl space-y-12">
-                    <TerminalInput label="Master Search ID" placeholder="Enter Provider UUID or Account ID..." />
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified Providers</label>
-                      {["Quantum Core (Live-01)", "Titanium Scalp v4", "Black Edge HFT"].map(v => (
-                        <div key={v} className="flex justify-between items-center p-6 border border-white/5 bg-white/[0.01] hover:border-blue-500/30 transition-all cursor-pointer">
-                          <span className="font-light tracking-tight">{v}</span>
-                          <span className="text-[10px] font-mono text-blue-500 border border-blue-500/20 px-2 py-1">PUBLIC</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {currentStepData.id === 'copy' && (
-                  <div className="space-y-12">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/5 divide-x divide-white/5">
-                      <FeatureCard 
-                        icon={Scale} title="Balance Multiplier" active={data.lotMode === 'mult'}
-                        onClick={() => setData({...data, lotMode: 'mult'})}
-                        sub="Scale based on relative account size. Safest for most users."
-                      />
-                      <FeatureCard 
-                        icon={Anchor} title="Fixed Lot Size" active={data.lotMode === 'fixed'}
-                        onClick={() => setData({...data, lotMode: 'fixed'})}
-                        sub="Ignores master lot; always opens set value (e.g. 0.01)."
-                      />
-                      <FeatureCard 
-                        icon={TrendingUp} title="Equity Risk %" active={data.lotMode === 'risk'}
-                        onClick={() => setData({...data, lotMode: 'risk'})}
-                        sub="Dynamic sizing based on current free margin per trade."
-                      />
-                    </div>
-                    {data.lotMode === 'risk' && (
-                      <div className="max-w-md animate-in slide-in-from-top-4 duration-500">
-                        <TerminalInput 
-                          label="Risk Amount Per Trade (%)" 
-                          type="number" 
-                          value={data.riskAmount}
-                          onChange={(e) => setData({...data, riskAmount: e.target.value})}
-                          placeholder="1.0" 
-                        />
-                        <p className="mt-4 text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                          <Bell size={12} className="text-blue-500" />
-                          Engine will auto-calculate lot size based on stop-loss distance.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {currentStepData.id === 'protect' && <StepProtect data={data} setData={setData} />}
-
-                {currentStepData.id === 'go-live' && (
-                  <div className="border border-white/5 p-20 flex flex-col items-center justify-center text-center space-y-8">
-                    <div className="w-32 h-32 rounded-full border border-blue-500/20 flex items-center justify-center relative">
-                      <div className="absolute inset-0 bg-blue-500/10 blur-2xl animate-pulse" />
-                      <Rocket size={48} className="text-blue-500" strokeWidth={1.5} />
-                    </div>
-                    <h2 className="text-3xl font-light">System Ready</h2>
-                    <p className="text-slate-500 text-sm max-w-md">
-                      {data.role === 'provider' ? "Your master signal is ready to broadcast." : "All nodes are synchronized. Your trades will now mirror in real-time."}
-                    </p>
-                    <GlowButton active onClick={() => setIsDeployed(true)}>DEPLOY TERMINAL</GlowButton>
-                  </div>
-                )}
+              <SectionTitle step={step} id={cur.id} title={STEP_TITLES[cur.id] ?? cur.id} />
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                {renderStep()}
               </div>
             </div>
           </section>
 
-          {/* FOOTER */}
           <footer className="h-24 border-t border-white/5 bg-black/40 flex items-center justify-between px-12">
-            <button 
-              onClick={handlePrev}
-              className={`text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600 hover:text-white transition-colors ${step === 0 ? 'opacity-0 pointer-events-none' : ''}`}
-            >
+            <button onClick={handlePrev}
+              className={`text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600 hover:text-white transition-colors ${step === 0 ? 'opacity-0 pointer-events-none' : ''}`}>
               [ Previous ]
             </button>
-            <div className="flex gap-4">
-              {step < visibleSteps.length - 1 && (
+            <div className="flex items-center gap-6">
+              <span className="text-[10px] font-mono text-slate-700">{step + 1} / {steps.length}</span>
+              {step < steps.length - 1 && (
                 <GlowButton onClick={handleNext}>
                   Proceed <ChevronRight size={14} />
                 </GlowButton>
               )}
             </div>
           </footer>
-
         </main>
       </div>
     </div>
