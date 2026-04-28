@@ -6,64 +6,62 @@ import {
   Clock, 
   History, 
   Zap, 
-  Maximize2,
-  ShieldCheck,
-  Target,
-  AlertCircle
+  Maximize2, 
+  ShieldCheck, 
+  Target, 
+  AlertCircle, 
+  LayoutDashboard, 
+  BarChart2, 
+  Menu, 
+  X 
 } from 'lucide-react';
 
 const App = () => {
   const [activeStep, setActiveStep] = useState(0);
+  const [activeTab, setActiveTab] = useState('form'); // 'form' or 'stats' for mobile
 
   const steps = ["DECISION", "EXECUTION", "CONTEXT", "REVIEW"];
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-[#d4d4d8] font-sans overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen bg-[#09090b] text-[#d4d4d8] font-sans overflow-hidden">
       
-      {/* Main Form Area (Scrollable) */}
-      <main className="flex-1 overflow-y-auto bg-[#09090b] custom-scrollbar border-r border-[#18181b]">
-        {/* Navigation Bar */}
-        <div className="sticky top-0 z-20 bg-[#09090b]/95 backdrop-blur-sm border-b border-[#18181b]">
-          <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-1">
+      {/* Main Content Area */}
+      <main className={`flex-1 overflow-y-auto bg-[#09090b] custom-scrollbar border-r border-[#18181b] ${activeTab === 'stats' ? 'hidden lg:block' : 'block'}`}>
+        
+        <div className="max-w-4xl mx-auto px-6 lg:px-12 py-8 lg:py-12 space-y-10 lg:space-y-12">
+          
+          {/* Aligned Navigation Bar - Now inside the content constraint */}
+          <nav className="pb-8 border-b border-[#18181b]/50">
+            <div className="flex items-center space-x-1 overflow-x-auto no-scrollbar">
               {steps.map((step, idx) => (
                 <React.Fragment key={step}>
                   <button
                     onClick={() => setActiveStep(idx)}
-                    className={`flex items-center space-x-3 text-[10px] uppercase tracking-[0.2em] font-bold transition-all ${
+                    className={`flex items-center space-x-2 lg:space-x-4 text-[9px] lg:text-[10px] uppercase tracking-[0.2em] font-bold transition-all whitespace-nowrap ${
                       activeStep === idx ? 'text-[#4e8cff]' : 'text-[#3f3f46] hover:text-[#71717a]'
                     }`}
                   >
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] border transition-colors ${
+                    <span className={`w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center text-[8px] lg:text-[10px] border transition-colors ${
                       activeStep === idx ? 'bg-[#4e8cff] text-[#0d0f10] border-[#4e8cff]' : 'border-[#18181b] bg-[#0c0c0e]'
                     }`}>
                       {idx + 1}
                     </span>
-                    <span>{step}</span>
+                    <span className={activeStep === idx ? 'block' : 'hidden md:block'}>{step}</span>
                   </button>
-                  {idx < steps.length - 1 && <div className="w-8 h-[1px] bg-[#18181b] mx-2" />}
+                  {idx < steps.length - 1 && <div className="w-6 lg:w-12 h-[1px] bg-[#18181b] mx-1 lg:mx-2 flex-shrink-0" />}
                 </React.Fragment>
               ))}
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-mono text-[#3f3f46]">
-               <div className="flex items-center gap-1.5 uppercase tracking-widest font-bold">
-                 <div className="w-1.5 h-1.5 rounded-full bg-[#4e8cff] shadow-[0_0_8px_#3b82f6]" />
-                 LIVE_TERMINAL
-               </div>
-            </div>
-          </div>
-        </div>
+          </nav>
 
-        <div className="max-w-4xl mx-auto px-12 py-12 space-y-12">
-          
           {/* Section: Core Thesis */}
           <section className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-3 bg-[#4e8cff] rounded-full" />
               <h3 className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#4e8cff]">Core Thesis</h3>
             </div>
-            <div className="p-6 border border-[#1e3a2f] bg-[#14231d]/30 rounded-sm">
-              <p className="text-[13px] text-[#5fb391] leading-relaxed font-light italic tracking-tight">
+            <div className="p-5 lg:p-6 border border-[#1e3a2f] bg-[#14231d]/30 rounded-sm">
+              <p className="text-[12px] lg:text-[13px] text-[#5fb391] leading-relaxed font-light italic tracking-tight">
                 Most traders fail due to impulsive entry. Use this module to force cognitive friction between the impulse and the execution.
               </p>
             </div>
@@ -75,19 +73,19 @@ const App = () => {
               Trade Thesis
             </label>
             <textarea 
-              className="w-full min-h-[140px] bg-[#0c0c0e] border border-[#18181b] focus:border-[#4e8cff]/50 p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
+              className="w-full min-h-[120px] lg:min-h-[140px] bg-[#0c0c0e] border border-[#18181b] focus:border-[#4e8cff]/50 p-4 lg:p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
               placeholder="If you can't articulate your edge in 2-3 sentences, you don't have one..."
             />
           </div>
 
           {/* Grid Split: Trigger & Invalidation */}
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="group space-y-3">
               <label className="text-[9px] uppercase tracking-[0.25em] font-bold text-[#3f3f46] group-focus-within:text-white transition-colors">
                 Entry Trigger
               </label>
               <textarea 
-                className="w-full min-h-[120px] bg-[#0c0c0e] border border-[#18181b] focus:border-[#4e8cff]/50 p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
+                className="w-full min-h-[100px] lg:min-h-[120px] bg-[#0c0c0e] border border-[#18181b] focus:border-[#4e8cff]/50 p-4 lg:p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
                 placeholder="What specifically triggered entry?"
               />
             </div>
@@ -96,7 +94,7 @@ const App = () => {
                 Invalidation Logic
               </label>
               <textarea 
-                className="w-full min-h-[120px] bg-[#0c0c0e] border border-[#18181b] focus:border-rose-500/30 p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
+                className="w-full min-h-[100px] lg:min-h-[120px] bg-[#0c0c0e] border border-[#18181b] focus:border-rose-500/30 p-4 lg:p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
                 placeholder="What would make this setup invalid?"
               />
             </div>
@@ -108,7 +106,7 @@ const App = () => {
               Expected Behavior
             </label>
             <textarea 
-              className="w-full min-h-[120px] bg-[#0c0c0e] border border-[#18181b] focus:border-[#4e8cff]/50 p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
+              className="w-full min-h-[100px] lg:min-h-[120px] bg-[#0c0c0e] border border-[#18181b] focus:border-[#4e8cff]/50 p-4 lg:p-5 rounded-sm outline-none text-[#e4e4e7] placeholder:text-[#27272a] text-sm leading-relaxed transition-all resize-none font-mono tracking-tight"
               placeholder="How do you expect price to move?"
             />
           </div>
@@ -119,28 +117,28 @@ const App = () => {
               <div className="w-1 h-3 bg-[#4e8cff] rounded-full" />
               <h3 className="text-[10px] uppercase tracking-[0.25em] font-bold text-[#4e8cff]">Pre-Entry State Check</h3>
             </div>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {[
                 "Emotional Equilibrium Maintained",
                 "Position Sizing Verified with Risk Model",
                 "Setup Quality meets Alpha Threshold"
               ].map((text, i) => (
-                <label key={i} className="flex items-center gap-6 cursor-pointer group p-3 hover:bg-[#0c0c0e] rounded-sm transition-colors border border-transparent hover:border-[#18181b]">
-                  <div className="relative flex items-center justify-center">
+                <label key={i} className="flex items-center gap-4 lg:gap-6 cursor-pointer group p-3 hover:bg-[#0c0c0e] rounded-sm transition-colors border border-transparent hover:border-[#18181b]">
+                  <div className="relative flex items-center justify-center flex-shrink-0">
                     <input type="checkbox" className="peer appearance-none w-4 h-4 border border-[#3f3f46] rounded-sm checked:bg-[#4e8cff] checked:border-[#4e8cff] transition-all" />
                     <CheckCircle2 size={10} className="absolute text-[#0d0f10] opacity-0 peer-checked:opacity-100 pointer-events-none" />
                   </div>
-                  <span className="text-[12px] font-medium text-[#71717a] group-hover:text-white transition-colors uppercase tracking-widest">{text}</span>
+                  <span className="text-[11px] lg:text-[12px] font-medium text-[#71717a] group-hover:text-white transition-colors uppercase tracking-widest leading-snug">{text}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Submit Action */}
-          <div className="pt-12 pb-24">
-            <button className="flex items-center gap-4 text-white hover:text-[#4e8cff] transition-all uppercase tracking-[0.3em] font-bold text-[11px] group">
-              <div className="w-14 h-14 rounded-full border border-[#18181b] flex items-center justify-center group-hover:border-[#4e8cff] transition-all bg-[#0c0c0e]">
-                <Plus size={20} className="group-hover:scale-110 transition-transform" />
+          <div className="pt-8 lg:pt-12 pb-24 lg:pb-32">
+            <button className="flex items-center gap-4 text-white hover:text-[#4e8cff] transition-all uppercase tracking-[0.3em] font-bold text-[10px] lg:text-[11px] group">
+              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full border border-[#18181b] flex items-center justify-center group-hover:border-[#4e8cff] transition-all bg-[#0c0c0e]">
+                <Plus size={18} className="group-hover:scale-110 transition-transform" />
               </div>
               Commit Decision
             </button>
@@ -148,38 +146,38 @@ const App = () => {
         </div>
       </main>
 
-      {/* Sidebar: Analytics (Independent Scroll) */}
-      <aside className="w-[400px] bg-[#09090b] flex flex-col h-full overflow-hidden">
-        <div className="p-8 border-b border-[#18181b] flex items-center justify-between">
+      {/* Sidebar: Analytics */}
+      <aside className={`w-full lg:w-[400px] bg-[#09090b] flex flex-col h-full overflow-hidden ${activeTab === 'form' ? 'hidden lg:flex' : 'flex'}`}>
+        <div className="p-6 lg:p-8 border-b border-[#18181b] flex items-center justify-between">
           <div className="flex items-center gap-3">
              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
              <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-white">Session</h2>
           </div>
-          <span className="text-[10px] font-mono text-emerald-500">+0.0% Portfolio Growth</span>
+          <span className="text-[9px] lg:text-[10px] font-mono text-emerald-500">+0.0% Portfolio Growth</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-10 custom-scrollbar pb-32 lg:pb-10">
           
           {/* Performance Card */}
           <div className="space-y-6">
-            <div className="space-y-1">
+            <div className="space-y-1 text-center lg:text-left">
               <div className="text-[9px] font-bold text-[#3f3f46] uppercase tracking-[0.2em]">Net P&L</div>
-              <div className="text-4xl font-light text-white tracking-tighter tabular-nums">$0.00</div>
+              <div className="text-4xl lg:text-5xl font-light text-white tracking-tighter tabular-nums">$0.00</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-[#0c0c0e] border border-[#18181b] rounded-sm">
+            <div className="grid grid-cols-2 gap-3 lg:gap-4">
+              <div className="p-3 lg:p-4 bg-[#0c0c0e] border border-[#18181b] rounded-sm">
                 <div className="text-[8px] text-[#3f3f46] uppercase font-bold tracking-widest mb-1.5">Start Balance</div>
-                <div className="text-[13px] font-mono text-[#a1a1aa]">$0.00</div>
+                <div className="text-[12px] lg:text-[13px] font-mono text-[#a1a1aa]">$0.00</div>
               </div>
-              <div className="p-4 bg-[#0c0c0e] border border-[#18181b] rounded-sm text-right">
+              <div className="p-3 lg:p-4 bg-[#0c0c0e] border border-[#18181b] rounded-sm text-right">
                 <div className="text-[8px] text-[#3f3f46] uppercase font-bold tracking-widest mb-1.5">End Balance</div>
-                <div className="text-[13px] font-mono text-white">$0.00</div>
+                <div className="text-[12px] lg:text-[13px] font-mono text-white">$0.00</div>
               </div>
             </div>
 
             <div className="flex justify-between items-center text-[10px] font-mono px-4 py-3 bg-[#0c0c0e]/50 border border-[#18181b] rounded-sm">
-              <span className="text-[#3f3f46] uppercase tracking-widest font-bold">Commissions & Fees</span>
+              <span className="text-[#3f3f46] uppercase tracking-widest font-bold">Fees & Comm</span>
               <span className="text-rose-500 font-bold">$0.00</span>
             </div>
           </div>
@@ -210,7 +208,7 @@ const App = () => {
             </div>
           </section>
 
-          {/* Grid Stats from Reference Images */}
+          {/* Grid Stats */}
           <section className="grid grid-cols-2 gap-3">
             <StatBox label="PROFIT FACTOR" value="0" />
             <StatBox label="EXPECTANCY" value="0" />
@@ -218,14 +216,32 @@ const App = () => {
             <StatBox label="W / L" value="0/0" />
           </section>
 
-          <div className="pt-6">
-            <button className="w-full flex items-center justify-center gap-3 p-4 border border-[#18181b] hover:border-[#3f3f46] text-[#3f3f46] hover:text-white transition-all rounded-sm">
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Session History</span>
+          <div className="pt-2">
+            <button className="w-full flex items-center justify-center gap-3 p-4 border border-[#18181b] hover:border-[#3f3f46] text-[#3f3f46] hover:text-white transition-all rounded-sm bg-[#0c0c0e]/30">
+              <span className="text-[9px] font-bold uppercase tracking-[0.3em]">Session History</span>
               <History size={14} />
             </button>
           </div>
         </div>
       </aside>
+
+      {/* Mobile Tab Bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-lg border-t border-[#18181b] flex items-center justify-around py-3 px-4 z-50">
+        <button 
+          onClick={() => setActiveTab('form')}
+          className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'form' ? 'text-[#4e8cff]' : 'text-[#3f3f46]'}`}
+        >
+          <LayoutDashboard size={20} />
+          <span className="text-[8px] font-bold uppercase tracking-widest">Entry</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('stats')}
+          className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'stats' ? 'text-[#4e8cff]' : 'text-[#3f3f46]'}`}
+        >
+          <BarChart2 size={20} />
+          <span className="text-[8px] font-bold uppercase tracking-widest">Stats</span>
+        </button>
+      </nav>
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
@@ -240,12 +256,19 @@ const App = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #27272a;
         }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
         textarea::placeholder {
           font-weight: 400;
           opacity: 0.3;
         }
-        input:focus + span {
-            color: white;
+        @media (max-width: 1024px) {
+          textarea { font-size: 16px !important; }
         }
       `}} />
     </div>
@@ -255,14 +278,14 @@ const App = () => {
 const StatItem = ({ label, value }) => (
   <div className="flex justify-between items-center group">
     <span className="text-[10px] text-[#3f3f46] font-bold uppercase tracking-[0.2em] group-hover:text-[#71717a] transition-colors">{label}</span>
-    <span className="text-xs text-white font-mono font-bold">{value}</span>
+    <span className="text-[11px] lg:text-xs text-white font-mono font-bold">{value}</span>
   </div>
 );
 
 const StatBox = ({ label, value }) => (
-  <div className="bg-[#0c0c0e] border border-[#18181b] p-4 rounded-sm space-y-1">
-    <span className="text-[8px] text-[#3f3f46] font-bold uppercase tracking-[0.2em] block">{label}</span>
-    <div className="text-xs font-mono text-white font-bold">{value}</div>
+  <div className="bg-[#0c0c0e] border border-[#18181b] p-3 lg:p-4 rounded-sm space-y-1">
+    <span className="text-[7px] lg:text-[8px] text-[#3f3f46] font-bold uppercase tracking-[0.2em] block">{label}</span>
+    <div className="text-[11px] lg:text-xs font-mono text-white font-bold">{value}</div>
   </div>
 );
 
