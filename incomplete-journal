@@ -1,0 +1,111 @@
+import React, { useState } from 'react';
+import { AlertTriangle, ArrowRight, CornerDownRight, X, ChevronRight, Hash } from 'lucide-react';
+
+const App = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const steps = [
+    { title: 'Technical Signals', step: '03', code: 'TECH-SIG' },
+    { title: 'Key Level Analysis', step: '03', code: 'KL-ANLYS' },
+    { title: 'Setup Quality Scores', step: '03', code: 'QUAL-SCR' },
+    { title: 'Exit Causation', step: '04', code: 'EXT-CAUS' },
+    { title: 'Psychological State', step: '04', code: 'PSY-STAT' },
+    { title: 'Trade Debrief', step: '04', code: 'TRD-DBRF' },
+  ];
+
+  if (!isOpen) return (
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="px-4 py-2 border-2 border-white text-white font-mono uppercase font-bold hover:bg-white hover:text-black transition-none text-xs"
+      >
+        [ OPEN_VALIDATION_SYSTEM ]
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#111] flex items-center justify-center p-4 font-mono tracking-tighter antialiased">
+      {/* Heavy Backdrop */}
+      <div className="fixed inset-0 bg-black/90" />
+
+      {/* Raw Brutalist Modal */}
+      <div className="relative w-full max-w-[460px] bg-black border-[3px] border-white text-white shadow-[12px_12px_0px_rgba(255,255,255,0.1)]">
+        
+        {/* Warning Block */}
+        <div className="bg-white text-black p-3 flex items-center gap-3 border-b-[3px] border-white">
+          <div className="bg-black p-2">
+            <AlertTriangle className="w-6 h-6 text-white" strokeWidth={3} />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase leading-none">Status: Incomplete</h2>
+            <p className="text-[8px] font-bold mt-1 uppercase tracking-widest">Action required on 06 parameters</p>
+          </div>
+          <button onClick={() => setIsOpen(false)} className="ml-auto border-2 border-black p-1 hover:bg-black hover:text-white transition-none">
+            <X size={16} strokeWidth={3}/>
+          </button>
+        </div>
+
+        {/* Info Strip */}
+        <div className="bg-[#222] border-b-[3px] border-white px-4 py-1.5 flex justify-between items-center">
+          <span className="text-[9px] font-bold text-white/50">SYS.LOG // NULL_FIELDS_DETECTED</span>
+          <span className="text-[9px] font-bold text-white/50">v4.0.2</span>
+        </div>
+
+        {/* The List */}
+        <div className="divide-y-[3px] divide-white border-b-[3px] border-white">
+          {steps.map((item, idx) => (
+            <button
+              key={idx}
+              className="group w-full flex items-stretch text-left hover:bg-white hover:text-black transition-none"
+            >
+              {/* ID Column */}
+              <div className="w-14 flex flex-col items-center justify-center border-r-[3px] border-white py-3 font-black bg-[#1a1a1a] group-hover:bg-white group-hover:text-black">
+                <span className="text-[10px]">{item.step}</span>
+                <span className="text-[7px] opacity-50 uppercase">STP</span>
+              </div>
+
+              {/* Content Column */}
+              <div className="flex-1 p-3">
+                <div className="text-[8px] font-bold opacity-50 mb-1 uppercase tracking-widest">{item.code}</div>
+                <div className="text-xs font-black uppercase">{item.title}</div>
+              </div>
+
+              {/* Action Column */}
+              <div className="px-3 flex items-center justify-center border-l-[3px] border-white group-hover:bg-black group-hover:text-white">
+                <ChevronRight size={18} strokeWidth={4} />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex bg-white gap-[3px] p-[3px]">
+          <button 
+            onClick={() => setIsOpen(false)}
+            className="flex-1 py-4 bg-black text-white font-black text-[10px] uppercase hover:bg-[#333] transition-none border-2 border-transparent hover:border-white"
+          >
+            [ Go Back ]
+          </button>
+          
+          <button 
+            onClick={() => setIsOpen(false)}
+            className="flex-1 py-4 bg-white text-black font-black text-[10px] uppercase hover:bg-black hover:text-white transition-none border-2 border-black"
+          >
+            Submit Anyway _
+          </button>
+        </div>
+
+        {/* Decorative scanline */}
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%]" />
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&display=swap');
+        body { font-family: 'JetBrains+Mono', monospace; cursor: crosshair; }
+      `}} />
+    </div>
+  );
+};
+
+export default App;
