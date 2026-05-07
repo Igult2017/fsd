@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Activity, 
   Plus, 
   Trash2, 
-  Settings2, 
   ArrowUpRight, 
   MoreVertical,
-  BarChart3,
-  Wallet,
-  Clock,
-  Terminal,
-  FileText
+  Terminal
 } from 'lucide-react';
 
 const ObsidianDashboard = () => {
@@ -29,36 +23,13 @@ const ObsidianDashboard = () => {
 
   const slotsRemaining = 5;
 
-  // Obsidian style font stacks
-  // UI: Inter, system-ui, -apple-system
-  // Mono: JetBrains Mono, Fira Code, ui-monospace
   const uiFont = "font-['Inter',_system-ui,_-apple-system,_sans-serif]";
   const monoFont = "font-['JetBrains_Mono',_ui-monospace,_monospace]";
 
   return (
     <div className={`min-h-screen bg-[#1c1c1c] text-[#dbdbdb] ${uiFont} selection:bg-[#483699]/50`}>
-      {/* Workspace Header */}
-      <nav className="h-10 bg-[#262626] border-b border-[#121212] flex items-center justify-between px-4 sticky top-0 z-30">
-        <div className="flex items-center gap-4">
-          <Activity size={16} className="text-[#a882ff]" />
-          <div className="flex gap-1 text-[11px] font-medium text-[#888]">
-            <span className="hover:text-white cursor-pointer px-2 py-1 rounded-sm hover:bg-[#333] transition-colors flex items-center gap-1.5">
-              <BarChart3 size={12} /> Analysis
-            </span>
-            <span className="hover:text-white cursor-pointer px-2 py-1 rounded-sm hover:bg-[#333] transition-colors flex items-center gap-1.5">
-              <Wallet size={12} /> Portfolio
-            </span>
-          </div>
-        </div>
-        
-        <div className={`flex items-center gap-4 text-[10px] text-[#666] ${monoFont}`}>
-          <span className="flex items-center gap-1.5"><Clock size={10} /> AUTO-SAVE: ON</span>
-          <div className="w-[1px] h-3 bg-[#333]"></div>
-          <Settings2 size={14} className="hover:text-white cursor-pointer" />
-        </div>
-      </nav>
 
-      <main className="p-6 max-w-[1400px] mx-auto pb-20">
+      <main className="p-6 max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-[#333] border border-[#333]">
           
           {/* Active Session "File" */}
@@ -66,10 +37,9 @@ const ObsidianDashboard = () => {
             <div key={session.id} className="bg-[#1c1c1c] flex flex-col min-h-[320px] group">
               {/* File Tab Header */}
               <div className="flex justify-between items-center bg-[#262626] border-b border-[#121212] px-3 py-1.5">
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <FileText size={12} className="text-[#a882ff] shrink-0" />
-                  <span className={`text-[11px] font-semibold text-[#dbdbdb] truncate tracking-tight ${uiFont}`}>
-                    {session.name}
+                <div className="flex items-center overflow-hidden">
+                  <span className={`text-[11px] font-semibold text-[#dbdbdb] truncate tracking-tight ${monoFont}`}>
+                    SESSION: M1H1
                   </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -83,7 +53,7 @@ const ObsidianDashboard = () => {
                 <div className="flex justify-between items-start mb-8">
                   <div className="space-y-1">
                     <span className={`text-[9px] uppercase tracking-[0.25em] text-[#666] font-bold ${monoFont}`}>Current_Equity</span>
-                    <h2 className={`text-3xl font-bold text-white tracking-tighter ${monoFont}`}>
+                    <h2 className={`text-[11px] font-bold text-white tracking-tighter ${monoFont}`}>
                       ${session.balance.toLocaleString()}
                     </h2>
                   </div>
@@ -105,7 +75,7 @@ const ObsidianDashboard = () => {
                   </div>
                 </div>
 
-                {/* Card Actions - Fixed at bottom */}
+                {/* Card Actions */}
                 <div className={`mt-auto pt-6 flex gap-2 ${uiFont}`}>
                   <button className="flex-1 bg-[#262626] hover:bg-[#333] border border-[#3a3a3a] text-[10px] uppercase tracking-widest font-bold py-2 transition-colors">
                     Edit Session
@@ -122,7 +92,9 @@ const ObsidianDashboard = () => {
           {[...Array(slotsRemaining)].map((_, i) => (
             <div key={i} className="bg-[#1c1c1c] flex flex-col min-h-[320px] group hover:bg-[#212121] transition-colors cursor-pointer border-l border-t border-[#333]">
               <div className="flex justify-between items-center bg-[#262626]/30 px-3 py-1.5 border-b border-[#121212]">
-                <span className={`text-[10px] text-[#444] font-bold uppercase tracking-widest ${monoFont}`}>untitled.md</span>
+                <span className={`text-[10px] text-[#444] font-bold uppercase tracking-widest ${monoFont}`}>
+                  SESSION: UNTITLED
+                </span>
                 <Plus size={12} className="text-[#333] group-hover:text-[#666]" />
               </div>
               
@@ -141,20 +113,6 @@ const ObsidianDashboard = () => {
         </div>
       </main>
 
-      {/* Obsidian Status Bar */}
-      <footer className={`fixed bottom-0 left-0 right-0 h-6 bg-[#262626] border-t border-[#121212] px-4 flex items-center justify-between text-[10px] text-[#666] z-40 ${monoFont}`}>
-        <div className="flex gap-6">
-          <span className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-            CONNECTED: PRODUCTION_CORE
-          </span>
-          <span>UTF-8</span>
-        </div>
-        <div className="flex gap-4 items-center">
-          <span className="text-[#888] font-bold italic underline decoration-purple-500/50 underline-offset-4">44 TRADES LOGGED</span>
-          <span className="text-white bg-[#a882ff]/30 px-2 py-0.5 font-bold">LN 1, COL 1</span>
-        </div>
-      </footer>
     </div>
   );
 };
