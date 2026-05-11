@@ -1,0 +1,555 @@
+import { useState, useEffect, useRef } from "react";
+
+const UNSPLASH_IMAGES = {
+  hero: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&q=90&fit=crop",
+  weights: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800&q=85&fit=crop",
+  rehab: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=85&fit=crop",
+  massage: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=85&fit=crop",
+  group: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=85&fit=crop",
+  nutrition: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=85&fit=crop",
+  personal: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=85&fit=crop",
+};
+
+const services = [
+  {
+    icon: "🏋️",
+    title: "Personal Training",
+    desc: "One-on-one sessions tailored to your goals — strength, endurance, or total transformation.",
+    img: UNSPLASH_IMAGES.personal,
+    color: "#D4FF00",
+  },
+  {
+    icon: "🤸",
+    title: "Group Fitness",
+    desc: "High-energy classes that push limits together. Sweat, laugh, and level up as a community.",
+    img: UNSPLASH_IMAGES.group,
+    color: "#00E5CC",
+  },
+  {
+    icon: "💆",
+    title: "Massage Therapy",
+    desc: "Professional deep-tissue and sports massage to restore, recover, and rejuvenate your body.",
+    img: UNSPLASH_IMAGES.massage,
+    color: "#FF6B6B",
+  },
+  {
+    icon: "🩺",
+    title: "Rehabilitation",
+    desc: "Expert-guided recovery programs for injuries, post-surgery healing, and chronic pain relief.",
+    img: UNSPLASH_IMAGES.rehab,
+    color: "#A78BFA",
+  },
+  {
+    icon: "⚡",
+    title: "Weight & Functional Training",
+    desc: "Build real-world strength with compound movements, resistance work, and functional fitness.",
+    img: UNSPLASH_IMAGES.weights,
+    color: "#F59E0B",
+  },
+  {
+    icon: "🥗",
+    title: "Nutritional Guidance",
+    desc: "Personalised nutrition plans that fuel performance, accelerate recovery, and sustain results.",
+    img: UNSPLASH_IMAGES.nutrition,
+    color: "#34D399",
+  },
+];
+
+const stats = [
+  { value: "500+", label: "Members Transformed" },
+  { value: "6", label: "Expert Services" },
+  { value: "13hrs", label: "Open Daily (Mon–Sat)" },
+  { value: "100%", label: "Personalised Approach" },
+];
+
+function useInView(threshold = 0.15) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
+function ServiceCard({ service, index }) {
+  const [ref, inView] = useInView();
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "#111",
+        border: `1.5px solid ${hovered ? service.color : "#222"}`,
+        borderRadius: 20,
+        overflow: "hidden",
+        transition: "all 0.4s cubic-bezier(0.23,1,0.32,1)",
+        transform: inView ? `translateY(0) scale(${hovered ? 1.02 : 1})` : "translateY(60px)",
+        opacity: inView ? 1 : 0,
+        transitionDelay: `${index * 80}ms`,
+        cursor: "pointer",
+        boxShadow: hovered ? `0 20px 60px ${service.color}22` : "none",
+      }}
+    >
+      <div style={{ position: "relative", height: 200, overflow: "hidden" }}>
+        <img
+          src={service.img}
+          alt={service.title}
+          style={{
+            width: "100%", height: "100%", objectFit: "cover",
+            transition: "transform 0.6s ease",
+            transform: hovered ? "scale(1.08)" : "scale(1)",
+          }}
+        />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: `linear-gradient(to bottom, transparent 40%, #111 100%)`,
+        }} />
+        <div style={{
+          position: "absolute", top: 14, left: 14,
+          background: service.color, borderRadius: 12,
+          width: 44, height: 44, display: "flex", alignItems: "center",
+          justifyContent: "center", fontSize: 22,
+          boxShadow: `0 4px 20px ${service.color}66`,
+        }}>
+          {service.icon}
+        </div>
+      </div>
+      <div style={{ padding: "18px 22px 24px" }}>
+        <h3 style={{
+          color: "#fff", fontFamily: "'Montserrat', sans-serif",
+          fontSize: 20, fontWeight: 700, margin: "0 0 10px",
+          letterSpacing: -0.3,
+        }}>{service.title}</h3>
+        <p style={{ color: "#888", fontSize: 14.5, lineHeight: 1.65, margin: 0 }}>{service.desc}</p>
+        <div style={{
+          marginTop: 18, display: "flex", alignItems: "center",
+          gap: 8, color: service.color, fontSize: 14, fontWeight: 600,
+          opacity: hovered ? 1 : 0.5, transition: "opacity 0.3s",
+        }}>
+          Learn more <span style={{ fontSize: 18 }}>→</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ stat, index }) {
+  const [ref, inView] = useInView();
+  return (
+    <div ref={ref} style={{
+      textAlign: "center", padding: "32px 20px",
+      transform: inView ? "translateY(0)" : "translateY(40px)",
+      opacity: inView ? 1 : 0,
+      transition: `all 0.6s ease ${index * 120}ms`,
+    }}>
+      <div style={{
+        fontFamily: "'Montserrat', sans-serif", fontSize: 52, fontWeight: 800,
+        color: "#D4FF00", lineHeight: 1, letterSpacing: -2,
+      }}>{stat.value}</div>
+      <div style={{ color: "#666", fontSize: 14, marginTop: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+        {stat.label}
+      </div>
+    </div>
+  );
+}
+
+export default function LudoFitnessLanding() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [heroRef, heroInView] = useInView(0.01);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
+  };
+
+  return (
+    <div style={{ background: "#0A0A0A", color: "#fff", fontFamily: "'Montserrat', sans-serif", overflowX: "hidden" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+      {/* NAV */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+        padding: "0 5%",
+        background: scrolled ? "rgba(10,10,10,0.92)" : "transparent",
+        backdropFilter: scrolled ? "blur(20px)" : "none",
+        borderBottom: scrolled ? "1px solid #1a1a1a" : "none",
+        transition: "all 0.4s ease",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        height: 70,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%",
+            background: "linear-gradient(135deg, #2A7A2A, #D4FF00)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 20,
+          }}>🌿</div>
+          <div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: 15, color: "#fff", lineHeight: 1.1 }}>
+              LUDO
+            </div>
+            <div style={{ fontSize: 10, color: "#888", letterSpacing: 1.5 }}>REHAB & FITNESS</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
+          {["services", "about", "hours", "contact"].map(s => (
+            <button key={s} onClick={() => scrollTo(s)} style={{
+              background: "none", border: "none", color: "#aaa", cursor: "pointer",
+              fontSize: 14, letterSpacing: 0.5, textTransform: "capitalize",
+              padding: 0, transition: "color 0.2s",
+              display: window.innerWidth < 600 ? "none" : "block",
+            }}
+              onMouseEnter={e => e.target.style.color = "#D4FF00"}
+              onMouseLeave={e => e.target.style.color = "#aaa"}
+            >{s}</button>
+          ))}
+          <button onClick={() => scrollTo("contact")} style={{
+            background: "#D4FF00", color: "#000", border: "none",
+            padding: "10px 22px", borderRadius: 50, cursor: "pointer",
+            fontWeight: 700, fontSize: 13, letterSpacing: 0.5,
+            transition: "transform 0.2s, box-shadow 0.2s",
+          }}
+            onMouseEnter={e => { e.target.style.transform = "scale(1.05)"; e.target.style.boxShadow = "0 8px 30px #D4FF0055"; }}
+            onMouseLeave={e => { e.target.style.transform = "scale(1)"; e.target.style.boxShadow = "none"; }}
+          >
+            Join Now
+          </button>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section ref={heroRef} style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center" }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `url(${UNSPLASH_IMAGES.hero})`,
+          backgroundSize: "cover", backgroundPosition: "center",
+          filter: "brightness(0.25)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(ellipse at 80% 50%, #D4FF0008 0%, transparent 60%), linear-gradient(135deg, #0A0A0A 40%, transparent 100%)",
+        }} />
+
+        {/* Animated accent lines */}
+        {[...Array(3)].map((_, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            right: `${8 + i * 5}%`,
+            top: "20%",
+            width: 1.5,
+            height: heroInView ? "60%" : "0%",
+            background: `linear-gradient(to bottom, transparent, #D4FF00${["66", "33", "18"][i]}, transparent)`,
+            transition: `height 1.8s ease ${0.4 + i * 0.2}s`,
+          }} />
+        ))}
+
+        <div style={{ position: "relative", zIndex: 2, padding: "0 8%", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "#D4FF0015", border: "1px solid #D4FF0033",
+            padding: "6px 16px", borderRadius: 50, marginBottom: 32,
+            opacity: heroInView ? 1 : 0, transform: heroInView ? "translateY(0)" : "translateY(-20px)",
+            transition: "all 0.8s ease 0.2s",
+          }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#D4FF00", animation: "pulse 2s infinite" }} />
+            <span style={{ fontSize: 12, color: "#D4FF00", letterSpacing: 2, textTransform: "uppercase" }}>Now Open · Maembe Moja, Riat</span>
+          </div>
+
+          <h1 style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: "clamp(52px, 8vw, 110px)",
+            fontWeight: 800, lineHeight: 0.92,
+            margin: "0 0 28px",
+            letterSpacing: -3,
+            opacity: heroInView ? 1 : 0,
+            transform: heroInView ? "translateY(0)" : "translateY(40px)",
+            transition: "all 1s ease 0.3s",
+          }}>
+            <span style={{ color: "#fff" }}>TRAIN.</span><br />
+            <span style={{ color: "#D4FF00" }}>RECOVER.</span><br />
+            <span style={{ color: "#fff" }}>TRANSFORM.</span>
+          </h1>
+
+          <p style={{
+            fontSize: 18, color: "#999", maxWidth: 520, lineHeight: 1.7,
+            margin: "0 0 44px",
+            opacity: heroInView ? 1 : 0,
+            transform: heroInView ? "translateY(0)" : "translateY(30px)",
+            transition: "all 1s ease 0.5s",
+          }}>
+            Kisumu's premier rehabilitation and fitness destination. Personal training, expert rehab, group classes, massage, and nutritional coaching — all under one roof.
+          </p>
+
+          <div style={{
+            display: "flex", gap: 16, flexWrap: "wrap",
+            opacity: heroInView ? 1 : 0,
+            transform: heroInView ? "translateY(0)" : "translateY(20px)",
+            transition: "all 1s ease 0.7s",
+          }}>
+            <button onClick={() => scrollTo("services")} style={{
+              background: "#D4FF00", color: "#000",
+              border: "none", padding: "16px 36px",
+              borderRadius: 50, cursor: "pointer",
+              fontWeight: 700, fontSize: 15, letterSpacing: 0.3,
+              transition: "all 0.25s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 12px 40px #D4FF0066"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "none"; }}
+            >
+              Explore Services
+            </button>
+            <a href="tel:0701290885" style={{
+              background: "transparent",
+              color: "#fff", border: "1.5px solid #333",
+              padding: "16px 36px", borderRadius: 50, cursor: "pointer",
+              fontWeight: 600, fontSize: 15,
+              textDecoration: "none",
+              transition: "all 0.25s",
+              display: "inline-block",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#D4FF00"; e.currentTarget.style.color = "#D4FF00"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#333"; e.currentTarget.style.color = "#fff"; }}
+            >
+              📞 0701 290 885
+            </a>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div style={{
+          position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)",
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+          opacity: 0.5, animation: "bounce 2s infinite",
+        }}>
+          <span style={{ fontSize: 11, letterSpacing: 2, color: "#666", textTransform: "uppercase" }}>Scroll</span>
+          <div style={{ width: 1, height: 40, background: "linear-gradient(to bottom, #666, transparent)" }} />
+        </div>
+      </section>
+
+      {/* STATS BELT */}
+      <section style={{ background: "#111", borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ borderRight: i < 3 ? "1px solid #1a1a1a" : "none" }}>
+              <StatCard stat={s} index={i} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SERVICES */}
+      <section id="services" style={{ padding: "100px 6%", maxWidth: 1300, margin: "0 auto" }}>
+        <div style={{ marginBottom: 64 }}>
+          <div style={{ color: "#D4FF00", fontSize: 12, letterSpacing: 4, textTransform: "uppercase", marginBottom: 16 }}>
+            What We Offer
+          </div>
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "clamp(38px, 5vw, 64px)", fontWeight: 800, margin: 0, letterSpacing: -1.5, lineHeight: 1 }}>
+            Our Services
+          </h2>
+          <p style={{ color: "#666", marginTop: 20, fontSize: 17, maxWidth: 480, lineHeight: 1.7 }}>
+            Six specialised disciplines, one transformative destination. Built for everyone — from first-timers to elite athletes.
+          </p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
+          {services.map((s, i) => <ServiceCard key={s.title} service={s} index={i} />)}
+        </div>
+      </section>
+
+      {/* ABOUT / KISUMU SAINTS BANNER */}
+      <section id="about" style={{ position: "relative", padding: "100px 6%", overflow: "hidden" }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `url(${UNSPLASH_IMAGES.group})`,
+          backgroundSize: "cover", backgroundPosition: "center 30%",
+          filter: "brightness(0.12)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg, #0A0A0A 50%, transparent 100%)",
+        }} />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", gap: 80, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 280 }}>
+            <div style={{ color: "#D4FF00", fontSize: 12, letterSpacing: 4, textTransform: "uppercase", marginBottom: 16 }}>Our Story</div>
+            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "clamp(34px, 4.5vw, 58px)", fontWeight: 800, margin: "0 0 24px", letterSpacing: -1.5, lineHeight: 1.05 }}>
+              Where Fitness<br />Meets Healing
+            </h2>
+            <p style={{ color: "#777", fontSize: 16, lineHeight: 1.8, maxWidth: 440, margin: "0 0 20px" }}>
+              Ludo Rehabilitation and Fitness Center was founded with a single belief: every body deserves expert care, tailored training, and a community that celebrates progress.
+            </p>
+            <p style={{ color: "#777", fontSize: 16, lineHeight: 1.8, maxWidth: 440, margin: "0 0 36px" }}>
+              Based in Riat, Kisumu, we combine cutting-edge rehabilitation science with world-class fitness coaching — proudly partnered with <strong style={{ color: "#D4FF00" }}>Kisumu Saints HC</strong>.
+            </p>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ background: "#D4FF0015", border: "1px solid #D4FF0033", borderRadius: 12, padding: "12px 20px", fontSize: 14, color: "#D4FF00" }}>
+                ✅ Certified Trainers
+              </div>
+              <div style={{ background: "#D4FF0015", border: "1px solid #D4FF0033", borderRadius: 12, padding: "12px 20px", fontSize: 14, color: "#D4FF00" }}>
+                ✅ Expert Physiotherapists
+              </div>
+              <div style={{ background: "#D4FF0015", border: "1px solid #D4FF0033", borderRadius: 12, padding: "12px 20px", fontSize: 14, color: "#D4FF00" }}>
+                ✅ Modern Equipment
+              </div>
+            </div>
+          </div>
+          <div style={{ flex: "0 0 auto" }}>
+            <div style={{
+              width: 220, height: 220, borderRadius: "50%",
+              background: "radial-gradient(circle, #D4FF0015, #D4FF0005)",
+              border: "2px solid #D4FF0033",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexDirection: "column", gap: 8,
+            }}>
+              <div style={{ fontSize: 60 }}>🌿</div>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: 13, color: "#D4FF00", textAlign: "center", letterSpacing: 1, textTransform: "uppercase", lineHeight: 1.4 }}>
+                Ludo<br />Rehab & Fitness
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WORKING HOURS */}
+      <section id="hours" style={{ padding: "80px 6%", background: "#111" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }}>
+          <div>
+            <div style={{ color: "#D4FF00", fontSize: 12, letterSpacing: 4, textTransform: "uppercase", marginBottom: 16 }}>Schedule</div>
+            <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 48, fontWeight: 800, margin: "0 0 32px", letterSpacing: -1.5, lineHeight: 1 }}>
+              Working Hours
+            </h2>
+            {[
+              { day: "Monday", hours: "6:00 AM – 7:00 PM", open: true },
+              { day: "Tuesday", hours: "6:00 AM – 7:00 PM", open: true },
+              { day: "Wednesday", hours: "6:00 AM – 7:00 PM", open: true },
+              { day: "Thursday", hours: "6:00 AM – 7:00 PM", open: true },
+              { day: "Friday", hours: "6:00 AM – 7:00 PM", open: true },
+              { day: "Saturday", hours: "6:00 AM – 7:00 PM", open: true },
+              { day: "Sunday", hours: "Closed", open: false },
+            ].map((d, i) => (
+              <div key={d.day} style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "14px 0", borderBottom: "1px solid #1a1a1a",
+              }}>
+                <span style={{ color: "#ccc", fontSize: 15 }}>{d.day}</span>
+                <span style={{ color: d.open ? "#D4FF00" : "#555", fontWeight: d.open ? 600 : 400, fontSize: 14 }}>
+                  {d.hours}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            background: "#0A0A0A", border: "1px solid #1a1a1a",
+            borderRadius: 24, padding: 40,
+          }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>⏰</div>
+            <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 28, fontWeight: 800, margin: "0 0 12px" }}>
+              Open 6 Days a Week
+            </h3>
+            <p style={{ color: "#666", fontSize: 15, lineHeight: 1.7, margin: "0 0 28px" }}>
+              Early morning to evening — we're here for your schedule. Whether you're a 6 AM warrior or an after-work athlete, Ludo is open for you.
+            </p>
+            <div style={{
+              background: "#D4FF0012", border: "1px solid #D4FF0030",
+              borderRadius: 14, padding: "18px 22px",
+              display: "flex", alignItems: "center", gap: 12,
+            }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#D4FF00", flexShrink: 0 }} />
+              <div style={{ fontSize: 14, color: "#D4FF00", lineHeight: 1.5 }}>
+                <strong>Mon – Sat:</strong> 6:00 AM to 7:00 PM<br />
+                <span style={{ color: "#888", fontSize: 13 }}>Walk-ins welcome · Bookings preferred</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA / CONTACT */}
+      <section id="contact" style={{ padding: "100px 6%", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{
+          position: "absolute", top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 600, height: 600, borderRadius: "50%",
+          background: "radial-gradient(circle, #D4FF0010 0%, transparent 70%)",
+          pointerEvents: "none",
+        }} />
+        <div style={{ position: "relative", zIndex: 2 }}>
+          <div style={{ color: "#D4FF00", fontSize: 12, letterSpacing: 4, textTransform: "uppercase", marginBottom: 20 }}>
+            Ready to Start?
+          </div>
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "clamp(40px, 6vw, 80px)", fontWeight: 800, margin: "0 0 20px", letterSpacing: -2, lineHeight: 1 }}>
+            YOUR JOURNEY<br />BEGINS TODAY
+          </h2>
+          <p style={{ color: "#666", fontSize: 17, maxWidth: 500, margin: "0 auto 50px", lineHeight: 1.7 }}>
+            Take the first step. Call us, visit us, or drop by at Maembe Moja, Riat — and let's build something powerful together.
+          </p>
+
+          <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginBottom: 60 }}>
+            <a href="tel:0701290885" style={{
+              background: "#D4FF00", color: "#000",
+              padding: "18px 44px", borderRadius: 50,
+              fontWeight: 700, fontSize: 16, textDecoration: "none",
+              transition: "all 0.25s", display: "inline-flex", alignItems: "center", gap: 10,
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 16px 50px #D4FF0055"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "none"; }}
+            >
+              📞 Call: 0701 290 885
+            </a>
+            <a href="https://maps.google.com/?q=Maembe+Moja,Riat,Kisumu" target="_blank" rel="noreferrer" style={{
+              background: "transparent", color: "#fff",
+              border: "1.5px solid #333",
+              padding: "18px 44px", borderRadius: 50,
+              fontWeight: 600, fontSize: 16, textDecoration: "none",
+              transition: "all 0.25s", display: "inline-flex", alignItems: "center", gap: 10,
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#D4FF00"; e.currentTarget.style.color = "#D4FF00"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#333"; e.currentTarget.style.color = "#fff"; }}
+            >
+              📍 Maembe Moja, Riat
+            </a>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
+            {["Personal Training", "Group Fitness", "Massage", "Rehabilitation", "Functional Training", "Nutrition"].map(s => (
+              <span key={s} style={{ color: "#444", fontSize: 13, letterSpacing: 0.5 }}>· {s}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ background: "#050505", borderTop: "1px solid #111", padding: "32px 6%", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontSize: 22 }}>🌿</div>
+          <div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: 14, color: "#fff" }}>LUDO REHABILITATION & FITNESS CENTER</div>
+            <div style={{ fontSize: 12, color: "#444" }}>Maembe Moja, Riat · Kisumu, Kenya</div>
+          </div>
+        </div>
+        <div style={{ color: "#333", fontSize: 13 }}>
+          © 2025 Ludo Rehab & Fitness · <span style={{ color: "#D4FF00" }}>0701 290 885</span>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+        @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-10px); } }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+      `}</style>
+    </div>
+  );
+}
