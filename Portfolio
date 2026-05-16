@@ -1,0 +1,522 @@
+import { useState, useEffect, useRef } from "react";
+
+const EMAIL = "antiperhenryotieno@gmail.com";
+const WHATSAPP = "+254714051155";
+const WHATSAPP_URL = `https://wa.me/254714051155`;
+
+const NAV_LINKS = [
+  { label: "About", num: "01", href: "#about" },
+  { label: "Skills", num: "02", href: "#skills" },
+  { label: "Projects", num: "03", href: "#projects" },
+  { label: "Contact", num: "04", href: "#contact" },
+];
+
+const SKILLS = [
+  { icon: "⬡", title: "Frontend", tags: ["HTML5", "CSS3", "JavaScript", "React", "TypeScript", "Tailwind"] },
+  { icon: "⬢", title: "Backend", tags: ["Node.js", "Express", "Python", "REST APIs", "GraphQL", "FastAPI"] },
+  { icon: "◈", title: "Database & Auth", tags: ["PostgreSQL", "MongoDB", "MySQL", "Firebase", "Supabase", "Redis"] },
+  { icon: "◻", title: "Mobile & PWA", tags: ["React Native", "PWA", "Responsive", "Web APIs"] },
+  { icon: "◎", title: "Data & Analytics", tags: ["Python", "Pandas", "NumPy", "Matplotlib", "Jupyter"] },
+  { icon: "⬟", title: "DevOps & Tools", tags: ["Git", "Docker", "CI/CD", "GitHub Actions", "Vercel", "AWS"] },
+];
+
+const PROJECTS = [
+  {
+    title: "AI Fitness Platform",
+    emoji: "🏋️",
+    accent: "#64ffda",
+    description:
+      "An AI-powered fitness platform that generates personalized nutrition plans and workout routines tailored to individual goals, body metrics, and dietary preferences. Users get adaptive plans that evolve with their progress.",
+    tech: ["React", "Python", "OpenAI API", "PostgreSQL", "Node.js", "Firebase Auth"],
+    github: "#",
+    live: "#",
+  },
+  {
+    title: "QuizForge — Nursing AI",
+    emoji: "🩺",
+    accent: "#88c0d0",
+    description:
+      "An AI-enabled quiz and study platform purpose-built for nursing students. Generates NCLEX-style questions, tracks knowledge gaps, and creates personalized revision paths to boost exam readiness.",
+    tech: ["React", "TypeScript", "OpenAI API", "Supabase", "Tailwind CSS"],
+    github: "#",
+    live: "#",
+  },
+  {
+    title: "AI Trading Journal",
+    emoji: "📈",
+    accent: "#b48ead",
+    description:
+      "An AI-powered financial markets trading journal featuring Python-driven computation and analytics to process trade data, identify performance patterns, and deliver behavioral insights that help traders sharpen their strategies and manage risk.",
+    tech: ["React", "Python", "Pandas", "OpenAI API", "MongoDB", "Firebase Auth"],
+    github: "#",
+    live: "#",
+  },
+];
+
+const TECH_LIST = [
+  "JavaScript (ES6+)", "React.js", "Node.js",
+  "TypeScript", "Python", "REST APIs",
+  "Firebase", "Supabase", "PostgreSQL",
+];
+
+/* ── Hooks ── */
+function useScrollY() {
+  const [y, setY] = useState(0);
+  useEffect(() => {
+    const h = () => setY(window.scrollY);
+    window.addEventListener("scroll", h, { passive: true });
+    return () => window.removeEventListener("scroll", h);
+  }, []);
+  return y;
+}
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024
+  );
+  useEffect(() => {
+    const h = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return width;
+}
+
+function useInView(ref) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.1 }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [ref]);
+  return visible;
+}
+
+/* ── Section Heading ── */
+function SectionHeading({ num, title }) {
+  const ref = useRef(null);
+  const visible = useInView(ref);
+  return (
+    <div ref={ref} style={{
+      display: "flex", alignItems: "center", gap: 16, marginBottom: 48,
+      opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(20px)",
+      transition: "opacity 0.6s ease, transform 0.6s ease",
+    }}>
+      <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--slate-ll)", whiteSpace: "nowrap", fontFamily: "var(--sans)" }}>
+        <span style={{ fontFamily: "var(--mono)", color: "var(--green)", marginRight: 8 }}>{num}.</span>
+        {title}
+      </h2>
+      <div style={{ flex: 1, height: 1, background: "var(--navy-ll)" }} />
+    </div>
+  );
+}
+
+/* ── Skill Card ── */
+function SkillCard({ icon, title, tags, delay }) {
+  const ref = useRef(null);
+  const visible = useInView(ref);
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "var(--navy-ll)" : "var(--navy-l)",
+        border: `1px solid ${hovered ? "rgba(100,255,218,0.4)" : "var(--navy-ll)"}`,
+        borderRadius: 6, padding: "24px 20px",
+        transform: visible ? (hovered ? "translateY(-6px)" : "none") : "translateY(30px)",
+        opacity: visible ? 1 : 0,
+        transition: `opacity 0.5s ${delay}s ease, transform 0.35s ease, border-color 0.25s, background 0.25s`,
+        cursor: "default",
+      }}
+    >
+      <div style={{ fontSize: 26, marginBottom: 12, color: "var(--green)" }}>{icon}</div>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--slate-ll)", marginBottom: 12, fontFamily: "var(--sans)" }}>{title}</h3>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+        {tags.map(t => (
+          <span key={t} style={{
+            fontFamily: "var(--mono)", fontSize: 11, color: "var(--green)",
+            background: "var(--green-t)", border: "1px solid rgba(100,255,218,0.18)",
+            borderRadius: 3, padding: "3px 9px",
+          }}>{t}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Project Card ── */
+function ProjectCard({ project, delay, isMobile }) {
+  const ref = useRef(null);
+  const visible = useInView(ref);
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "var(--navy-ll)" : "var(--navy-l)",
+        border: `1px solid ${hovered ? "rgba(100,255,218,0.35)" : "var(--navy-ll)"}`,
+        borderRadius: 6,
+        padding: isMobile ? "22px 18px" : "30px 34px",
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr auto",
+        gap: 16,
+        alignItems: "start",
+        transform: visible ? (hovered ? "translateY(-5px)" : "none") : "translateY(32px)",
+        opacity: visible ? 1 : 0,
+        transition: `opacity 0.55s ${delay}s ease, transform 0.3s ease, border-color 0.25s, background 0.25s`,
+        cursor: "default",
+      }}
+    >
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <span style={{ fontSize: 24 }}>{project.emoji}</span>
+          <div style={{
+            width: 8, height: 8, borderRadius: "50%",
+            background: project.accent, boxShadow: `0 0 10px ${project.accent}`,
+          }} />
+        </div>
+        <h3 style={{ fontSize: isMobile ? 17 : 19, fontWeight: 800, color: "var(--slate-ll)", marginBottom: 10, fontFamily: "var(--sans)" }}>
+          {project.title}
+        </h3>
+        <p style={{ fontSize: 14, color: "var(--slate)", marginBottom: 18, lineHeight: 1.75 }}>
+          {project.description}
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+          {project.tech.map(t => (
+            <span key={t} style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--slate-l)" }}>{t}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{
+        display: "flex",
+        flexDirection: isMobile ? "row" : "column",
+        gap: 14, alignItems: "center",
+        marginTop: isMobile ? 16 : 0,
+      }}>
+        {[
+          { href: project.github, label: "GitHub", sym: "⌥" },
+          { href: project.live, label: "Live", sym: "⊕" },
+        ].map(({ href, label, sym }) => (
+          <a key={label} href={href} aria-label={label}
+            style={{ color: "var(--slate-l)", fontSize: 20, transition: "color 0.2s, transform 0.2s", display: "inline-block", textDecoration: "none" }}
+            onMouseEnter={e => { e.currentTarget.style.color = "var(--green)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--slate-l)"; e.currentTarget.style.transform = "none"; }}
+          >{sym}</a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Main App ── */
+export default function Portfolio() {
+  const scrollY = useScrollY();
+  const width = useWindowWidth();
+  const isMobile = width <= 768;
+  const isSmall = width <= 480;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const heroRef = useRef(null);
+
+  const sectionPad = isSmall ? "60px 20px" : isMobile ? "60px 28px" : "80px 180px";
+  const heroPad = isSmall ? "0 20px" : isMobile ? "0 28px" : "0 180px";
+  const skillsCols = isSmall ? "1fr" : isMobile ? "1fr 1fr" : "repeat(3,1fr)";
+
+  const globalStyles = `
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Raleway:wght@400;600;700;800&display=swap');
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: #0a192f;
+      --navy-l: #112240;
+      --navy-ll: #233554;
+      --slate: #8892b0;
+      --slate-l: #a8b2d8;
+      --slate-ll: #ccd6f6;
+      --white: #e6f1ff;
+      --green: #64ffda;
+      --green-t: rgba(100, 255, 218, 0.08);
+      --mono: 'Fira Code', monospace;
+      --sans: 'Raleway', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--slate); font-family: var(--sans); overflow-x: hidden; line-height: 1.7; }
+    a { color: var(--green); text-decoration: none; }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:none; } }
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(30px);  } to { opacity:1; transform:none; } }
+    .nav-link-item:hover { color: var(--green) !important; }
+    .side-icon:hover     { color: var(--green) !important; transform: translateY(-4px) !important; }
+    .hero-btn-el:hover, .resume-btn-el:hover, .contact-btn-el:hover { background: var(--green-t) !important; text-decoration: none; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: var(--navy-ll); border-radius: 3px; }
+  `;
+
+  return (
+    <>
+      <style>{globalStyles}</style>
+
+      {/* ── NAV ── */}
+      <nav style={{
+        position: "sticky", top: 0, zIndex: 200,
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        padding: isMobile ? "16px 24px" : "18px 48px",
+        background: scrollY > 50 ? "rgba(10,25,47,0.97)" : "rgba(10,25,47,0.88)",
+        backdropFilter: "blur(14px)",
+        borderBottom: "1px solid rgba(100,255,218,0.07)",
+        animation: "fadeDown 0.6s ease both",
+        transition: "background 0.3s",
+      }}>
+        <div style={{ fontFamily: "var(--mono)", color: "var(--green)", fontSize: 20, fontWeight: 500, letterSpacing: 2 }}>AH</div>
+
+        {/* Desktop nav */}
+        {!isMobile && (
+          <ul style={{ display: "flex", alignItems: "center", gap: 28, listStyle: "none" }}>
+            {NAV_LINKS.map(({ label, num, href }) => (
+              <li key={label}>
+                <a href={href} className="nav-link-item"
+                  style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--slate-l)", transition: "color 0.2s" }}>
+                  <span style={{ color: "var(--green)", marginRight: 4 }}>{num}.</span>{label}
+                </a>
+              </li>
+            ))}
+            <li>
+              <a href={`mailto:${EMAIL}`} className="resume-btn-el" style={{
+                fontFamily: "var(--mono)", fontSize: 13, color: "var(--green)",
+                border: "1px solid var(--green)", padding: "10px 20px", borderRadius: 3,
+                background: "transparent", transition: "background 0.2s",
+              }}>Resume</a>
+            </li>
+          </ul>
+        )}
+
+        {/* Hamburger */}
+        {isMobile && (
+          <button
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Toggle menu"
+            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: 5, padding: 4 }}
+          >
+            {[0, 1, 2].map(i => (
+              <span key={i} style={{
+                display: "block", width: 24, height: 2,
+                background: "var(--green)", borderRadius: 2,
+                transition: "transform 0.3s, opacity 0.3s",
+                transform: menuOpen
+                  ? i === 0 ? "rotate(45deg) translate(5px,5px)"
+                  : i === 1 ? "scaleX(0)"
+                  : "rotate(-45deg) translate(5px,-5px)"
+                  : "none",
+                opacity: menuOpen && i === 1 ? 0 : 1,
+              }} />
+            ))}
+          </button>
+        )}
+      </nav>
+
+      {/* Mobile dropdown */}
+      {isMobile && menuOpen && (
+        <div style={{
+          position: "fixed", top: 57, left: 0, right: 0, zIndex: 190,
+          background: "rgba(17,34,64,0.98)", backdropFilter: "blur(16px)",
+          padding: "20px 0 28px",
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
+          borderBottom: "1px solid rgba(100,255,218,0.1)",
+        }}>
+          {NAV_LINKS.map(({ label, num, href }) => (
+            <a key={label} href={href} onClick={() => setMenuOpen(false)}
+              style={{
+                fontFamily: "var(--mono)", fontSize: 14, color: "var(--slate-l)",
+                padding: "14px 0", width: "100%", textAlign: "center",
+                borderBottom: "1px solid rgba(100,255,218,0.05)",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = "var(--green)"}
+              onMouseLeave={e => e.currentTarget.style.color = "var(--slate-l)"}
+            >
+              <span style={{ color: "var(--green)", marginRight: 6 }}>{num}.</span>{label}
+            </a>
+          ))}
+          <a href={`mailto:${EMAIL}`} onClick={() => setMenuOpen(false)}
+            style={{
+              fontFamily: "var(--mono)", fontSize: 13, color: "var(--green)",
+              border: "1px solid var(--green)", padding: "10px 24px",
+              borderRadius: 3, background: "transparent", marginTop: 20,
+            }}>Resume</a>
+        </div>
+      )}
+
+      {/* ── FIXED SIDES (desktop only) ── */}
+      {!isMobile && (
+        <>
+          <div style={{ position: "fixed", left: 36, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 18, zIndex: 100 }}>
+            {[
+              { href: "https://github.com/", label: "GitHub", sym: "⌥" },
+              { href: "https://linkedin.com/", label: "LinkedIn", sym: "in" },
+              { href: WHATSAPP_URL, label: "WhatsApp", sym: "✆" },
+            ].map(({ href, label, sym }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}
+                className="side-icon"
+                style={{ color: "var(--slate)", fontSize: 16, fontFamily: "var(--mono)", transition: "color 0.2s, transform 0.2s", display: "inline-block" }}
+              >{sym}</a>
+            ))}
+            <div style={{ width: 1, height: 90, background: "var(--slate)" }} />
+          </div>
+          <div style={{ position: "fixed", right: 36, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 18, zIndex: 100 }}>
+            <a href={`mailto:${EMAIL}`}
+              style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--slate)", writingMode: "vertical-rl", letterSpacing: 2, transition: "color 0.2s, transform 0.2s", textDecoration: "none" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "var(--green)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--slate)"; e.currentTarget.style.transform = "none"; }}
+            >{EMAIL}</a>
+            <div style={{ width: 1, height: 90, background: "var(--slate)" }} />
+          </div>
+        </>
+      )}
+
+      {/* ── HERO ── */}
+      <div ref={heroRef} id="home" style={{
+        minHeight: "90vh", display: "flex", flexDirection: "column",
+        justifyContent: "center", padding: heroPad,
+        maxWidth: 1100, margin: "0 auto",
+      }}>
+        <p style={{ fontFamily: "var(--mono)", color: "var(--green)", fontSize: isMobile ? 14 : 16, marginBottom: 20, animation: "fadeUp 0.6s 0.2s ease both" }}>
+          Hi, my name is
+        </p>
+        <h1 style={{ fontSize: "clamp(34px,8vw,76px)", fontWeight: 800, color: "var(--slate-ll)", lineHeight: 1.05, marginBottom: 8, animation: "fadeUp 0.6s 0.3s ease both" }}>
+          Antiper Henry.
+        </h1>
+        <h2 style={{ fontSize: "clamp(20px,5vw,54px)", fontWeight: 700, color: "var(--slate)", lineHeight: 1.1, marginBottom: 28, animation: "fadeUp 0.6s 0.4s ease both" }}>
+          I build things for the web.
+        </h2>
+        <p style={{ maxWidth: 520, fontSize: isMobile ? 15 : 16, color: "var(--slate)", marginBottom: 44, animation: "fadeUp 0.6s 0.5s ease both", lineHeight: 1.8 }}>
+          I'm a web applications developer specializing in building all types of web applications — from simple sites to complex platforms — with seamless API integrations. Currently focused on crafting accessible, human-centered digital experiences.
+        </p>
+        <a href="#projects" className="hero-btn-el" style={{
+          display: "inline-block", border: "1px solid var(--green)", color: "var(--green)",
+          fontFamily: "var(--mono)", fontSize: 14, padding: "16px 32px", borderRadius: 3,
+          background: "transparent", transition: "background 0.2s", animation: "fadeUp 0.6s 0.6s ease both",
+          alignSelf: "flex-start",
+        }}>Check out my work!</a>
+      </div>
+
+      {/* ── ABOUT ── */}
+      <section id="about" style={{ padding: sectionPad, maxWidth: 1100, margin: "0 auto" }}>
+        <SectionHeading num="01" title="About Me" />
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "3fr 2fr",
+          gap: isMobile ? 40 : 60,
+          alignItems: "start",
+        }}>
+          <div>
+            {[
+              "Hello! I'm Antiper, a web applications developer passionate about building fast, scalable, and user-friendly applications of all kinds — from landing pages and dashboards to full-scale platforms and AI-powered tools.",
+              "I work across the full stack and specialize in API integrations, connecting third-party services and building custom APIs. I also use Python for computation and data analytics, and have hands-on experience with authentication systems using Firebase and Supabase.",
+              "I've worked with all kinds of tools used in modern web development — if there's a problem to solve, I'll find and learn the right tool for it. Here are some technologies I work with regularly:",
+            ].map((p, i) => (
+              <p key={i} style={{ color: "var(--slate)", marginBottom: 14, fontSize: 15, lineHeight: 1.8 }}>{p}</p>
+            ))}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 16 }}>
+              {TECH_LIST.map(t => (
+                <span key={t} style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--slate-l)" }}>
+                  <span style={{ color: "var(--green)" }}>▹ </span>{t}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div style={{ position: "relative", width: 220, margin: isMobile ? "0 auto" : undefined }}>
+            <div
+              style={{
+                width: 220, height: 220, borderRadius: 4,
+                background: "var(--navy-l)", border: "2px solid var(--green)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--mono)", fontSize: 60, fontWeight: 700,
+                color: "var(--green)", position: "relative", zIndex: 1,
+                transition: "transform 0.3s ease",
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = "translate(-5px,-5px)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "none"}
+            >AH</div>
+            <div style={{
+              position: "absolute", top: 14, left: 14, width: 220, height: 220,
+              border: "2px solid var(--green)", borderRadius: 4, zIndex: 0,
+            }} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── SKILLS ── */}
+      <section id="skills" style={{ padding: sectionPad, maxWidth: 1100, margin: "0 auto" }}>
+        <SectionHeading num="02" title="Skills" />
+        <div style={{ display: "grid", gridTemplateColumns: skillsCols, gap: 16 }}>
+          {SKILLS.map((s, i) => <SkillCard key={s.title} {...s} delay={i * 0.07} />)}
+        </div>
+      </section>
+
+      {/* ── PROJECTS ── */}
+      <section id="projects" style={{ padding: sectionPad, maxWidth: 1100, margin: "0 auto" }}>
+        <SectionHeading num="03" title="Projects" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          {PROJECTS.map((p, i) => (
+            <ProjectCard key={p.title} project={p} delay={i * 0.1} isMobile={isMobile} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section id="contact" style={{ padding: sectionPad, maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
+          <p style={{ fontFamily: "var(--mono)", color: "var(--green)", fontSize: 14, marginBottom: 14 }}>04. What's next?</p>
+          <h2 style={{ fontSize: "clamp(30px,7vw,52px)", fontWeight: 800, color: "var(--slate-ll)", marginBottom: 18, fontFamily: "var(--sans)" }}>
+            Get In Touch
+          </h2>
+          <p style={{ color: "var(--slate)", marginBottom: 40, fontSize: 15, lineHeight: 1.8 }}>
+            I'm currently open to new opportunities. Whether you have a project in mind, a question, or just want to say hi — my inbox and WhatsApp are always open. I'll get back to you!
+          </p>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
+            <a href={`mailto:${EMAIL}`} className="contact-btn-el" style={{
+              border: "1px solid var(--green)", color: "var(--green)",
+              fontFamily: "var(--mono)", fontSize: 13, padding: "14px 26px",
+              borderRadius: 3, background: "transparent", transition: "background 0.2s",
+            }}>✉ Say Hello</a>
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="contact-btn-el" style={{
+              border: "1px solid rgba(100,255,218,0.4)", color: "var(--green)",
+              fontFamily: "var(--mono)", fontSize: 13, padding: "14px 26px",
+              borderRadius: 3, background: "transparent", transition: "background 0.2s",
+            }}>✆ WhatsApp</a>
+          </div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--slate)", marginBottom: 6, wordBreak: "break-all" }}>{EMAIL}</div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--slate)", marginBottom: 32 }}>{WHATSAPP}</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 28 }}>
+            {[
+              { href: "https://github.com/", sym: "⌥", label: "GitHub" },
+              { href: "https://linkedin.com/", sym: "in", label: "LinkedIn" },
+              { href: WHATSAPP_URL, sym: "✆", label: "WhatsApp" },
+            ].map(({ href, sym, label }) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}
+                style={{ color: "var(--slate-l)", fontSize: 22, transition: "color 0.2s, transform 0.2s", display: "inline-block", fontFamily: "var(--mono)" }}
+                onMouseEnter={e => { e.currentTarget.style.color = "var(--green)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.color = "var(--slate-l)"; e.currentTarget.style.transform = "none"; }}
+              >{sym}</a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{
+        textAlign: "center", padding: "24px 16px",
+        fontFamily: "var(--mono)", fontSize: 12, color: "var(--slate)",
+        borderTop: "1px solid var(--navy-ll)",
+      }}>
+        Designed &amp; Built by <a href="#home" style={{ color: "var(--green)" }}>Antiper Henry</a>
+      </footer>
+    </>
+  );
+}
