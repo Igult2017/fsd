@@ -1,0 +1,421 @@
+import { useState, useEffect } from "react";
+
+const months = [
+  {
+    month: "FEBRUARY",
+    year: "2020",
+    return: +22.96,
+    recovery: 100,
+    status: "Mixed",
+    carrying: null,
+    maxDD: 0.0,
+    bigL: 0.0,
+    loss: "0/2",
+    isActive: false,
+  },
+  {
+    month: "MARCH",
+    year: "2020",
+    return: +45.83,
+    recovery: 100,
+    status: "Mixed",
+    carrying: null,
+    maxDD: -4.52,
+    bigL: -4.52,
+    loss: "1/5",
+    isActive: false,
+  },
+  {
+    month: "APRIL",
+    year: "2020",
+    return: -2.22,
+    recovery: 0,
+    status: "Mixed",
+    carrying: -2.22,
+    maxDD: -2.22,
+    bigL: -2.22,
+    loss: "1/1",
+    isActive: true,
+  },
+  {
+    month: "MAY",
+    year: "2020",
+    return: +77.18,
+    recovery: 100,
+    status: "Mixed",
+    carrying: null,
+    maxDD: 0.0,
+    bigL: 0.0,
+    loss: "0/7",
+    isActive: false,
+  },
+  {
+    month: "JUNE",
+    year: "2020",
+    return: +51.5,
+    recovery: 100,
+    status: "Mixed",
+    carrying: null,
+    maxDD: -10.01,
+    bigL: -10.01,
+    loss: "3/8",
+    isActive: false,
+  },
+  {
+    month: "JULY",
+    year: "2020",
+    return: +46.88,
+    recovery: 100,
+    status: "Mixed",
+    carrying: null,
+    maxDD: 0.0,
+    bigL: 0.0,
+    loss: "0/4",
+    isActive: false,
+  },
+];
+
+const formatPct = (v) =>
+  v === 0 ? "0.00%" : `${v > 0 ? "+" : ""}${v.toFixed(2)}%`;
+
+const Sparkline = ({ value }) => {
+  const positive = value >= 0;
+  const bars = 12;
+  const heights = Array.from({ length: bars }, (_, i) => {
+    const base = Math.abs(value) / 100;
+    const noise = Math.sin(i * 2.3 + value) * 0.4 + Math.cos(i * 1.7) * 0.3;
+    return Math.max(0.1, Math.min(1, base * 1.5 + noise * base + 0.1));
+  });
+
+  return (
+    <svg width="100%" height="32" viewBox="0 0 120 32" preserveAspectRatio="none">
+      {heights.map((h, i) => (
+        <rect
+          key={i}
+          x={i * 10 + 1}
+          y={32 - h * 28}
+          width={7}
+          height={h * 28}
+          rx={1.5}
+          fill={positive ? "rgba(0,230,150,0.25)" : "rgba(255,80,100,0.25)"}
+        />
+      ))}
+      <polyline
+        points={heights
+          .map((h, i) => `${i * 10 + 4.5},${32 - h * 28}`)
+          .join(" ")}
+        fill="none"
+        stroke={positive ? "#00e696" : "#ff5064"}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+const RecoveryArc = ({ pct }) => {
+  const r = 14;
+  const cx = 18;
+  const cy = 18;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2.5" />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill="none"
+        stroke={pct === 100 ? "#00e696" : pct === 0 ? "#ff5064" : "#f5c518"}
+        strokeWidth="2.5"
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        transform="rotate(-90 18 18)"
+        style={{ transition: "stroke-dasharray 1s ease" }}
+      />
+      <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="7" fontFamily="'Space Mono', monospace" fontWeight="700">
+        {pct}%
+      </text>
+    </svg>
+  );
+};
+
+const Card = ({ data, index }) => {
+  const [visible, setVisible] = useState(false);
+  const positive = data.return >= 0;
+  const accent = positive ? "#00e696" : "#ff5064";
+  const accentDim = positive ? "rgba(0,230,150,0.12)" : "rgba(255,80,100,0.12)";
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), index * 80 + 100);
+    return () => clearTimeout(t);
+  }, [index]);
+
+  return (
+    <div
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(20px)",
+        transition: `opacity 0.5s ease ${index * 0.08}s, transform 0.5s ease ${index * 0.08}s`,
+        background: data.isActive
+          ? "linear-gradient(145deg, rgba(255,80,100,0.08), rgba(20,14,25,0.95))"
+          : "linear-gradient(145deg, rgba(255,255,255,0.03), rgba(12,10,18,0.95))",
+        border: data.isActive
+          ? "1px solid rgba(255,80,100,0.4)"
+          : "1px solid rgba(255,255,255,0.07)",
+        borderRadius: "16px",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        position: "relative",
+        overflow: "hidden",
+        backdropFilter: "blur(10px)",
+        minWidth: 0,
+      }}
+    >
+      {/* Glow blob */}
+      <div style={{
+        position: "absolute",
+        top: "-40px",
+        right: "-40px",
+        width: "120px",
+        height: "120px",
+        borderRadius: "50%",
+        background: `radial-gradient(circle, ${accentDim} 0%, transparent 70%)`,
+        pointerEvents: "none",
+      }} />
+
+      {/* Header row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{
+            fontSize: "9px",
+            letterSpacing: "0.18em",
+            color: "rgba(255,255,255,0.35)",
+            fontFamily: "'Space Mono', monospace",
+            marginBottom: "4px",
+          }}>
+            {data.month}
+          </div>
+          <div style={{
+            fontSize: "11px",
+            letterSpacing: "0.12em",
+            color: "rgba(255,255,255,0.5)",
+            fontFamily: "'Space Mono', monospace",
+          }}>
+            {data.year}
+          </div>
+        </div>
+        <RecoveryArc pct={data.recovery} />
+      </div>
+
+      {/* Return */}
+      <div style={{
+        fontFamily: "'Space Mono', monospace",
+        fontWeight: "700",
+        fontSize: "15px",
+        color: accent,
+        letterSpacing: "0.02em",
+        lineHeight: 1,
+      }}>
+        {formatPct(data.return)}
+      </div>
+
+      {/* Carrying badge */}
+      {data.carrying !== null && (
+        <div style={{
+          background: "rgba(255,80,100,0.15)",
+          border: "1px solid rgba(255,80,100,0.3)",
+          borderRadius: "6px",
+          padding: "5px 10px",
+          fontSize: "9px",
+          fontFamily: "'Space Mono', monospace",
+          color: "#ff5064",
+          letterSpacing: "0.1em",
+          textAlign: "center",
+        }}>
+          CARRYING {formatPct(data.carrying)}
+        </div>
+      )}
+
+      {/* Status badge */}
+      <div style={{
+        background: accentDim,
+        border: `1px solid ${accent}33`,
+        borderRadius: "6px",
+        padding: "5px 10px",
+        fontSize: "9px",
+        fontFamily: "'Space Mono', monospace",
+        color: accent,
+        letterSpacing: "0.14em",
+        textAlign: "center",
+      }}>
+        {data.status.toUpperCase()}
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: "1px", background: "rgba(255,255,255,0.05)" }} />
+
+      {/* Stats */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {[
+          { label: "MAX DD", value: data.maxDD },
+          { label: "BIG L", value: data.bigL },
+          { label: "LOSS", value: data.loss, raw: true },
+        ].map(({ label, value, raw }) => (
+          <div key={label} style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}>
+            <span style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: "9px",
+              letterSpacing: "0.14em",
+              color: "rgba(255,255,255,0.3)",
+            }}>
+              {label}
+            </span>
+            <span style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: "10px",
+              fontWeight: "700",
+              color: raw
+                ? "rgba(255,255,255,0.5)"
+                : value < 0
+                ? "#ff5064"
+                : "rgba(255,255,255,0.45)",
+            }}>
+              {raw ? value : formatPct(value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setLoaded(true), 50);
+  }, []);
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #06040f 0%, #0d0818 50%, #060410 100%)",
+      padding: "40px 24px",
+      fontFamily: "'Space Mono', monospace",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Background grid */}
+      <div style={{
+        position: "fixed",
+        inset: 0,
+        backgroundImage: `
+          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)
+        `,
+        backgroundSize: "40px 40px",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+
+      {/* Ambient glows */}
+      <div style={{
+        position: "fixed",
+        top: "10%",
+        left: "15%",
+        width: "400px",
+        height: "400px",
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(0,150,255,0.04) 0%, transparent 70%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      <div style={{
+        position: "fixed",
+        bottom: "10%",
+        right: "10%",
+        width: "500px",
+        height: "500px",
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(0,230,150,0.03) 0%, transparent 70%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "1200px", margin: "0 auto" }}>
+
+        {/* Title */}
+        <div style={{
+          marginBottom: "36px",
+          opacity: loaded ? 1 : 0,
+          transform: loaded ? "none" : "translateY(-12px)",
+          transition: "all 0.6s ease",
+        }}>
+          <div style={{
+            fontSize: "10px",
+            letterSpacing: "0.3em",
+            color: "rgba(255,255,255,0.25)",
+            marginBottom: "6px",
+          }}>
+            PERFORMANCE REPORT
+          </div>
+          <div style={{
+            fontSize: "22px",
+            fontWeight: "700",
+            color: "rgba(255,255,255,0.85)",
+            letterSpacing: "0.05em",
+          }}>
+            Monthly Overview · 2020
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+          gap: "14px",
+        }}>
+          {months.map((m, i) => (
+            <Card key={m.month} data={m} index={i} />
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          marginTop: "32px",
+          display: "flex",
+          gap: "24px",
+          opacity: 0.35,
+          fontSize: "9px",
+          letterSpacing: "0.15em",
+          color: "white",
+        }}>
+          {[
+            { color: "#00e696", label: "PROFITABLE MONTH" },
+            { color: "#ff5064", label: "DRAWDOWN MONTH" },
+            { color: "rgba(255,255,255,0.3)", label: "RECOVERY %" },
+          ].map(({ color, label }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: color }} />
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+      `}</style>
+    </div>
+  );
+}
