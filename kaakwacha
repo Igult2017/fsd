@@ -1,0 +1,585 @@
+import { useState } from "react";
+
+const MENU = [
+  { id: 1, name: "Tilapia Fry Masala", price: 600, category: "Fish", desc: "Crispy tilapia fillet coated in aromatic masala spices, fried golden", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&q=80", popular: true },
+  { id: 2, name: "Wet Fish", price: 600, category: "Fish", desc: "Tender fish simmered in rich tomato-based gravy with local herbs", img: "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?w=400&q=80" },
+  { id: 3, name: "Dry Fish", price: 600, category: "Fish", desc: "Traditional oven-dried fish with deep umami flavour", img: "https://images.unsplash.com/photo-1559847844-5315695dadae?w=400&q=80" },
+  { id: 4, name: "Fish Boil", price: 600, category: "Fish", desc: "Whole fish boiled in seasoned broth, clean and nourishing", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80" },
+  { id: 5, name: "Kuku Choma", price: 500, category: "Chicken", desc: "Chargrilled chicken rubbed with smoky Kenyan spices", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c3?w=400&q=80", popular: true },
+  { id: 6, name: "Kuku Stew", price: 600, category: "Chicken", desc: "Slow-cooked chicken in a rich, hearty stew with kienyeji vegetables", img: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=400&q=80" },
+  { id: 7, name: "Choma 2 Piecer", price: 550, category: "Choma", desc: "Two succulent pieces of perfectly grilled meat", img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80" },
+  { id: 8, name: "Choma 3 Piecer", price: 650, category: "Choma", desc: "Three generous pieces of smoky grilled choma", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80", popular: true },
+  { id: 9, name: "Choma 4 Piecer", price: 750, category: "Choma", desc: "Four hearty pieces — the ultimate choma experience", img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400&q=80" },
+  { id: 10, name: "Choma Special (1pc)", price: 300, category: "Choma", desc: "A single premium piece, perfect as a starter", img: "https://images.unsplash.com/photo-1558030006-450675393462?w=400&q=80" },
+  { id: 11, name: "Beef Chuaks", price: 550, category: "Beef", desc: "Juicy beef chunks seared and simmered to perfection", img: "https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=400&q=80" },
+  { id: 12, name: "Nyama Wet Fry", price: 550, category: "Beef", desc: "Tender beef stir-fried in bold Kenyan spices and onions", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80", popular: true },
+  { id: 13, name: "Beef Boil", price: 550, category: "Beef", desc: "Classic boiled beef, tender and flavourful in its own broth", img: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=80" },
+  { id: 14, name: "Mboga Kienyeji", price: 250, category: "Sides", desc: "Fresh locally grown vegetables cooked the traditional way", img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80" },
+  { id: 15, name: "Mrenda / Apoth", price: 200, category: "Sides", desc: "Traditional Luo greens — a cultural delicacy", img: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&q=80" },
+  { id: 16, name: "Chips", price: 250, category: "Sides", desc: "Golden crispy fries, salted and served hot", img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80" },
+  { id: 17, name: "Sweet Potatoes", price: 100, category: "Sides", desc: "Boiled or roasted sweet potatoes — soft, sweet, satisfying", img: "https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?w=400&q=80" },
+  { id: 18, name: "Chapati Plain", price: 70, category: "Sides", desc: "Soft, hand-rolled chapati baked fresh daily", img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80" },
+  { id: 19, name: "Passion Juice", price: 200, category: "Drinks", desc: "Freshly blended Kenyan passion fruit, chilled and natural", img: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&q=80" },
+  { id: 20, name: "Mango Juice", price: 200, category: "Drinks", desc: "Ripe mango blended smooth — sunshine in a glass", img: "https://images.unsplash.com/photo-1546173159-315724a31696?w=400&q=80" },
+  { id: 21, name: "Cocktail", price: 260, category: "Drinks", desc: "House fruit cocktail — a refreshing tropical blend", img: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&q=80" },
+  { id: 22, name: "Spanish Omelette", price: 100, category: "Breakfast", desc: "Fluffy egg omelette with peppers and herbs, Spanish-style", img: "https://images.unsplash.com/photo-1612240498936-65f5101365d2?w=400&q=80" },
+  { id: 23, name: "Scrambled Eggs", price: 100, category: "Breakfast", desc: "Creamy scrambled eggs, cooked soft and seasoned well", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=80" },
+  { id: 24, name: "Sausage", price: 80, category: "Breakfast", desc: "Grilled beef sausage, crisp on the outside, juicy within", img: "https://images.unsplash.com/photo-1540648639573-8c848de23f0a?w=400&q=80" },
+];
+
+const ROOMS = [
+  { id: 1, name: "Standard Single", price: 2500, img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&q=80", amenities: ["WiFi", "AC", "TV", "Breakfast"], available: true, desc: "Cosy single room with all basics covered. Perfect for solo travellers." },
+  { id: 2, name: "Deluxe Double", price: 3800, img: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=80", amenities: ["WiFi", "AC", "TV", "Breakfast", "En-suite"], available: true, desc: "Spacious double room with a private en-suite and city views.", popular: true },
+  { id: 3, name: "Family Suite", price: 5500, img: "https://images.unsplash.com/photo-1591088398332-8a7791972843?w=400&q=80", amenities: ["WiFi", "AC", "TV", "Breakfast", "En-suite", "Lounge"], available: true, desc: "Generous suite with a lounge area — ideal for families or long stays." },
+  { id: 4, name: "Executive Room", price: 4500, img: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&q=80", amenities: ["WiFi", "AC", "TV", "Breakfast", "En-suite", "Work Desk"], available: false, desc: "Professional room with a large work desk and premium amenities." },
+];
+
+const SPECIAL_OFFERS = [
+  { id: 1, title: "Family Weekend Bundle", badge: "Weekend Only", accent: "#D84315", bg: "#FBE9E7", desc: "Kids under 10 eat FREE with every paying adult. Tables of 4+ get a complimentary fruit cocktail round.", valid: "Every Sat & Sun", saving: "Save up to KSh 600", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80" },
+  { id: 2, title: "Choma Feast for 4", badge: "Magic Number Deal", accent: "#2E7D32", bg: "#E8F5E9", desc: "4 Choma 3-Piecers + 4 Passion Juices + 1 free Mboga Kienyeji. Eat together, save together.", valid: "Mon – Fri only", saving: "Save KSh 450", img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80" },
+  { id: 3, title: "Happy Hour Fish Deal", badge: "Daily 2PM–5PM", accent: "#1565C0", bg: "#E3F2FD", desc: "Any fish meal + a juice for KSh 700. Our most popular combo at an unbeatable midday price.", valid: "Daily 2PM – 5PM", saving: "Save KSh 100", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&q=80" },
+  { id: 4, title: "Birthday Table Package", badge: "Book in Advance", accent: "#6A1B9A", bg: "#F3E5F5", desc: "Reserve your birthday table, get a free cake, 10% off the whole bill, and a complimentary Polaroid.", valid: "Any day with 48hr notice", saving: "10% off + free cake", img: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=400&q=80" },
+];
+
+const UPCOMING_OFFERS = [
+  { id: 1, title: "Madaraka Day Nyama Bonanza", date: "1 June 2026", desc: "All-day choma special — any choma + 2 sides + juice for KSh 899. Limited tables.", img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400&q=80", daysLeft: 10 },
+  { id: 2, title: "Corporate Lunch Club Launch", date: "15 June 2026", desc: "Office teams of 8+ get a fixed 3-course lunch for KSh 599/head every weekday.", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80", daysLeft: 25 },
+  { id: 3, title: "Luo Heritage Night", date: "28 June 2026", desc: "Traditional Luo cuisine — Mrenda, Apoth, Omena, and live music. Tickets: KSh 300.", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80", daysLeft: 38 },
+  { id: 4, title: "Loyalty Card Grand Launch", date: "1 July 2026", desc: "Stamp card goes live! Buy 5 meals, get 1 free. Early sign-ups get double stamps in week one.", img: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80", daysLeft: 41 },
+];
+
+const TESTIMONIALS = [
+  { name: "Achieng Otieno", role: "Regular Customer", text: "HangoverKaakwacha is where I bring every out-of-town guest. The Tilapia Fry Masala is the best in Kisumu, no contest.", avatar: "AO", rating: 5 },
+  { name: "Brian Omondi", role: "Corporate Client", text: "We host our quarterly team lunches here. Food is consistently excellent and the service keeps improving.", avatar: "BO", rating: 5 },
+  { name: "Mercy Wanjiku", role: "Nairobi Visitor", text: "I was visiting Kisumu and a local insisted I come here. Now I understand why — the Kuku Choma is incredible!", avatar: "MW", rating: 5 },
+  { name: "James Odhiambo", role: "Food Blogger", text: "Authentic Luo flavours with a clean modern atmosphere. Mrenda and Apoth taste exactly like home.", avatar: "JO", rating: 5 },
+  { name: "Fatuma Said", role: "Hotel Guest", text: "Stayed in the room and had breakfast — eggs, sausage, chapati. Best hotel breakfast I've had in a while.", avatar: "FS", rating: 4 },
+];
+
+const CATEGORIES = ["All", "Fish", "Chicken", "Beef", "Choma", "Sides", "Drinks", "Breakfast"];
+
+const C = {
+  orange: "#E8523A",
+  orangeLight: "#FFF3F1",
+  orangeMid: "#FFCFC7",
+  orangeDark: "#C03E28",
+  bg: "#FFFBF8",
+  surface: "#FFFFFF",
+  surfaceAlt: "#FFF8F5",
+  border: "#F0E6E0",
+  text: "#1A0A05",
+  textMid: "#6B3D2E",
+  textLight: "#A07060",
+  green: "#2E7D32",
+  greenBg: "#F1F8F1",
+};
+
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [cart, setCart] = useState([]);
+  const [menuCat, setMenuCat] = useState("All");
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkinRoom, setCheckinRoom] = useState(null);
+  const [checkinForm, setCheckinForm] = useState({ name: "", phone: "", checkin: "", checkout: "", guests: 1 });
+  const [checkinDone, setCheckinDone] = useState(false);
+  const [orderForm, setOrderForm] = useState({ name: "", phone: "", notes: "" });
+
+  const addToCart = (item) => {
+    setCart(prev => {
+      const ex = prev.find(c => c.id === item.id);
+      if (ex) return prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c);
+      return [...prev, { ...item, qty: 1 }];
+    });
+  };
+  const removeFromCart = (id) => setCart(prev => prev.filter(c => c.id !== id));
+  const updateQty = (id, delta) => setCart(prev => prev.map(c => c.id === id ? { ...c, qty: Math.max(1, c.qty + delta) } : c));
+  const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const cartCount = cart.reduce((s, c) => s + c.qty, 0);
+  const filteredMenu = menuCat === "All" ? MENU : MENU.filter(m => m.category === menuCat);
+
+  const placeOrder = () => {
+    if (!orderForm.name || !orderForm.phone) return;
+    setOrderPlaced(true);
+    setCart([]);
+  };
+  const submitCheckin = () => {
+    if (!checkinForm.name || !checkinForm.phone || !checkinForm.checkin || !checkinForm.checkout) return;
+    setCheckinDone(true);
+  };
+
+  const nav = [
+    { id: "home", label: "Home" },
+    { id: "menu", label: "Menu & Order" },
+    { id: "offers", label: "Special Offers" },
+    { id: "upcoming", label: "Events" },
+    { id: "rooms", label: "Rooms" },
+  ];
+
+  return (
+    <div style={{ fontFamily: "'Georgia', serif", background: C.bg, minHeight: "100vh", color: C.text }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .f { font-family: 'DM Sans', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .btn { cursor: pointer; border: none; border-radius: 8px; padding: 11px 22px; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.03em; transition: all 0.18s; }
+        .btn-primary { background: ${C.orange}; color: #fff; }
+        .btn-primary:hover { background: ${C.orangeDark}; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,82,58,0.3); }
+        .btn-outline { background: #fff; color: ${C.orange}; border: 2px solid ${C.orange}; }
+        .btn-outline:hover { background: ${C.orangeLight}; }
+        .btn-ghost { background: transparent; color: ${C.textMid}; border: 1.5px solid ${C.border}; }
+        .btn-ghost:hover { border-color: ${C.orange}; color: ${C.orange}; }
+        .card { background: #fff; border: 1px solid ${C.border}; border-radius: 16px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(232,82,58,0.12); }
+        .nav-btn { cursor: pointer; padding: 7px 14px; border-radius: 20px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.18s; color: ${C.textMid}; border: none; background: none; }
+        .nav-btn:hover { color: ${C.orange}; background: ${C.orangeLight}; }
+        .nav-btn.active { color: ${C.orange}; background: ${C.orangeLight}; }
+        .cat-btn { cursor: pointer; padding: 7px 16px; border-radius: 20px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; transition: all 0.18s; border: 1.5px solid ${C.border}; background: #fff; color: ${C.textLight}; white-space: nowrap; }
+        .cat-btn:hover { border-color: ${C.orange}; color: ${C.orange}; }
+        .cat-btn.active { background: ${C.orange}; border-color: ${C.orange}; color: #fff; }
+        .inp { width: 100%; background: ${C.surfaceAlt}; border: 1.5px solid ${C.border}; border-radius: 10px; padding: 11px 14px; color: ${C.text}; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border 0.15s; }
+        .inp:focus { border-color: ${C.orange}; background: #fff; }
+        .overlay { position: fixed; inset: 0; background: rgba(80,20,5,0.45); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: #fff; border-radius: 20px; padding: 28px; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(80,20,5,0.18); }
+        .tag { display: inline-block; padding: 3px 11px; border-radius: 20px; font-size: 11px; font-family: 'DM Sans', sans-serif; font-weight: 700; letter-spacing: 0.04em; }
+        .tag-hot { background: ${C.orangeLight}; color: ${C.orange}; border: 1px solid ${C.orangeMid}; }
+        .tag-save { background: ${C.greenBg}; color: ${C.green}; border: 1px solid #A5D6A7; }
+        .divider { height: 1px; background: ${C.border}; margin: 18px 0; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: ${C.orangeLight}; border: 2px solid ${C.orangeMid}; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px; color: ${C.orange}; flex-shrink: 0; }
+        .scroll-x { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .scroll-x::-webkit-scrollbar { display: none; }
+        .amenity { display: inline-flex; align-items: center; padding: 3px 10px; background: ${C.orangeLight}; border: 1px solid ${C.orangeMid}; border-radius: 12px; font-size: 11px; color: ${C.orange}; font-family: 'DM Sans', sans-serif; font-weight: 700; }
+        .stars { color: #F59E0B; font-size: 15px; letter-spacing: 1px; }
+        .success-box { background: #F1F8F1; border: 1.5px solid #A5D6A7; border-radius: 16px; padding: 32px; text-align: center; }
+        .section-hd { font-family: 'Playfair Display', serif; font-weight: 900; color: ${C.text}; }
+        .accent { color: ${C.orange}; }
+        .countdown { background: ${C.orangeLight}; border: 1px solid ${C.orangeMid}; border-radius: 8px; padding: 4px 10px; display: inline-block; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: ${C.orange}; }
+        .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid ${C.border}; background: #fff; color: ${C.text}; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+        .qty-btn:hover { border-color: ${C.orange}; color: ${C.orange}; }
+      `}</style>
+
+      {/* NAV */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,251,248,0.96)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, padding: "0 16px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setPage("home")}>
+            <div style={{ width: 36, height: 36, background: C.orange, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: 16 }}>HK</div>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: 14, color: C.text, lineHeight: 1.1 }}>HangoverKaakwacha</div>
+              <div className="f" style={{ fontSize: 10, color: C.textLight, letterSpacing: "0.06em" }}>ODERA STREET · KISUMU</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+            {nav.map(n => (
+              <button key={n.id} className={`nav-btn${page === n.id ? " active" : ""}`} onClick={() => { setPage(n.id); setOrderPlaced(false); setCheckinDone(false); }}>
+                {n.label}
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-primary" style={{ padding: "8px 16px", fontSize: 13, borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }} onClick={() => setCheckoutOpen(true)}>
+            🛒 {cartCount > 0 ? <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: 10, padding: "0 6px" }}>{cartCount}</span> : "Cart"}
+          </button>
+        </div>
+      </nav>
+
+      {/* ===== HOME ===== */}
+      {page === "home" && (
+        <div>
+          {/* Hero */}
+          <div style={{ background: `linear-gradient(120deg, #FFF8F5 0%, #FFEDE6 60%, #FFF3EE 100%)`, padding: "64px 20px 56px", borderBottom: `1px solid ${C.border}` }}>
+            <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
+              <div className="tag tag-hot" style={{ marginBottom: 18, fontSize: 12 }}>🏆 Kisumu's Favourite Eatery · Est. 20+ Years</div>
+              <h1 className="section-hd" style={{ fontSize: "clamp(34px, 7vw, 68px)", lineHeight: 1.1, marginBottom: 18 }}>
+                Hangover<span className="accent">Kaakwacha</span>
+              </h1>
+              <p className="f" style={{ fontSize: 16, color: C.textMid, lineHeight: 1.75, marginBottom: 32, maxWidth: 520, margin: "0 auto 32px" }}>
+                Authentic Kenyan cuisine in the heart of Kisumu on Odera Street. Traditional Luo delicacies, fresh lake fish, and hearty choma — every single day.
+              </p>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+                <button className="btn btn-primary" style={{ padding: "13px 30px", fontSize: 14, borderRadius: 10 }} onClick={() => setPage("menu")}>
+                  🍽️ Browse Menu & Order
+                </button>
+                <button className="btn btn-outline" style={{ padding: "13px 30px", fontSize: 14, borderRadius: 10 }} onClick={() => setPage("offers")}>
+                  🎁 View Special Offers
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats bar */}
+          <div style={{ background: C.orange, padding: "20px 20px" }}>
+            <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: 16 }}>
+              {[["20+", "Years Serving"], ["10,000+", "Happy Customers"], ["7AM – 10PM", "Open Daily"], ["Odera St", "Kisumu, Kenya"]].map(([v, l]) => (
+                <div key={l} style={{ textAlign: "center" }}>
+                  <div className="serif" style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>{v}</div>
+                  <div className="f" style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Why Us */}
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 20px" }}>
+            <h2 className="section-hd" style={{ fontSize: 30, textAlign: "center", marginBottom: 6 }}>Why Kisumu <span className="accent">Loves Us</span></h2>
+            <p className="f" style={{ textAlign: "center", color: C.textLight, marginBottom: 36, fontSize: 15 }}>More than a meal — a full experience</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+              {[
+                ["🐟", "Fresh Lake Fish", "Sourced daily from Lake Victoria — the freshest tilapia in Kisumu"],
+                ["🔥", "Authentic Choma", "Wood-fired grilling tradition passed down through generations"],
+                ["🌿", "Kienyeji Vegetables", "Traditional Luo greens like Mrenda and Apoth, just like home"],
+                ["🏨", "Stay With Us", "Comfortable rooms upstairs — wake up to breakfast downstairs"],
+              ].map(([icon, title, desc]) => (
+                <div key={title} className="card" style={{ padding: 22, textAlign: "center", background: C.surfaceAlt, border: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: 34, marginBottom: 10 }}>{icon}</div>
+                  <div className="serif" style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: C.text }}>{title}</div>
+                  <div className="f" style={{ fontSize: 13, color: C.textMid, lineHeight: 1.6 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Popular dishes */}
+          <div style={{ background: C.surfaceAlt, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "56px 20px" }}>
+            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+                <h2 className="section-hd" style={{ fontSize: 28 }}>Customer <span className="accent">Favourites</span></h2>
+                <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setPage("menu")}>Full Menu →</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 16 }}>
+                {MENU.filter(m => m.popular).map(item => (
+                  <div key={item.id} className="card">
+                    <img src={item.img} alt={item.name} style={{ width: "100%", height: 148, objectFit: "cover" }} />
+                    <div style={{ padding: 16 }}>
+                      <div className="serif" style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: C.text }}>{item.name}</div>
+                      <div className="f" style={{ fontSize: 12, color: C.textLight, marginBottom: 12, lineHeight: 1.5 }}>{item.desc}</div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span className="f" style={{ color: C.orange, fontWeight: 700, fontSize: 16 }}>KSh {item.price}</span>
+                        <button className="btn btn-primary" style={{ padding: "7px 14px", fontSize: 12, borderRadius: 8 }} onClick={() => addToCart(item)}>Add +</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Testimonials */}
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 20px" }}>
+            <h2 className="section-hd" style={{ fontSize: 28, textAlign: "center", marginBottom: 6 }}>What Our <span className="accent">Guests Say</span></h2>
+            <p className="f" style={{ textAlign: "center", color: C.textLight, marginBottom: 36, fontSize: 14 }}>Real reviews from real Kenyans</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 18 }}>
+              {TESTIMONIALS.map((t, i) => (
+                <div key={i} className="card" style={{ padding: 22 }}>
+                  <div className="stars" style={{ marginBottom: 10 }}>{"★".repeat(t.rating)}</div>
+                  <p style={{ fontFamily: "'Georgia', serif", fontSize: 13.5, color: C.textMid, lineHeight: 1.72, fontStyle: "italic", marginBottom: 16 }}>"{t.text}"</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div className="avatar">{t.avatar}</div>
+                    <div>
+                      <div className="f" style={{ fontWeight: 700, fontSize: 13, color: C.text }}>{t.name}</div>
+                      <div className="f" style={{ fontSize: 11, color: C.textLight }}>{t.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact footer */}
+          <div style={{ background: C.orange, padding: "40px 20px", textAlign: "center" }}>
+            <h3 className="serif" style={{ fontSize: 22, color: "#fff", marginBottom: 6, fontWeight: 900 }}>Find Us on Odera Street</h3>
+            <p className="f" style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginBottom: 22 }}>Mon–Sun · 7:00 AM – 10:00 PM · Kisumu, Kenya</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <a href="tel:0728462418" style={{ textDecoration: "none" }}><button className="btn" style={{ background: "#fff", color: C.orange, fontFamily: "'DM Sans',sans-serif", fontWeight: 700 }}>📞 0728 462 418</button></a>
+              <a href="tel:0727911548" style={{ textDecoration: "none" }}><button className="btn" style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", fontFamily: "'DM Sans',sans-serif", fontWeight: 700 }}>📞 0727 911 548</button></a>
+              <a href="mailto:info@HangoverKaakwacha.co.ke" style={{ textDecoration: "none" }}><button className="btn" style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", fontFamily: "'DM Sans',sans-serif", fontWeight: 700 }}>✉ Email Us</button></a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MENU ===== */}
+      {page === "menu" && (
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 20px" }}>
+          <div style={{ marginBottom: 28 }}>
+            <h2 className="section-hd" style={{ fontSize: 34, marginBottom: 6 }}>Our <span className="accent">Menu</span></h2>
+            <p className="f" style={{ color: C.textLight, fontSize: 14 }}>Freshly prepared, local flavours — tap any dish to add to your order</p>
+          </div>
+          <div className="scroll-x" style={{ marginBottom: 28 }}>
+            {CATEGORIES.map(cat => (
+              <button key={cat} className={`cat-btn${menuCat === cat ? " active" : ""}`} onClick={() => setMenuCat(cat)}>{cat}</button>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 18 }}>
+            {filteredMenu.map(item => (
+              <div key={item.id} className="card">
+                <div style={{ position: "relative" }}>
+                  <img src={item.img} alt={item.name} style={{ width: "100%", height: 172, objectFit: "cover" }} />
+                  {item.popular && <div className="tag tag-hot" style={{ position: "absolute", top: 10, left: 10 }}>⭐ Popular</div>}
+                </div>
+                <div style={{ padding: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                    <div className="serif" style={{ fontSize: 14, fontWeight: 700, color: C.text, flex: 1, lineHeight: 1.3 }}>{item.name}</div>
+                    <div className="f" style={{ fontWeight: 700, fontSize: 15, color: C.orange, marginLeft: 8, flexShrink: 0 }}>KSh {item.price}</div>
+                  </div>
+                  <p className="f" style={{ fontSize: 12, color: C.textLight, lineHeight: 1.55, marginBottom: 14 }}>{item.desc}</p>
+                  <button className="btn btn-primary" style={{ width: "100%", padding: "9px", fontSize: 13, borderRadius: 8 }} onClick={() => addToCart(item)}>
+                    + Add to Order
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {cart.length > 0 && (
+            <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 40 }}>
+              <button className="btn btn-primary" style={{ padding: "14px 22px", fontSize: 14, borderRadius: 14, boxShadow: "0 8px 28px rgba(232,82,58,0.35)" }} onClick={() => setCheckoutOpen(true)}>
+                🛒 View Order · KSh {total.toLocaleString()}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===== SPECIAL OFFERS ===== */}
+      {page === "offers" && (
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 20px" }}>
+          <h2 className="section-hd" style={{ fontSize: 34, marginBottom: 6 }}>Special <span className="accent">Offers</span></h2>
+          <p className="f" style={{ color: C.textLight, marginBottom: 40, fontSize: 14 }}>Crafted deals to make every visit extraordinary</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22 }}>
+            {SPECIAL_OFFERS.map(offer => (
+              <div key={offer.id} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: `1px solid ${C.border}`, boxShadow: "0 2px 12px rgba(232,82,58,0.06)", transition: "transform 0.2s, box-shadow 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 32px rgba(232,82,58,0.14)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 12px rgba(232,82,58,0.06)"; }}>
+                <div style={{ position: "relative" }}>
+                  <img src={offer.img} alt={offer.title} style={{ width: "100%", height: 158, objectFit: "cover" }} />
+                  <div style={{ position: "absolute", top: 12, left: 12, background: offer.accent, color: "#fff", padding: "4px 12px", borderRadius: 20, fontSize: 11, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: "0.04em" }}>
+                    {offer.badge}
+                  </div>
+                </div>
+                <div style={{ padding: 22 }}>
+                  <h3 className="serif" style={{ fontSize: 19, fontWeight: 700, marginBottom: 10, lineHeight: 1.3, color: C.text }}>{offer.title}</h3>
+                  <p className="f" style={{ fontSize: 13, color: C.textMid, lineHeight: 1.65, marginBottom: 16 }}>{offer.desc}</p>
+                  <div className="divider" />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <div>
+                      <div className="f" style={{ fontSize: 10, color: C.textLight, textTransform: "uppercase", letterSpacing: "0.05em" }}>Valid</div>
+                      <div className="f" style={{ fontSize: 13, color: C.text, fontWeight: 700 }}>{offer.valid}</div>
+                    </div>
+                    <div className="tag tag-save">{offer.saving}</div>
+                  </div>
+                  <button className="btn btn-primary" style={{ width: "100%", padding: 10 }} onClick={() => setPage("menu")}>Order Now & Claim →</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 48, background: `linear-gradient(120deg, #FFF3F1, #FFEDE6)`, border: `1.5px solid ${C.orangeMid}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🎂</div>
+            <h3 className="section-hd" style={{ fontSize: 22, marginBottom: 10 }}>Celebrating Something <span className="accent">Special?</span></h3>
+            <p className="f" style={{ fontSize: 14, color: C.textMid, marginBottom: 20, maxWidth: 460, margin: "0 auto 20px" }}>
+              Book your birthday, anniversary, or corporate event. Get a personalised table, 10% off the bill, and a complimentary surprise.
+            </p>
+            <a href="tel:0728462418"><button className="btn btn-primary" style={{ padding: "12px 28px" }}>📞 Book an Event</button></a>
+          </div>
+        </div>
+      )}
+
+      {/* ===== UPCOMING EVENTS ===== */}
+      {page === "upcoming" && (
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 20px" }}>
+          <h2 className="section-hd" style={{ fontSize: 34, marginBottom: 6 }}>Upcoming <span className="accent">Events</span></h2>
+          <p className="f" style={{ color: C.textLight, marginBottom: 40, fontSize: 14 }}>Don't miss what's coming — mark your calendar</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22 }}>
+            {UPCOMING_OFFERS.map(ev => (
+              <div key={ev.id} className="card">
+                <div style={{ position: "relative" }}>
+                  <img src={ev.img} alt={ev.title} style={{ width: "100%", height: 168, objectFit: "cover" }} />
+                  <div className="countdown" style={{ position: "absolute", top: 12, right: 12 }}>{ev.daysLeft} days away</div>
+                </div>
+                <div style={{ padding: 22 }}>
+                  <div className="f" style={{ fontSize: 12, color: C.orange, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>📅 {ev.date}</div>
+                  <h3 className="serif" style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, lineHeight: 1.35, color: C.text }}>{ev.title}</h3>
+                  <p className="f" style={{ fontSize: 13, color: C.textMid, lineHeight: 1.65, marginBottom: 16 }}>{ev.desc}</p>
+                  <a href="tel:0728462418" style={{ textDecoration: "none" }}>
+                    <button className="btn btn-outline" style={{ width: "100%", padding: 9 }}>Register Interest</button>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 48, textAlign: "center", padding: "32px 20px", background: C.surfaceAlt, borderRadius: 16, border: `1px solid ${C.border}` }}>
+            <p className="f" style={{ fontSize: 14, color: C.textMid, marginBottom: 18 }}>Save our number to be first to know about new events and daily specials.</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <a href="tel:0728462418" style={{ textDecoration: "none" }}><button className="btn btn-primary">📞 Save Our Number</button></a>
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}><button className="btn btn-ghost">👍 Follow on Facebook</button></a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== ROOMS ===== */}
+      {page === "rooms" && (
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 20px" }}>
+          {checkinDone ? (
+            <div className="success-box" style={{ maxWidth: 500, margin: "40px auto", textAlign: "center" }}>
+              <div style={{ fontSize: 52, marginBottom: 16 }}>🏨</div>
+              <h3 className="section-hd" style={{ fontSize: 26, marginBottom: 10 }}>Booking <span className="accent">Confirmed!</span></h3>
+              <p className="f" style={{ fontSize: 14, color: C.textMid, marginBottom: 6 }}>
+                Thank you, <strong>{checkinForm.name}</strong>! Your check-in request for the <strong style={{ color: C.orange }}>{checkinRoom?.name}</strong> has been received.
+              </p>
+              <p className="f" style={{ fontSize: 13, color: C.textLight, marginBottom: 24 }}>We'll call you on <strong>{checkinForm.phone}</strong> to confirm your reservation.</p>
+              <button className="btn btn-primary" onClick={() => { setCheckinDone(false); setCheckinRoom(null); setCheckinForm({ name: "", phone: "", checkin: "", checkout: "", guests: 1 }); }}>
+                Browse More Rooms
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 className="section-hd" style={{ fontSize: 34, marginBottom: 6 }}>Stay With <span className="accent">Us</span></h2>
+              <p className="f" style={{ color: C.textLight, marginBottom: 36, fontSize: 14 }}>Comfortable rooms above Kisumu's favourite eatery — wake up to breakfast downstairs</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 22 }}>
+                {ROOMS.map(room => (
+                  <div key={room.id} className="card" style={{ opacity: room.available ? 1 : 0.65 }}>
+                    <div style={{ position: "relative" }}>
+                      <img src={room.img} alt={room.name} style={{ width: "100%", height: 178, objectFit: "cover" }} />
+                      {room.popular && <div className="tag tag-hot" style={{ position: "absolute", top: 10, left: 10 }}>⭐ Most Popular</div>}
+                      {!room.available && (
+                        <div style={{ position: "absolute", inset: 0, background: "rgba(255,243,240,0.75)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div className="f" style={{ fontWeight: 700, fontSize: 15, color: C.orange, background: "#fff", padding: "8px 20px", borderRadius: 8, border: `1.5px solid ${C.orangeMid}` }}>Fully Booked</div>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ padding: 22 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                        <h3 className="serif" style={{ fontSize: 17, fontWeight: 700, color: C.text }}>{room.name}</h3>
+                        <div style={{ textAlign: "right" }}>
+                          <div className="f" style={{ fontWeight: 700, fontSize: 17, color: C.orange }}>KSh {room.price.toLocaleString()}</div>
+                          <div className="f" style={{ fontSize: 10, color: C.textLight }}>per night</div>
+                        </div>
+                      </div>
+                      <p className="f" style={{ fontSize: 13, color: C.textMid, marginBottom: 14, lineHeight: 1.6 }}>{room.desc}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 18 }}>
+                        {room.amenities.map(a => <span key={a} className="amenity">{a}</span>)}
+                      </div>
+                      <button
+                        className={`btn ${room.available ? "btn-primary" : "btn-ghost"}`}
+                        style={{ width: "100%", padding: 10 }}
+                        disabled={!room.available}
+                        onClick={() => room.available && setCheckinRoom(room)}
+                      >
+                        {room.available ? "Book This Room →" : "Unavailable"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* CHECK-IN MODAL */}
+      {checkinRoom && !checkinDone && (
+        <div className="overlay" onClick={e => e.target.className === "overlay" && setCheckinRoom(null)}>
+          <div className="modal">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 className="section-hd" style={{ fontSize: 20 }}>Book <span className="accent">{checkinRoom.name}</span></h3>
+              <button onClick={() => setCheckinRoom(null)} style={{ background: "none", border: "none", color: C.textLight, cursor: "pointer", fontSize: 22 }}>✕</button>
+            </div>
+            <div style={{ background: C.surfaceAlt, borderRadius: 10, padding: "12px 14px", marginBottom: 20, display: "flex", justifyContent: "space-between" }}>
+              <span className="f" style={{ fontSize: 13, color: C.textLight }}>Rate per night</span>
+              <span className="f" style={{ fontSize: 17, fontWeight: 700, color: C.orange }}>KSh {checkinRoom.price.toLocaleString()}</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {[["Full Name", "name", "text", "Your full name"], ["Phone Number", "phone", "tel", "0700 000 000"]].map(([label, key, type, ph]) => (
+                <div key={key}>
+                  <label className="f" style={{ fontSize: 12, color: C.textLight, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>{label}</label>
+                  <input className="inp" type={type} placeholder={ph} value={checkinForm[key]} onChange={e => setCheckinForm(p => ({ ...p, [key]: e.target.value }))} />
+                </div>
+              ))}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {[["Check-in", "checkin"], ["Check-out", "checkout"]].map(([label, key]) => (
+                  <div key={key}>
+                    <label className="f" style={{ fontSize: 12, color: C.textLight, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>{label}</label>
+                    <input className="inp" type="date" value={checkinForm[key]} onChange={e => setCheckinForm(p => ({ ...p, [key]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <label className="f" style={{ fontSize: 12, color: C.textLight, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>Guests</label>
+                <select className="inp" value={checkinForm.guests} onChange={e => setCheckinForm(p => ({ ...p, guests: e.target.value }))}>
+                  {[1, 2, 3, 4].map(n => <option key={n} value={n}>{n} Guest{n > 1 ? "s" : ""}</option>)}
+                </select>
+              </div>
+              <button className="btn btn-primary" style={{ padding: 14, fontSize: 14, borderRadius: 10, marginTop: 4 }} onClick={submitCheckin}>Confirm Booking</button>
+              <p className="f" style={{ fontSize: 11, color: C.textLight, textAlign: "center" }}>We'll call you within 1 hour to confirm your reservation.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CART MODAL */}
+      {checkoutOpen && (
+        <div className="overlay" onClick={e => { if (e.target.className === "overlay") setCheckoutOpen(false); }}>
+          <div className="modal">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 className="section-hd" style={{ fontSize: 20 }}>Your <span className="accent">Order</span></h3>
+              <button onClick={() => setCheckoutOpen(false)} style={{ background: "none", border: "none", color: C.textLight, cursor: "pointer", fontSize: 22 }}>✕</button>
+            </div>
+            {orderPlaced ? (
+              <div className="success-box">
+                <div style={{ fontSize: 44, marginBottom: 12 }}>✅</div>
+                <h4 className="section-hd" style={{ fontSize: 20, marginBottom: 8 }}>Order <span className="accent">Received!</span></h4>
+                <p className="f" style={{ fontSize: 13, color: C.textMid }}>Thank you, {orderForm.name}! We'll prepare your order and call {orderForm.phone} to confirm.</p>
+                <button className="btn btn-primary" style={{ marginTop: 18 }} onClick={() => { setOrderPlaced(false); setCheckoutOpen(false); setOrderForm({ name: "", phone: "", notes: "" }); }}>Done</button>
+              </div>
+            ) : cart.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 0", color: C.textLight }}>
+                <div style={{ fontSize: 44, marginBottom: 12 }}>🛒</div>
+                <p className="f" style={{ fontSize: 14, marginBottom: 20 }}>Your cart is empty. Add something delicious!</p>
+                <button className="btn btn-primary" onClick={() => { setCheckoutOpen(false); setPage("menu"); }}>Browse Menu</button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
+                  {cart.map(item => (
+                    <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 12, background: C.surfaceAlt, borderRadius: 10, padding: 12, border: `1px solid ${C.border}` }}>
+                      <img src={item.img} alt={item.name} style={{ width: 50, height: 50, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="f" style={{ fontWeight: 700, fontSize: 13, color: C.text }}>{item.name}</div>
+                        <div className="f" style={{ fontSize: 12, color: C.orange }}>KSh {item.price} each</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <button className="qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
+                        <span className="f" style={{ fontWeight: 700, fontSize: 14, minWidth: 18, textAlign: "center" }}>{item.qty}</span>
+                        <button className="qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
+                        <button onClick={() => removeFromCart(item.id)} style={{ background: "none", border: "none", color: C.textLight, cursor: "pointer", fontSize: 15, marginLeft: 2 }}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ background: C.orangeLight, borderRadius: 10, padding: "14px 16px", marginBottom: 18, display: "flex", justifyContent: "space-between", border: `1px solid ${C.orangeMid}` }}>
+                  <span className="f" style={{ fontSize: 14, color: C.textMid }}>Total ({cartCount} items)</span>
+                  <span className="f" style={{ fontSize: 20, fontWeight: 700, color: C.orange }}>KSh {total.toLocaleString()}</span>
+                </div>
+                <div className="divider" />
+                <p className="f" style={{ fontSize: 13, color: C.textLight, marginBottom: 12 }}>Your details for confirmation</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                  <input className="inp" placeholder="Your Name *" value={orderForm.name} onChange={e => setOrderForm(p => ({ ...p, name: e.target.value }))} />
+                  <input className="inp" placeholder="Phone Number *" type="tel" value={orderForm.phone} onChange={e => setOrderForm(p => ({ ...p, phone: e.target.value }))} />
+                  <textarea className="inp" placeholder="Special requests (optional)" rows={2} style={{ resize: "none" }} value={orderForm.notes} onChange={e => setOrderForm(p => ({ ...p, notes: e.target.value }))} />
+                </div>
+                <button className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 14, borderRadius: 10 }} onClick={placeOrder}>
+                  Place Order · KSh {total.toLocaleString()}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{ background: C.orange, padding: "18px 20px", textAlign: "center" }}>
+        <p className="f" style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
+          © 2026 HangoverKaakwacha Restaurant Odera · Odera Street, Kisumu, Kenya · info@HangoverKaakwacha.co.ke
+        </p>
+      </div>
+    </div>
+  );
+}
