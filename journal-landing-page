@@ -1,554 +1,679 @@
 import { useState, useEffect } from "react";
-import { BarChart3, Calendar, PieChart, Diamond, Star, Check, ArrowRight, Menu, X, TrendingUp, Sun, Moon } from 'lucide-react';
 
-const TICKER_DATA = [
-  { symbol: "EUR/USD", price: "1.0842", change: "+0.12%", up: true },
-  { symbol: "BTC/USD", price: "67,204", change: "-1.34%", up: false },
-  { symbol: "GOLD", price: "2,318.4", change: "+0.45%", up: true },
-  { symbol: "SPX500", price: "5,236.1", change: "+0.28%", up: true },
-  { symbol: "GBP/USD", price: "1.2691", change: "-0.08%", up: false },
-  { symbol: "ETH/USD", price: "3,512.7", change: "+2.11%", up: true },
-  { symbol: "OIL/WTI", price: "78.34", change: "-0.67%", up: false },
-  { symbol: "USD/JPY", price: "156.72", change: "+0.19%", up: true },
-];
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+const colors = {
+  primary: "#004AC6",
+  primaryContainer: "#2563eb",
+  onPrimary: "#ffffff",
+  background: "#f8f9ff",
+  surface: "#f8f9ff",
+  onBackground: "#0b1c30",
+  secondary: "#565e74",
+  outlineVariant: "#c3c6d7",
+  tertiary: "#006242",
+  error: "#ba1a1a",
+  surfaceContainerLow: "#eff4ff",
+  neonGreen: "#00ff88",
+};
 
-function TickerTape() {
-  const items = [...TICKER_DATA, ...TICKER_DATA];
+// Shared inner container — identical horizontal bounds on every section and the navbar
+const INNER = { maxWidth: 1280, margin: "0 auto", paddingLeft: 32, paddingRight: 32 };
+const INNER_MOBILE = { maxWidth: 1280, margin: "0 auto", paddingLeft: 16, paddingRight: 16 };
+
+function inner(isMobile) {
+  return isMobile ? INNER_MOBILE : INNER;
+}
+
+// ─── Responsive Hook ──────────────────────────────────────────────────────────
+function useBreakpoint() {
+  const [w, setW] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 1200));
+  useEffect(() => {
+    const handler = () => setW(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return { isMobile: w < 640, isTablet: w >= 640 && w < 1024, isDesktop: w >= 1024, w };
+}
+
+// ─── Shared Components ────────────────────────────────────────────────────────
+function GlassCard({ children, style: s = {}, hover = true }) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <div style={{ background: "#080c10", borderBottom: "1px solid #0f1923", height: 32, overflow: "hidden", display: "flex", alignItems: "center" }}>
-      <style>{`
-        @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        .ticker-wrap { display:flex; animation: ticker 35s linear infinite; will-change:transform; }
-        .ticker-wrap:hover { animation-play-state: paused; }
-      `}</style>
-      <div className="ticker-wrap">
-        {items.map((t, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 28px", borderRight: "1px solid #0f1923", whiteSpace: "nowrap" }}>
-            <span style={{ color: "#4a6580", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em" }}>{t.symbol}</span>
-            <span style={{ color: "#c8d8e8", fontSize: 10, fontWeight: 600 }}>{t.price}</span>
-            <span style={{ fontSize: 9, fontWeight: 700, color: t.up ? "#22d3a5" : "#f4617f", background: t.up ? "rgba(34,211,165,0.08)" : "rgba(244,97,127,0.08)", padding: "1px 5px", borderRadius: 3 }}>{t.change}</span>
-          </div>
-        ))}
-      </div>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: "rgba(255,255,255,0.7)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(226,232,240,0.8)",
+        boxShadow: "0 4px 30px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.5)",
+        transform: hover && hovered ? "translateY(-4px)" : "translateY(0)",
+        transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
+        ...s,
+      }}
+    >
+      {children}
     </div>
   );
 }
 
-export default function FreeTradingJournalLanding() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [time, setTime] = useState(new Date());
+function Mono({ children, style: s = {} }) {
+  return <span style={{ fontFamily: "'DM Mono', monospace", ...s }}>{children}</span>;
+}
+
+function Logo({ size = 22 }) {
+  return (
+    <span style={{ fontSize: size, lineHeight: 1, fontFamily: "'Montserrat', sans-serif" }}>
+      <span style={{ fontWeight: 800, color: colors.onBackground }}>Myfm</span>
+      <span style={{ fontWeight: 400, color: colors.primary }}>journal</span>
+    </span>
+  );
+}
+
+function Stars({ size = 16 }) {
+  return (
+    <span style={{ display: "inline-flex", gap: 2 }}>
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill="#FFA000">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
+
+const DASHED_BORDER = `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='9999' ry='9999' stroke='%23004AC6FF' stroke-width='2' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e")`;
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
+function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { isMobile, isTablet } = useBreakpoint();
+  const isSmall = isMobile || isTablet;
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(interval);
+    const h = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const fmt = (d) => d.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  const fmtDate = (d) => d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
-
-  const dm = darkMode;
-
-  const t = dm ? {
-    pageBg: '#020817',
-    navBg: 'rgba(8,12,16,0.97)',
-    navBorder: '#172233',
-    logoWhite: '#ffffff',
-    navLink: '#4a6580',
-    navLinkHover: '#c8d8e8',
-    sectionAlt: 'rgba(15,23,42,0.6)',
-    cardBg: '#0f172a',
-    cardBorder: '#1e293b',
-    text: '#ffffff',
-    textMuted: '#94a3b8',
-    textAccent: '#60a5fa',
-    statValue: '#60a5fa',
-    progressBg: '#1e293b',
-    calWin: 'rgba(30,58,138,0.3)',
-    calWinBorder: '#1d4ed8',
-    calLoss: 'rgba(127,29,29,0.3)',
-    calLossBorder: '#b91c1c',
-    calWinText: '#60a5fa',
-    calLossText: '#f87171',
-    dayLabel: '#475569',
-    featureCardBg: 'rgba(30,41,59,0.5)',
-    testimonialBg: 'rgba(30,41,59,0.5)',
-    mobilePhoneBg: 'linear-gradient(145deg,#0f172a,#1e293b)',
-    mobilePhoneBorder: '#334155',
-    mobilePhoneShadow: '0 0 60px rgba(59,130,246,0.15),0 25px 50px rgba(0,0,0,0.6)',
-    mobileTopBar: 'linear-gradient(to bottom,#0f172a,#1e293b)',
-    mobileTopBorder: '#1e293b',
-    mobileCard: 'linear-gradient(135deg,#0f172a,#1e3a5f)',
-    mobileCardBorder: 'rgba(30,64,175,0.3)',
-    mobileStatValue: '#60a5fa',
-    mobileLabel: '#94a3b8',
-    mobileBarBg: '#1e293b',
-    mobileHomebar: '#334155',
-    clockBg: '#0c1219',
-    clockBorder: '#172233',
-    clockText: '#c8d8e8',
-    clockMuted: '#4a6580',
-    divider: '#172233',
-  } : {
-    pageBg: '#f8fafc',
-    navBg: 'rgba(255,255,255,0.97)',
-    navBorder: '#e2e8f0',
-    logoWhite: '#0f172a',
-    navLink: '#475569',
-    navLinkHover: '#0f172a',
-    sectionAlt: 'rgba(241,245,249,0.8)',
-    cardBg: '#ffffff',
-    cardBorder: '#e2e8f0',
-    text: '#0f172a',
-    textMuted: '#64748b',
-    textAccent: '#2563eb',
-    statValue: '#2563eb',
-    progressBg: '#e2e8f0',
-    calWin: 'rgba(219,234,254,0.8)',
-    calWinBorder: '#93c5fd',
-    calLoss: 'rgba(254,226,226,0.8)',
-    calLossBorder: '#fca5a5',
-    calWinText: '#1d4ed8',
-    calLossText: '#dc2626',
-    dayLabel: '#94a3b8',
-    featureCardBg: 'rgba(248,250,252,0.9)',
-    testimonialBg: 'rgba(248,250,252,0.9)',
-    mobilePhoneBg: 'linear-gradient(145deg,#ffffff,#f1f5f9)',
-    mobilePhoneBorder: '#cbd5e1',
-    mobilePhoneShadow: '0 0 60px rgba(59,130,246,0.1),0 25px 50px rgba(0,0,0,0.12)',
-    mobileTopBar: 'linear-gradient(to bottom,#ffffff,#f8fafc)',
-    mobileTopBorder: '#e2e8f0',
-    mobileCard: 'linear-gradient(135deg,#eff6ff,#dbeafe)',
-    mobileCardBorder: 'rgba(147,197,253,0.5)',
-    mobileStatValue: '#1d4ed8',
-    mobileLabel: '#64748b',
-    mobileBarBg: '#e2e8f0',
-    mobileHomebar: '#cbd5e1',
-    clockBg: '#f1f5f9',
-    clockBorder: '#e2e8f0',
-    clockText: '#0f172a',
-    clockMuted: '#94a3b8',
-    divider: '#e2e8f0',
-  };
-
-  const navFont = { fontFamily: "'Montserrat',sans-serif", fontWeight: 800 };
-  const oswald = { fontFamily: "'Oswald',sans-serif", fontWeight: 700 };
-
-  const features = [
-    { icon: <Calendar className="w-6 h-6" />, title: "Stay Organised", description: "Track your trades and review your performance by day, week, or month" },
-    { icon: <BarChart3 className="w-6 h-6" />, title: "Analyze Strategies", description: "Easily analyze and compare the success rates of different strategies" },
-    { icon: <Diamond className="w-6 h-6" />, title: "Spot Patterns", description: "Identify patterns in your wins and losses to refine your trading schedule" },
-    { icon: <PieChart className="w-6 h-6" />, title: "Professional Journaling", description: "Journal your trades and thoughts like a pro trader" }
-  ];
-
-  const mobileFeatures = [
-    { icon: <Check className="w-5 h-5" />, title: "Fully automated process" },
-    { icon: <Check className="w-5 h-5" />, title: "Mobile friendly" },
-    { icon: <Check className="w-5 h-5" />, title: "Check your performance in realtime" },
-    { icon: <Check className="w-5 h-5" />, title: "Lightweight and optimised" }
-  ];
-
-  const testimonials = [
-    { name: "Alex M.", text: "The dashboard is incredibly customizable and very convenient to use.", rating: 5 },
-    { name: "Jordan K.", text: "I love how FSD Journal helps me track my performance and improve my strategies.", rating: 5 },
-    { name: "Sarah T.", text: "This tool is fantastic, the user interface could be even more intuitive.", rating: 5 },
-    { name: "Michael R.", text: "FSD Journal has changed the way I analyze my trading operations.", rating: 5 },
-    { name: "Emily W.", text: "An excellent tool for traders. Easy to use and very comprehensive.", rating: 5 },
-    { name: "David P.", text: "I've tried other journaling platforms, but FSD Journal is by far the best!", rating: 5 },
-    { name: "Jessica L.", text: "The stats dashboard is so detailed and customizable. It's made a huge difference to my trading.", rating: 5 },
-    { name: "Chris N.", text: "The community features have helped me connect with other traders and share strategies.", rating: 5 }
-  ];
-
-  const brokers = ["InstaForex", "LMAX Exchange", "Pepperstone", "TICKMILL", "Admirals", "AXITRADER"];
-
-  const calData = Array.from({ length: 35 }, () => (Math.random() - 0.45) * 900);
+  const links = ["Features", "Pricing", "Reviews", "Economic Calendar", "Blog", "Sessions"];
 
   return (
-    <div style={{ minHeight: '100vh', background: t.pageBg, color: t.text, transition: 'background 0.3s', fontFamily: "'Poppins',sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@700;800;900&family=Poppins:wght@300;400;500;600&display=swap');
-        .nav-a { text-decoration:none; font-size:10px; font-weight:700; letter-spacing:0.1em; padding:6px 12px; border-radius:4px; border:1px solid transparent; cursor:pointer; background:none; display:inline-flex; align-items:center; transition:all 0.15s; white-space:nowrap; font-family:'Poppins',sans-serif; }
-        .nav-links { display:flex; align-items:center; gap:6px; }
-        .nav-mob-controls { display:none; align-items:center; gap:8px; }
-        @media (max-width: 1024px) {
-          .nav-links { display:none; }
-          .nav-mob-controls { display:flex; }
-        }
-        .mob-dropdown { display:none; }
-        .mob-dropdown.open { display:block; }
-        @media (min-width: 1025px) {
-          .mob-dropdown { display:none !important; }
-        }
-      `}</style>
+    <header style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+      background: scrolled ? "rgba(248,249,255,0.97)" : "rgba(248,249,255,0.88)",
+      backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+      borderBottom: "1px solid rgba(195,198,215,0.3)",
+      boxShadow: scrolled ? "0 4px 20px rgba(0,0,0,0.06)" : "none",
+      transition: "all 0.3s ease",
+      fontFamily: "'Montserrat', sans-serif",
+    }}>
+      {/* Nav inner — defines the left/right boundary everything else aligns to */}
+      <nav style={{
+        ...inner(isMobile),
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        height: isMobile ? 56 : 60,
+      }}>
+        <div style={{ flexShrink: 0 }}>
+          <Logo size={isMobile ? 17 : 20} />
+        </div>
 
-      {/* Sticky bar: ticker + nav only */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100 }}>
-        <TickerTape />
-        <nav style={{ background: t.navBg, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${t.navBorder}`, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', transition: 'background 0.3s' }}>
-          <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', fontFamily: "'Montserrat',sans-serif", flexShrink: 0, cursor: 'pointer' }}>
-            <span style={{ color: t.logoWhite }}>FSD </span>
-            <span style={{ color: '#3b82f6' }}>Journal</span>
-          </span>
-          <div className="nav-links">
-            {['Features','Pricing','Reviews','Economic Calendar','Assets','Blog','TSC','Login','Signup'].map(item => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="nav-a" style={{ color: t.navLink }}
-                onMouseEnter={e => { e.currentTarget.style.color = t.navLinkHover; e.currentTarget.style.borderColor = t.navBorder; e.currentTarget.style.background = dm ? '#0c1219' : '#f1f5f9'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = t.navLink; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'none'; }}
-              >{item}</a>
+        {!isSmall && (
+          <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+            {links.map(item => (
+              <a key={item} href={`#${item.toLowerCase().replace(" ", "")}`}
+                style={{ color: colors.secondary, fontWeight: 700, fontSize: 11, letterSpacing: "0.05em", textDecoration: "none", textTransform: "uppercase", transition: "color 0.2s" }}
+                onMouseEnter={e => e.target.style.color = colors.primary}
+                onMouseLeave={e => e.target.style.color = colors.secondary}>
+                {item}
+              </a>
             ))}
-            <button onClick={() => setDarkMode(!dm)}
-              style={{ width: 40, height: 22, borderRadius: 11, background: dm ? '#1e40af' : '#e2e8f0', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0, flexShrink: 0, marginLeft: 4 }}>
-              <div style={{ position: 'absolute', left: dm ? 20 : 2, top: 2, width: 18, height: 18, borderRadius: '50%', background: dm ? '#60a5fa' : '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'left 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {dm ? <Moon size={10} color="#0f172a" /> : <Sun size={10} color="#f59e0b" />}
-              </div>
-            </button>
           </div>
-          <div className="nav-mob-controls">
-            <button onClick={() => setDarkMode(!dm)}
-              style={{ width: 40, height: 22, borderRadius: 11, background: dm ? '#1e40af' : '#e2e8f0', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0, flexShrink: 0 }}>
-              <div style={{ position: 'absolute', left: dm ? 20 : 2, top: 2, width: 18, height: 18, borderRadius: '50%', background: dm ? '#60a5fa' : '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'left 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {dm ? <Moon size={10} color="#0f172a" /> : <Sun size={10} color="#f59e0b" />}
-              </div>
-            </button>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              style={{ width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', background: dm ? '#0c1219' : '#f1f5f9', border: `1px solid ${t.navBorder}`, borderRadius: 4, cursor: 'pointer', color: t.text }}>
-              <Menu size={18} />
-            </button>
-          </div>
-        </nav>
-      </div>
+        )}
 
-      {/* Mobile menu — in NORMAL FLOW, not fixed/sticky, so it genuinely pushes content down */}
-      {mobileMenuOpen && (
-        <div className="mob-dropdown open" style={{ background: dm ? '#0c1219' : '#ffffff', borderBottom: `1px solid ${t.navBorder}` }}>
-          {['Features','Pricing','Reviews','Economic Calendar','Assets','Blog','TSC','Login','Signup'].map(item => (
-            <a key={item} href={`#${item.toLowerCase()}`}
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ display: 'block', padding: '13px 24px', borderBottom: `1px solid ${t.navBorder}`, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: t.textMuted, fontFamily: "'Montserrat',sans-serif", textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.color = t.text}
-              onMouseLeave={e => e.currentTarget.style.color = t.textMuted}
-            >{item}</a>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {!isSmall && (
+            <button style={{ background: "none", border: "none", color: colors.secondary, fontWeight: 700, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", cursor: "pointer", fontFamily: "'Montserrat', sans-serif" }}>
+              Login
+            </button>
+          )}
+          <button style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 7, padding: isMobile ? "7px 14px" : "7px 18px", fontWeight: 800, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 4px 14px rgba(0,74,198,0.3)", fontFamily: "'Montserrat', sans-serif" }}>
+            Signup
+          </button>
+          {isSmall && (
+            <button onClick={() => setMenuOpen(o => !o)} style={{ background: "none", border: "none", cursor: "pointer", padding: 6, display: "flex", flexDirection: "column", gap: 5 }}>
+              {[0, 1, 2].map(i => (
+                <span key={i} style={{ display: "block", width: 20, height: 2, background: colors.onBackground, borderRadius: 2, transition: "all 0.3s",
+                  transform: menuOpen ? (i === 0 ? "rotate(45deg) translate(5px,5px)" : i === 2 ? "rotate(-45deg) translate(5px,-5px)" : "scaleX(0)") : "none",
+                  opacity: menuOpen && i === 1 ? 0 : 1,
+                }} />
+              ))}
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {isSmall && menuOpen && (
+        <div style={{ ...inner(isMobile), paddingTop: 12, paddingBottom: 18, display: "flex", flexDirection: "column", gap: 2, borderTop: "1px solid rgba(195,198,215,0.3)", background: "rgba(248,249,255,0.98)" }}>
+          {links.map(item => (
+            <a key={item} href={`#${item.toLowerCase().replace(" ", "")}`}
+              onClick={() => setMenuOpen(false)}
+              style={{ color: colors.secondary, fontWeight: 700, fontSize: 12, letterSpacing: "0.04em", textDecoration: "none", textTransform: "uppercase", padding: "10px 0", borderBottom: "1px solid rgba(195,198,215,0.15)" }}>
+              {item}
+            </a>
           ))}
+          <button style={{ marginTop: 10, background: "none", border: `1px solid ${colors.primary}`, borderRadius: 7, padding: "9px 0", fontWeight: 700, fontSize: 12, color: colors.primary, cursor: "pointer", fontFamily: "'Montserrat', sans-serif" }}>
+            Login
+          </button>
         </div>
       )}
+    </header>
+  );
+}
 
-      {/* Page content */}
-      <div>
-
-        {/* Hero */}
-        <section style={{ paddingTop: 80, paddingBottom: 80, textAlign: 'center', padding: '80px 24px' }}>
-          <h1 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', marginBottom: 24, color: t.text, lineHeight: 1.2 }}>
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+function Hero() {
+  const { isMobile, isTablet } = useBreakpoint();
+  return (
+    <section style={{
+      paddingTop: isMobile ? 90 : 110,
+      paddingBottom: isMobile ? 56 : 88,
+      textAlign: "center",
+      position: "relative",
+      overflow: "hidden",
+      backgroundImage: "radial-gradient(at 0% 0%, rgba(37,99,235,0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(111,251,190,0.05) 0px, transparent 50%)",
+      backgroundColor: colors.background,
+      borderBottom: "1px solid rgba(195,198,215,0.2)",
+      fontFamily: "'Montserrat', sans-serif",
+    }}>
+      {/* Constrained inner */}
+      <div style={{ ...inner(isMobile) }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div style={{ display: "inline-block", padding: "5px 12px", borderRadius: 9999, background: "rgba(0,74,198,0.05)", border: "1px solid rgba(0,74,198,0.1)", color: colors.primary, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 18 }}>
+            A Complete Trading System
+          </div>
+          <h1 style={{ fontSize: isMobile ? 28 : isTablet ? 38 : 50, fontWeight: 800, lineHeight: 1.14, color: colors.onBackground, marginBottom: 16, letterSpacing: "-0.02em" }}>
             A Premium Trade Journal,<br />
-            <span style={{ background: 'linear-gradient(to right,#3b82f6,#2563eb)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.primaryContainer})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Without The Subscription.
             </span>
           </h1>
-          <p style={{ fontSize: 18, color: t.textMuted, maxWidth: 600, margin: '0 auto 12px', lineHeight: 1.7 }}>
+          <p style={{ fontSize: isMobile ? 14 : 15, color: colors.secondary, fontWeight: 500, maxWidth: 520, margin: "0 auto 14px", lineHeight: 1.65 }}>
             A complete execution database and performance analysis system for serious traders.
           </p>
-          <p style={{ fontSize: 16, color: t.textAccent, fontWeight: 500, maxWidth: 480, margin: '0 auto 40px', lineHeight: 1.8 }}>
-            Log trades. Capture decisions. Track psychology.<br />
-            Identify patterns. Refine execution. <strong style={{ color: t.text }}>Build your edge.</strong>
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 48 }}>
-            <div style={{ display: 'flex' }}>{[...Array(5)].map((_,i) => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}</div>
-            <span style={{ color: t.textMuted, fontSize: 14 }}>Trusted by thousands of traders · See our reviews on Trustpilot</span>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginBottom: 28, alignItems: "center" }}>
+            {["Log trades.", "Capture decisions.", "Track psychology."].map(t => (
+              <span key={t} style={{ color: colors.primary, fontWeight: 700, fontSize: isMobile ? 13 : 14 }}>{t}</span>
+            ))}
+            <span style={{ color: colors.onBackground, fontWeight: 400, fontSize: isMobile ? 13 : 14 }}>
+              Identify patterns. Refine execution. <strong style={{ fontWeight: 800 }}>Build your edge.</strong>
+            </span>
           </div>
-          <div style={{ display: 'inline-block', padding: 6, borderRadius: 9999, border: '2px dashed #3b82f6' }}>
-            <button style={{ ...navFont, background: 'linear-gradient(to right,#2563eb,#3b82f6)', borderRadius: 9999, fontSize: 16, border: 'none', cursor: 'pointer', color: '#fff', padding: '12px 32px', display: 'flex', alignItems: 'center', gap: 8 }}>
-              Start Now - It's Free! <ArrowRight className="w-5 h-5" />
-            </button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+              <Stars size={15} />
+              <span style={{ color: colors.secondary, fontSize: 11, fontWeight: 600 }}>
+                Trusted by thousands of traders · See our reviews on Trustpilot
+              </span>
+            </div>
+            <div style={{ padding: 4, borderRadius: 9999, backgroundImage: DASHED_BORDER, display: "inline-block" }}>
+              <button style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 9999, padding: isMobile ? "12px 30px" : "14px 48px", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 8px 32px rgba(0,74,198,0.3)", fontFamily: "'Montserrat', sans-serif", transition: "transform 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+                Start Now - It's Free! →
+              </button>
+            </div>
           </div>
-        </section>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* Dashboard preview */}
-        <section style={{ padding: '60px 24px', background: t.sectionAlt }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto', background: dm ? 'linear-gradient(135deg,#1e293b,#0f172a)' : '#fff', borderRadius: 16, padding: 32, border: `1px solid ${t.cardBorder}`, boxShadow: dm ? '0 25px 50px rgba(0,0,0,0.4)' : '0 10px 40px rgba(0,0,0,0.06)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20 }}>
-              {[{ label:'Winrate', value:'69.67%', w:'69.67%' },{ label:'Avg Win / Avg Loss', value:'0.89', w:'45%' }].map((s,i) => (
-                <div key={i} style={{ background: t.cardBg, borderRadius: 12, padding: 24, border: `1px solid ${t.cardBorder}` }}>
-                  <div style={{ fontSize: 13, color: t.textMuted, marginBottom: 8 }}>{s.label}</div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: t.statValue, marginBottom: 12 }}>{s.value}</div>
-                  <div style={{ height: 10, background: t.progressBg, borderRadius: 5, overflow: 'hidden' }}>
-                    <div style={{ width: s.w, height: '100%', background: 'linear-gradient(to right,#2563eb,#60a5fa)', borderRadius: 5 }} />
-                  </div>
-                </div>
-              ))}
-              <div style={{ background: t.cardBg, borderRadius: 12, padding: 24, border: `1px solid ${t.cardBorder}` }}>
-                <div style={{ fontSize: 13, color: t.textMuted, marginBottom: 8 }}>Trade Count</div>
-                <div style={{ fontSize: 32, fontWeight: 700, color: t.statValue }}>1131</div>
-                <svg viewBox="0 0 200 40" style={{ width: '100%', height: 48, marginTop: 12 }}>
-                  <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#60a5fa"/></linearGradient></defs>
-                  <polyline points="0,30 20,25 40,28 60,20 80,22 100,18 120,15 140,20 160,17 180,15 200,12" fill="none" stroke="url(#g1)" strokeWidth="2"/>
-                </svg>
+// ─── Features ─────────────────────────────────────────────────────────────────
+function Features() {
+  const { isMobile } = useBreakpoint();
+  const features = [
+    { icon: "📅", title: "Stay Organised", desc: "Track your trades and review your performance by day, week, or month with our automated logging." },
+    { icon: "📊", title: "Analyze Strategies", desc: "Easily analyze and compare the success rates of different strategies across varying market conditions." },
+    { icon: "💎", title: "Spot Patterns", desc: "Identify patterns in your wins and losses to refine your trading schedule and avoid common pitfalls." },
+    { icon: "📘", title: "Professional Journaling", desc: "Journal your trades and thoughts like a pro trader. Capture the psychology behind every execution." },
+  ];
+  return (
+    <section id="features" style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile) }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
+          {features.map(f => (
+            <GlassCard key={f.title} style={{ padding: isMobile ? 18 : 28, borderRadius: 12, display: "flex", gap: 16, alignItems: "flex-start" }}>
+              <div style={{ width: 42, height: 42, background: "rgba(0,74,198,0.08)", border: "1px solid rgba(0,74,198,0.15)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+                {f.icon}
               </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6 }}>
-              {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-                <div key={d} style={{ textAlign: 'center', fontSize: 11, color: t.dayLabel, fontWeight: 500, paddingBottom: 4 }}>{d}</div>
-              ))}
-              {calData.map((profit, i) => {
-                const pos = profit > 0;
-                return (
-                  <div key={i} style={{ aspectRatio: '1', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 500, background: pos ? t.calWin : t.calLoss, border: `1px solid ${pos ? t.calWinBorder : t.calLossBorder}` }}>
-                    <span style={{ color: pos ? t.calWinText : t.calLossText }}>{pos ? '+' : ''}{Math.round(profit)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+              <div>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: colors.onBackground, marginBottom: 5, marginTop: 0 }}>{f.title}</h3>
+                <p style={{ color: colors.secondary, fontSize: 13, lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* Brokers */}
-        <section style={{ padding: '48px 24px' }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <h3 style={{ ...oswald, textAlign: 'center', fontSize: 22, color: t.textMuted, marginBottom: 40 }}>Compatible with Brokers</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 24, textAlign: 'center' }}>
-              {brokers.map((b,i) => <div key={i} style={{ color: t.textMuted, fontWeight: 600, fontSize: 13 }}>{b}</div>)}
-            </div>
+// ─── Performance Insights ─────────────────────────────────────────────────────
+function PerformanceInsights() {
+  const { isMobile } = useBreakpoint();
+  const rows = [
+    { inst: "EURUSD", phase: "London Mid", mom: "Strong", wl: "8 100%", wlGreen: true, momo: "Bearish", momoVal: "37 81%", tf: "1H", tfVal: "1 100%" },
+    { inst: "EURUSD", phase: "London Open", mom: "Moderate", wl: "1 100%", wlGreen: true, momo: "Bullish", momoVal: "22 64%", tf: "1M", tfVal: "2 60%" },
+    { inst: "EURUSD", phase: "New York Mid", mom: "Strong", wl: "12 83%", wlGreen: true, momo: "", momoVal: "", tf: "", tfVal: "" },
+    { inst: "EURUSD", phase: "Sydney Open", mom: "Strong", wl: "2 50%", wlGreen: false, momo: "", momoVal: "", tf: "1HR", tfVal: "58 80%" },
+  ];
+  return (
+    <section style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, background: "rgba(239,244,255,0.5)", borderTop: "1px solid rgba(195,198,215,0.2)", borderBottom: "1px solid rgba(195,198,215,0.2)", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile) }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28, flexWrap: "wrap" }}>
+          <div style={{ width: 46, height: 46, background: colors.primary, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, boxShadow: "0 4px 20px rgba(0,74,198,0.2)", flexShrink: 0 }}>📈</div>
+          <div>
+            <h2 style={{ fontSize: isMobile ? 20 : 26, fontWeight: 800, color: colors.onBackground, margin: "0 0 3px" }}>Performance Insights</h2>
+            <p style={{ color: colors.secondary, fontSize: 13, margin: 0 }}>Break down your win rate by instrument, session, market regime, strategy, and timeframe.</p>
           </div>
-        </section>
-
-        {/* Features */}
-        <section id="features" style={{ padding: '60px 24px', background: t.sectionAlt }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <h2 style={{ ...oswald, fontSize: 36, textAlign: 'center', color: t.text, marginBottom: 12 }}>Unlock Powerful Insights</h2>
-            <p style={{ textAlign: 'center', color: t.textMuted, fontSize: 18, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>The most comprehensive analytics dashboard that can be customised to your needs</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 24 }}>
-              {features.map((f,i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: 24, borderRadius: 12, background: t.featureCardBg, border: `1px solid ${t.cardBorder}` }}>
-                  <div style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', padding: 12, borderRadius: 10, flexShrink: 0, color: '#fff' }}>{f.icon}</div>
-                  <div>
-                    <h3 style={{ ...oswald, fontSize: 20, color: t.text, marginBottom: 6 }}>{f.title}</h3>
-                    <p style={{ color: t.textMuted, lineHeight: 1.6 }}>{f.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Mobile Section */}
-        <section style={{ padding: '60px 24px' }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: 260, background: t.mobilePhoneBg, borderRadius: 40, border: `2px solid ${t.mobilePhoneBorder}`, boxShadow: t.mobilePhoneShadow, overflow: 'hidden' }}>
-                <div style={{ background: t.mobileTopBar, padding: '16px 20px 12px', borderBottom: `1px solid ${t.mobileTopBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ ...oswald, fontSize: 10, letterSpacing: '0.05em' }}>
-                    <span style={{ color: t.text }}>FSD </span><span style={{ color: '#3b82f6' }}>Journal</span>
-                  </span>
-                  <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg,#2563eb,#60a5fa)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <TrendingUp size={13} color="white" />
-                  </div>
-                </div>
-                <div style={{ padding: 16 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                    {[{ value:'67.92%', label:'Winrate', w:'68%' },{ value:'97.46%', label:'Daily Winrate', w:'97%' }].map((s,i) => (
-                      <div key={i} style={{ background: t.mobileCard, borderRadius: 14, padding: '14px 12px', border: `1px solid ${t.mobileCardBorder}` }}>
-                        <div style={{ fontSize: 20, fontWeight: 700, color: t.mobileStatValue }}>{s.value}</div>
-                        <div style={{ fontSize: 10, color: t.mobileLabel, marginTop: 4 }}>{s.label}</div>
-                        <div style={{ marginTop: 8, height: 3, background: t.mobileBarBg, borderRadius: 2, overflow: 'hidden' }}>
-                          <div style={{ width: s.w, height: '100%', background: 'linear-gradient(to right,#2563eb,#60a5fa)' }} />
+        </div>
+        <GlassCard style={{ borderRadius: 12, overflow: "hidden" }} hover={false}>
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
+              <thead>
+                <tr style={{ background: "rgba(248,249,255,0.5)", borderBottom: "1px solid rgba(195,198,215,0.2)" }}>
+                  {["Instrument", "Phase", "Momentum", "Win / Loss", "Momo", "TF"].map(h => (
+                    <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 10, fontWeight: 700, color: colors.secondary, textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid rgba(195,198,215,0.1)", transition: "background 0.15s" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(219,225,255,0.15)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                    <td style={{ padding: "12px 14px", fontWeight: 800, fontSize: 12, whiteSpace: "nowrap" }}>{r.inst}</td>
+                    <td style={{ padding: "12px 14px", color: colors.secondary, fontSize: 12, whiteSpace: "nowrap" }}>{r.phase}</td>
+                    <td style={{ padding: "12px 14px", color: colors.secondary, fontSize: 12 }}>{r.mom}</td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <span style={{ background: r.wlGreen ? "rgba(0,98,66,0.08)" : "rgba(186,26,26,0.08)", color: r.wlGreen ? colors.tertiary : colors.error, padding: "3px 8px", borderRadius: 4, fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 12, whiteSpace: "nowrap" }}>{r.wl}</span>
+                    </td>
+                    <td style={{ padding: "12px 14px", fontSize: 12 }}>
+                      {r.momo && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: r.momo === "Bearish" ? colors.error : colors.tertiary, flexShrink: 0 }} />
+                          <span style={{ color: colors.secondary }}>{r.momo}</span>
+                          <Mono style={{ marginLeft: "auto", color: colors.tertiary, fontWeight: 700, fontSize: 12, paddingLeft: 8 }}>{r.momoVal}</Mono>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ background: t.mobileCard, borderRadius: 14, padding: 16, border: `1px solid ${t.mobileCardBorder}`, marginBottom: 10 }}>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: t.mobileStatValue }}>€19,800.72</div>
-                    <div style={{ fontSize: 10, color: t.mobileLabel, marginTop: 4 }}>Total Profit</div>
-                    <svg viewBox="0 0 180 30" style={{ width: '100%', height: 30, marginTop: 10 }}>
-                      <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#60a5fa"/></linearGradient></defs>
-                      <polyline points="0,25 20,20 40,22 60,15 80,17 100,12 120,10 140,13 160,9 180,6" fill="none" stroke="url(#cg)" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    {[{ value:'1,131', label:'Trades' },{ value:'0.89', label:'Avg Win/Loss' }].map((s,i) => (
-                      <div key={i} style={{ background: t.mobileCard, borderRadius: 14, padding: '14px 12px', border: `1px solid ${t.mobileCardBorder}` }}>
-                        <div style={{ fontSize: 20, fontWeight: 700, color: t.mobileStatValue }}>{s.value}</div>
-                        <div style={{ fontSize: 10, color: t.mobileLabel, marginTop: 4 }}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ padding: '12px 20px 20px', display: 'flex', justifyContent: 'center' }}>
-                  <div style={{ width: 40, height: 4, background: t.mobileHomebar, borderRadius: 2 }} />
-                </div>
-              </div>
-            </div>
-            <div>
-              <h2 style={{ ...oswald, fontSize: 32, color: t.text, marginBottom: 16, lineHeight: 1.2 }}>Realtime Statistics Keep You Updated Anywhere In The World</h2>
-              <p style={{ fontSize: 18, color: t.textMuted, marginBottom: 32 }}>Automatic import from your MT5 account makes tracking your performance easier than ever</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {mobileFeatures.map((f,i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', padding: 8, borderRadius: 8, flexShrink: 0, color: '#fff' }}>{f.icon}</div>
-                    <span style={{ fontSize: 17, color: t.text }}>{f.title}</span>
+                      )}
+                    </td>
+                    <td style={{ padding: "12px 14px", fontSize: 12 }}>
+                      {r.tf && (
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                          <Mono style={{ color: colors.secondary }}>{r.tf}</Mono>
+                          <Mono style={{ color: colors.tertiary, fontWeight: 700 }}>{r.tfVal}</Mono>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </GlassCard>
+      </div>
+    </section>
+  );
+}
+
+// ─── Monthly Equity ───────────────────────────────────────────────────────────
+function MonthlyEquity() {
+  const { isMobile, isTablet } = useBreakpoint();
+  const cols = isMobile ? 2 : isTablet ? 3 : 6;
+  const months = [
+    { label: "JAN/2024", val: "+12.48%", green: true, rec: "100% rec.", cause: "Mixed", maxDD: "0.00%", bigL: "0.00%", loss: "0/3" },
+    { label: "FEB/2024", val: "+8.24%", green: true, rec: "100% rec.", cause: "Mixed", maxDD: "0.00%", bigL: "0.00%", loss: "0/2" },
+    { label: "MAR/2024", val: "+13.40%", green: true, rec: "100% rec.", cause: "Mixed", maxDD: "-2.00%", bigL: "-2.00%", loss: "2/5" },
+    { label: "SEP/2024", val: "-2.00%", green: false, rec: "0% rec.", cause: "Carrying -2.00%", maxDD: "-2.00%", bigL: "-2.00%", loss: "1/1" },
+    { label: "NOV/2024", val: "-2.47%", green: false, rec: "0% rec.", cause: "Carrying -2.47%", maxDD: "-4.00%", bigL: "-4.00%", loss: "3/5" },
+    { label: "JAN/2025", val: "+10.99%", green: true, rec: "100% rec.", cause: "Mixed", maxDD: "0.00%", bigL: "0.00%", loss: "0/2" },
+  ];
+  return (
+    <section style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, fontFamily: "'Montserrat', sans-serif", borderBottom: "1px solid rgba(195,198,215,0.2)" }}>
+      <div style={{ ...inner(isMobile) }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 8, borderBottom: "1px solid rgba(195,198,215,0.3)", paddingBottom: 14, marginBottom: 24 }}>
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: colors.secondary, display: "block", marginBottom: 3 }}>MONTHLY EQUITY GROWTH • 2024–2025</span>
+            <h2 style={{ fontSize: isMobile ? 20 : 26, fontWeight: 800, color: colors.onBackground, margin: 0 }}>Monthly Equity Growth</h2>
+          </div>
+          {!isMobile && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: colors.secondary }}>DOMINANT CAUSE PER MONTH</span>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 12 }}>
+          {months.map(m => (
+            <div key={m.label} style={{ border: "1px solid rgba(195,198,215,0.3)", borderRadius: 8, padding: 12, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: m.green ? colors.neonGreen : colors.error, marginBottom: 7 }} />
+              <div style={{ fontSize: 9, fontWeight: 800, textTransform: "uppercase", marginBottom: 3, letterSpacing: "0.04em", color: colors.secondary }}>{m.label}</div>
+              <Mono style={{ fontSize: 16, fontWeight: 700, color: m.green ? colors.tertiary : colors.error, display: "block", marginBottom: 2 }}>{m.val}</Mono>
+              <div style={{ fontSize: 9, fontWeight: 700, marginBottom: 8, color: colors.secondary }}>{m.rec}</div>
+              <div style={{ width: "100%", borderRadius: 4, padding: "3px 0", marginBottom: 8, fontSize: 9, fontWeight: 700, textTransform: "uppercase", color: m.green ? "#f97316" : colors.error, background: m.green ? "transparent" : "rgba(186,26,26,0.08)" }}>{m.cause}</div>
+              <div style={{ width: "100%", fontSize: 9 }}>
+                {[["MAX DD", m.maxDD], ["BIG L", m.bigL], ["LOSS", m.loss]].map(([k, v]) => (
+                  <div key={k} style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                    <Mono style={{ color: colors.secondary }}>{k}</Mono>
+                    <Mono style={{ color: colors.onBackground, fontWeight: 600 }}>{v}</Mono>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* Testimonials */}
-        <section id="testimonials" style={{ padding: '60px 24px', background: t.sectionAlt }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-            <h2 style={{ ...oswald, fontSize: 36, textAlign: 'center', color: t.text, marginBottom: 48 }}>Join 10,000+ Traders Who Chose FSD Journal</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
-              {testimonials.map((r,i) => (
-                <div key={i} style={{ background: t.testimonialBg, border: `1px solid ${t.cardBorder}`, borderRadius: 12, padding: 24 }}>
-                  <div style={{ display: 'flex', marginBottom: 10 }}>{[...Array(r.rating)].map((_,j) => <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}</div>
-                  <p style={{ color: t.textMuted, marginBottom: 12, fontSize: 13, fontStyle: 'italic' }}>"{r.text}"</p>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: t.text }}>{r.name}</div>
+// ─── Trading Calendar ─────────────────────────────────────────────────────────
+function TradingCalendar() {
+  const { isMobile } = useBreakpoint();
+  const days = Array.from({ length: 35 }, (_, i) => {
+    const d = i - 3;
+    if (d <= 0 || d > 31) return { label: d <= 0 ? 26 + i : d - 31, faded: true };
+    if (d === 6) return { label: 6, profit: "+$358", trades: "1T·100%W", active: true };
+    return { label: d, faded: false };
+  });
+  const stats = [
+    { label: "NET P&L", val: "+$2923.81", sub: "3W / 0L", green: true },
+    { label: "WIN RATE", val: "100%", sub: "3 profit days", green: true },
+    { label: "TRADES", val: "7", sub: "All active days", green: true },
+    { label: "W/L RATIO", val: "—", sub: "Avg win ÷ avg loss", green: false },
+  ];
+  return (
+    <section style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, background: colors.surface, fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile) }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(195,198,215,0.2)", paddingBottom: 14, marginBottom: 0, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: colors.secondary, display: "block", marginBottom: 3, textTransform: "uppercase" }}>PERFORMANCE OVERVIEW</span>
+            <h2 style={{ fontFamily: "'DM Mono', monospace", fontSize: isMobile ? 14 : 17, fontWeight: 700, color: colors.onBackground, margin: 0, letterSpacing: "0.04em" }}>TRADING_CALENDAR</h2>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.7)", border: "1px solid rgba(195,198,215,0.3)", borderRadius: 7, padding: "3px 4px" }}>
+            <button style={{ padding: "2px 6px", background: "none", border: "none", cursor: "pointer", fontSize: 15, color: colors.onBackground, lineHeight: 1 }}>‹</button>
+            <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase" }}>MAY</span>
+            <Mono style={{ fontWeight: 700, fontSize: 11 }}>2026</Mono>
+            <button style={{ padding: "2px 6px", background: "none", border: "none", cursor: "pointer", fontSize: 15, color: colors.onBackground, lineHeight: 1 }}>›</button>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(226,232,240,0.8)", borderBottom: "none", borderRadius: "10px 10px 0 0", overflow: "hidden" }}>
+          {stats.map((s, i) => (
+            <div key={s.label} style={{ padding: isMobile ? 12 : 16, borderRight: isMobile ? (i % 2 === 0 ? "1px solid rgba(195,198,215,0.3)" : "none") : (i < 3 ? "1px solid rgba(195,198,215,0.3)" : "none"), borderBottom: isMobile && i < 2 ? "1px solid rgba(195,198,215,0.3)" : "none" }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: colors.secondary, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{s.label}</div>
+              <Mono style={{ fontSize: isMobile ? 16 : 20, fontWeight: 700, color: s.green ? colors.tertiary : colors.onBackground, display: "block", lineHeight: 1.2 }}>{s.val}</Mono>
+              <div style={{ fontSize: 10, fontWeight: 600, color: colors.secondary, marginTop: 2 }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", border: "1px solid rgba(226,232,240,0.8)", borderRadius: "0 0 10px 10px", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(12px)", overflow: "hidden" }}>
+          {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d, i) => (
+            <div key={d} style={{ padding: isMobile ? "5px 4px" : "7px 8px", borderBottom: "1px solid rgba(195,198,215,0.2)", borderRight: i < 6 ? "1px solid rgba(195,198,215,0.2)" : "none", textAlign: "center", fontSize: 9, fontWeight: 700, color: colors.secondary, fontFamily: "'DM Mono', monospace", background: colors.surfaceContainerLow }}>{d}</div>
+          ))}
+          {days.map((d, i) => (
+            <div key={i} style={{ padding: isMobile ? "5px 4px" : "7px 8px", minHeight: isMobile ? 44 : 64, borderBottom: "1px solid rgba(195,198,215,0.15)", borderRight: (i + 1) % 7 !== 0 ? "1px solid rgba(195,198,215,0.15)" : "none", background: d.active ? "rgba(0,255,136,0.04)" : d.faded ? colors.surfaceContainerLow : "transparent", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", color: d.active ? colors.neonGreen : colors.secondary, fontWeight: 700 }}>{d.label}</span>
+              {d.profit && (
+                <div>
+                  <div style={{ color: colors.neonGreen, fontWeight: 700, fontFamily: "'DM Mono', monospace", fontSize: isMobile ? 9 : 11 }}>{d.profit}</div>
+                  <div style={{ fontSize: 8, color: colors.secondary, fontFamily: "'DM Mono', monospace" }}>{d.trades}</div>
                 </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Mobile Mockup ────────────────────────────────────────────────────────────
+function MobileMockup() {
+  const { isMobile, isTablet } = useBreakpoint();
+  return (
+    <section style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, background: colors.surface, borderTop: "1px solid rgba(195,198,215,0.2)", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile), display: "flex", alignItems: "center", gap: isMobile ? 0 : 56, flexDirection: isMobile ? "column" : "row" }}>
+        <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", width: isMobile ? "100%" : "auto", marginBottom: isMobile ? 36 : 0 }}>
+          <div style={{ position: "relative", width: 230, height: 460, background: "#fff", borderRadius: "2.6rem", boxShadow: "0 30px 80px rgba(0,0,0,0.13)", padding: 13, border: "6px solid #1e293b", outline: "3px solid rgba(30,41,59,0.12)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 5px 7px", borderBottom: "1px solid #f1f5f9", marginBottom: 8 }}>
+              <Logo size={9} />
+              <span style={{ fontSize: 13 }}>📈</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9, padding: "0 2px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                {[{ val: "67.92%", label: "Winrate", pct: 67 }, { val: "97.46%", label: "Daily W/R", pct: 97 }].map(s => (
+                  <div key={s.label} style={{ background: colors.surfaceContainerLow, padding: 8, borderRadius: 9, border: "1px solid rgba(195,198,215,0.3)" }}>
+                    <Mono style={{ fontSize: 12, color: colors.primary, fontWeight: 500, display: "block" }}>{s.val}</Mono>
+                    <div style={{ fontSize: 8, color: colors.secondary, fontWeight: 700, marginBottom: 5 }}>{s.label}</div>
+                    <div style={{ height: 3, background: "#e2e8f0", borderRadius: 9999, overflow: "hidden" }}><div style={{ height: "100%", width: `${s.pct}%`, background: colors.primary }} /></div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: colors.surfaceContainerLow, padding: 8, borderRadius: 9 }}>
+                <Mono style={{ fontSize: 14, color: colors.primary, fontWeight: 500, display: "block" }}>$19,800.72</Mono>
+                <div style={{ fontSize: 8, color: colors.secondary, fontWeight: 700, marginBottom: 5 }}>Total Profit</div>
+                <svg width="100%" height="40" viewBox="0 0 200 40" fill="none" stroke={colors.primary} strokeWidth="2"><path d="M0 36 Q50 26 100 32 T200 4" /></svg>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                {[{ val: "1,131", label: "Trades" }, { val: "0.89", label: "Avg W/L" }].map(s => (
+                  <div key={s.label} style={{ background: colors.surfaceContainerLow, padding: 8, borderRadius: 9, border: "1px solid rgba(195,198,215,0.3)" }}>
+                    <Mono style={{ fontSize: 12, color: colors.onBackground, fontWeight: 500, display: "block" }}>{s.val}</Mono>
+                    <div style={{ fontSize: 8, color: colors.secondary, fontWeight: 700 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", width: 50, height: 4, background: "#e2e8f0", borderRadius: 9999 }} />
+          </div>
+        </div>
+        <div style={{ flex: 1, textAlign: isMobile ? "center" : "left" }}>
+          <h2 style={{ fontSize: isMobile ? 22 : isTablet ? 26 : 32, fontWeight: 800, color: colors.onBackground, lineHeight: 1.22, marginBottom: 12, letterSpacing: "-0.02em" }}>
+            Realtime Statistics Keep You Updated Anywhere In The World
+          </h2>
+          <p style={{ fontSize: 14, color: colors.secondary, marginBottom: 24, lineHeight: 1.65 }}>Automatic import from your MT5 account makes tracking your performance easier than ever.</p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12, alignItems: isMobile ? "center" : "flex-start" }}>
+            {["Fully automated process", "Mobile friendly", "Check your performance in realtime", "Lightweight and optimised"].map(item => (
+              <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontWeight: 700, color: colors.onBackground, fontSize: 13 }}>
+                <span style={{ width: 32, height: 32, background: "rgba(0,74,198,0.08)", border: "1px solid rgba(0,74,198,0.15)", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13 }}>✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Pricing ──────────────────────────────────────────────────────────────────
+function Pricing() {
+  const { isMobile, isTablet } = useBreakpoint();
+  const cols = isMobile ? 1 : isTablet ? 2 : 4;
+  const plans = [
+    { name: "Free", price: "$0", period: "/forever", desc: "Core stats to get you started.", features: ["Total P&L & Win Rate", "R Expectancy & Profit Factor", "Avg Trade & Trade Count", "Trade calendar view", "Link MT4 & MT5"] },
+    { name: "Weekly", price: "$7", period: "/week", desc: "Try the full journal risk-free.", features: ["Everything in Free", "Full journal access", "Detailed analytics & drawdown", "Strategy audit engine", "Edge building tools"] },
+    { name: "Monthly", price: "$20", period: "/month", desc: "Full power for serious traders.", features: ["Everything in Weekly", "AI Coach (Trader AI Chat)", "AI trade validation", "Behavior pattern breakdown"], highlight: true, badge: "Most Popular", addon: "+ TradeSync Copier → $27/mo" },
+    { name: "Yearly", price: "$180", period: "/year", desc: "Best value for committed traders.", savings: "Save $60 vs monthly · $15/mo", features: ["Everything in Monthly", "Annual performance review", "Dedicated onboarding"], badge: "Best Value", addon: "+ TradeSync Copier → $220/yr" },
+  ];
+  return (
+    <section id="pricing" style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, background: colors.surface, fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile) }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? 36 : 52 }}>
+          <h2 style={{ fontSize: isMobile ? 24 : 36, fontWeight: 800, color: colors.onBackground, marginBottom: 8 }}>Simple, Transparent Pricing</h2>
+          <p style={{ color: colors.secondary, fontSize: 14 }}>Start free. Upgrade when you're ready.</p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: isMobile ? 16 : 20, alignItems: "start" }}>
+          {plans.map(plan => (
+            <div key={plan.name} style={{ position: "relative", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(12px)", border: plan.highlight ? `2px solid ${colors.primary}` : "1px solid rgba(226,232,240,0.8)", borderRadius: 12, padding: 22, display: "flex", flexDirection: "column", transform: !isMobile && plan.highlight ? "scale(1.03)" : "none", zIndex: plan.highlight ? 2 : 1, boxShadow: plan.highlight ? "0 20px 60px rgba(0,74,198,0.12)" : "0 4px 20px rgba(0,0,0,0.04)" }}>
+              {plan.badge && (
+                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: plan.highlight ? colors.primary : colors.tertiary, color: "#fff", padding: "3px 12px", borderRadius: 9999, fontSize: 10, fontWeight: 800, textTransform: "uppercase", whiteSpace: "nowrap", boxShadow: "0 4px 12px rgba(0,0,0,0.12)" }}>{plan.badge}</div>
+              )}
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: colors.secondary, textTransform: "uppercase", marginBottom: 8, display: "block" }}>{plan.name}</span>
+              <div style={{ marginBottom: 8, display: "flex", alignItems: "baseline", gap: 4 }}>
+                <Mono style={{ fontSize: isMobile ? 34 : 38, fontWeight: 800, color: colors.onBackground, lineHeight: 1 }}>{plan.price}</Mono>
+                <span style={{ color: colors.secondary, fontSize: 11, fontWeight: 700 }}>{plan.period}</span>
+              </div>
+              {plan.savings && <p style={{ color: colors.tertiary, fontWeight: 800, fontSize: 11, marginBottom: 8, marginTop: 0 }}>{plan.savings}</p>}
+              <p style={{ color: colors.secondary, fontSize: 13, marginBottom: 12, marginTop: 0, lineHeight: 1.5 }}>{plan.desc}</p>
+              {plan.addon && (
+                <div style={{ background: plan.highlight ? "rgba(0,74,198,0.05)" : "rgba(0,98,66,0.05)", border: `1px solid ${plan.highlight ? "rgba(0,74,198,0.2)" : "rgba(0,98,66,0.2)"}`, borderRadius: 7, padding: "6px 10px", marginBottom: 14, fontSize: 10, fontWeight: 800, color: plan.highlight ? colors.primary : colors.tertiary, textAlign: "center" }}><Mono>{plan.addon}</Mono></div>
+              )}
+              <div style={{ height: 1, background: "rgba(195,198,215,0.3)", marginBottom: 14 }} />
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 18px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                {plan.features.map(f => (
+                  <li key={f} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: colors.secondary, lineHeight: 1.4 }}>
+                    <span style={{ color: plan.highlight ? colors.primary : colors.tertiary, fontWeight: 700, fontSize: 14, lineHeight: 1.3, flexShrink: 0 }}>✓</span>{f}
+                  </li>
+                ))}
+              </ul>
+              <button style={{ background: plan.highlight ? colors.primary : "transparent", color: plan.highlight ? "#fff" : colors.primary, border: `2px solid ${colors.primary}`, borderRadius: 8, padding: "9px 0", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "'Montserrat', sans-serif", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = colors.primary; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = plan.highlight ? colors.primary : "transparent"; e.currentTarget.style.color = plan.highlight ? "#fff" : colors.primary; }}>
+                Get Started
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+function Reviews() {
+  const { isMobile, isTablet } = useBreakpoint();
+  const cols = isMobile ? 1 : isTablet ? 2 : 4;
+  const reviews = [
+    { text: "The dashboard is incredibly customizable and very convenient to use.", name: "Alex M." },
+    { text: "I love how Myfmjournal helps me track my performance and improve my strategies.", name: "Jordan K." },
+    { text: "This tool is fantastic, the user interface could be even more intuitive.", name: "Sarah T." },
+    { text: "Myfmjournal has changed the way I analyze my trading operations.", name: "Michael R." },
+  ];
+  return (
+    <section id="reviews" style={{ paddingTop: isMobile ? 48 : 72, paddingBottom: isMobile ? 48 : 72, background: "rgba(239,244,255,0.3)", borderTop: "1px solid rgba(195,198,215,0.2)", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile) }}>
+        <h2 style={{ textAlign: "center", fontSize: isMobile ? 22 : 30, fontWeight: 800, color: colors.onBackground, marginBottom: isMobile ? 28 : 44 }}>
+          Join <Mono>10,000+</Mono> Traders Who Chose Myfmjournal
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 16 }}>
+          {reviews.map(r => (
+            <GlassCard key={r.name} style={{ padding: 20, borderRadius: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+              <Stars size={14} />
+              <p style={{ color: colors.onBackground, fontSize: 13, lineHeight: 1.7, fontStyle: "italic", flex: 1, margin: 0 }}>"{r.text}"</p>
+              <div style={{ borderTop: "1px solid rgba(195,198,215,0.2)", paddingTop: 10, fontWeight: 800, color: colors.onBackground, fontSize: 12 }}>{r.name}</div>
+            </GlassCard>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Final CTA ────────────────────────────────────────────────────────────────
+function FinalCTA() {
+  const { isMobile } = useBreakpoint();
+  return (
+    <section style={{ paddingTop: isMobile ? 56 : 80, paddingBottom: isMobile ? 56 : 80, textAlign: "center", background: colors.surface, position: "relative", overflow: "hidden", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(at 50% 0%, rgba(37,99,235,0.06) 0px, transparent 60%)", pointerEvents: "none" }} />
+      <div style={{ ...inner(isMobile), position: "relative", zIndex: 1 }}>
+        <h2 style={{ fontSize: isMobile ? 24 : 36, fontWeight: 800, color: colors.onBackground, marginBottom: 22 }}>Ready to Refine Your Edge?</h2>
+        <div style={{ padding: 4, borderRadius: 9999, backgroundImage: DASHED_BORDER, display: "inline-block" }}>
+          <button style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 9999, padding: isMobile ? "13px 34px" : "14px 48px", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 8px 32px rgba(0,74,198,0.28)", fontFamily: "'Montserrat', sans-serif", transition: "transform 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
+            Join us now →
+          </button>
+        </div>
+        <div style={{ marginTop: 12, color: colors.secondary, fontSize: 12, fontWeight: 600 }}>Start your free trial today.</div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+function Footer() {
+  const { isMobile, isTablet } = useBreakpoint();
+  return (
+    <footer style={{ background: "#fff", borderTop: "1px solid rgba(195,198,215,0.3)", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ ...inner(isMobile), paddingTop: isMobile ? 36 : 52, paddingBottom: isMobile ? 36 : 52 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr 1fr" : "2fr 1fr 1fr 2fr", gap: isMobile ? 28 : 36, alignItems: "start" }}>
+          <div>
+            <div style={{ marginBottom: 10 }}><Logo size={20} /></div>
+            <p style={{ color: colors.secondary, fontSize: 13, lineHeight: 1.65, margin: 0 }}>A professional-grade trading journal and analytics platform built for serious traders.</p>
+          </div>
+          <div>
+            <h4 style={{ fontWeight: 800, color: colors.onBackground, marginBottom: 14, marginTop: 0, fontSize: 13 }}>Community</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {["Twitter", "YouTube", "Facebook"].map(l => (
+                <a key={l} href="#" style={{ color: colors.secondary, fontWeight: 500, fontSize: 13, textDecoration: "none" }}
+                  onMouseEnter={e => e.target.style.color = colors.primary}
+                  onMouseLeave={e => e.target.style.color = colors.secondary}>{l}</a>
               ))}
             </div>
-            <div style={{ textAlign: 'center', marginTop: 48 }}>
-              <div style={{ display: 'inline-block', padding: 6, borderRadius: 9999, border: '2px dashed #3b82f6' }}>
-                <button style={{ ...navFont, background: 'linear-gradient(to right,#2563eb,#3b82f6)', borderRadius: 9999, fontSize: 16, border: 'none', cursor: 'pointer', color: '#fff', padding: '12px 32px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  Join us now <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
+          </div>
+          <div>
+            <h4 style={{ fontWeight: 800, color: colors.onBackground, marginBottom: 14, marginTop: 0, fontSize: 13 }}>Tools</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {["Free Trading Journal", "Sessions", "Economic Calendar"].map(l => (
+                <a key={l} href="#" style={{ color: colors.secondary, fontWeight: 500, fontSize: 13, textDecoration: "none" }}
+                  onMouseEnter={e => e.target.style.color = colors.primary}
+                  onMouseLeave={e => e.target.style.color = colors.secondary}>{l}</a>
+              ))}
             </div>
           </div>
-        </section>
-
-        {/* Footer */}
-        <footer style={{ background: '#080c10', borderTop: '1px solid #0f1923', padding: '60px 24px 0' }}>
-          <style>{`
-            .footer-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr 1fr 1fr;
-              gap: 48px;
-              padding-bottom: 60px;
-            }
-            .footer-bottom-bar {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            }
-            .footer-legal-links {
-              display: flex;
-              gap: 24px;
-            }
-            @media (max-width: 900px) {
-              .footer-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 36px;
-              }
-            }
-            @media (max-width: 560px) {
-              .footer-grid {
-                grid-template-columns: 1fr;
-                gap: 32px;
-              }
-              .footer-bottom-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-              }
-              .footer-legal-links {
-                flex-wrap: wrap;
-                gap: 16px;
-              }
-            }
-          `}</style>
-          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-            <div className="footer-grid">
-
-              {/* Brand col */}
-              <div>
-                <div style={{ marginBottom: 28 }}>
-                  <span style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em', fontFamily: "'Montserrat',sans-serif" }}>
-                    <span style={{ color: '#ffffff' }}>FSDZONES</span>
-                    <span style={{ color: '#4da8f0' }}>.COM</span>
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  {[
-                    { label: 'Twitter', path: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" },
-                    { label: 'YouTube', path: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" },
-                    { label: 'Facebook', path: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" },
-                    { label: 'Instagram', path: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" },
-                  ].map(({ label, path }) => (
-                    <a key={label} href="#" aria-label={label} style={{ width: 32, height: 32, borderRadius: 6, border: '1px solid #172233', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4a6580', textDecoration: 'none', transition: 'color 0.2s, border-color 0.2s' }}
-                      onMouseEnter={e => { e.currentTarget.style.color = '#c8d8e8'; e.currentTarget.style.borderColor = '#2a3a4a'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = '#4a6580'; e.currentTarget.style.borderColor = '#172233'; }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d={path}/></svg>
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Markets col */}
-              <div>
-                <h4 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.12em', color: '#c8d8e8', marginBottom: 24, marginTop: 0 }}>MARKETS</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {['MAJOR FOREX PAIRS','US INDICES (NAS/SPX)','COMMODITIES (GOLD/OIL)','CRYPTOCURRENCY','INSTITUTIONAL ORDER FLOW'].map(item => (
-                    <a key={item} href="#" style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.08em', color: '#3b82f6', textDecoration: 'none', transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#60a5fa'} onMouseLeave={e => e.currentTarget.style.color = '#3b82f6'}>
-                      {item}
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Resources col */}
-              <div>
-                <h4 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.12em', color: '#c8d8e8', marginBottom: 24, marginTop: 0 }}>RESOURCES</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {['FREE TRADING JOURNAL','SESSION CLOCK (TSC)','ECONOMIC CALENDAR','STRATEGY BLOG','BACKTESTING DATA'].map(item => (
-                    <a key={item} href="#" style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.08em', color: '#3b82f6', textDecoration: 'none', transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#60a5fa'} onMouseLeave={e => e.currentTarget.style.color = '#3b82f6'}>
-                      {item}
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stay Updated col */}
-              <div>
-                <h4 style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.12em', color: '#c8d8e8', marginBottom: 16, marginTop: 0 }}>STAY UPDATED</h4>
-                <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: '#4a6580', letterSpacing: '0.04em', lineHeight: 1.7, marginBottom: 20 }}>
-                  GET INTRADAY ZONE ALERTS AND MACRO UPDATES DIRECTLY TO YOUR INBOX.
-                </p>
-                <div style={{ display: 'flex' }}>
-                  <input
-                    type="email"
-                    placeholder="EMAIL ADDRESS"
-                    style={{ flex: 1, minWidth: 0, background: '#0c1219', border: '1px solid #172233', borderRight: 'none', borderRadius: '4px 0 0 4px', padding: '10px 14px', color: '#c8d8e8', fontSize: 11, fontFamily: "'Montserrat',sans-serif", fontWeight: 600, letterSpacing: '0.06em', outline: 'none' }}
-                  />
-                  <button style={{ flexShrink: 0, background: '#2563eb', border: 'none', borderRadius: '0 4px 4px 0', padding: '10px 18px', color: '#fff', fontFamily: "'Montserrat',sans-serif", fontWeight: 800, fontSize: 11, letterSpacing: '0.08em', cursor: 'pointer', transition: 'background 0.2s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'} onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                    JOIN
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom bar */}
-            <div style={{ borderTop: '1px solid #0f1923', padding: '24px 0 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div className="footer-bottom-bar">
-                <span style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.1em', color: '#4a6580' }}>
-                  © 2026 FSDZONES.COM | ALL RIGHTS RESERVED
-                </span>
-                <div className="footer-legal-links">
-                  {['PRIVACY POLICY','TERMS OF SERVICE','CONTACT'].map(item => (
-                    <a key={item} href="#" style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.1em', color: '#4a6580', textDecoration: 'none', transition: 'color 0.2s', whiteSpace: 'nowrap' }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#c8d8e8'} onMouseLeave={e => e.currentTarget.style.color = '#4a6580'}>
-                      {item}
-                    </a>
-                  ))}
-                </div>
-              </div>
-              <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 9, letterSpacing: '0.06em', color: '#2a3a4a', lineHeight: 1.6, margin: 0 }}>
-                RISK WARNING: TRADING FINANCIAL MARKETS INVOLVES SIGNIFICANT RISK. FSDZONES PROVIDES EDUCATIONAL CONTENT AND DATA ANALYTICS FOR INFORMATIONAL PURPOSES ONLY. PAST PERFORMANCE IS NOT INDICATIVE OF FUTURE RESULTS. NEVER TRADE WITH MONEY YOU CANNOT AFFORD TO LOSE.
-              </p>
+          <div>
+            <h4 style={{ fontWeight: 800, color: colors.onBackground, marginBottom: 14, marginTop: 0, fontSize: 13 }}>Newsletter</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <input type="email" placeholder="your@email.com" style={{ background: colors.surface, border: "1px solid rgba(195,198,215,0.5)", borderRadius: 7, padding: "9px 13px", fontSize: 13, fontFamily: "'Montserrat', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
+              <button style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 7, padding: "9px 0", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "'Montserrat', sans-serif" }}>Subscribe</button>
             </div>
           </div>
-        </footer>
-
+        </div>
       </div>
-    </div>
+      <div style={{ borderTop: "1px solid rgba(195,198,215,0.2)" }}>
+        <div style={{ ...inner(isMobile), paddingTop: 14, paddingBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+          <span style={{ color: colors.secondary, fontSize: 11, fontWeight: 600 }}>© <Mono>2026</Mono> Myfmjournal — All rights reserved</span>
+          <div style={{ display: "flex", gap: 18 }}>
+            {["Privacy Policy", "Support", "Terms"].map(l => (
+              <a key={l} href="#" style={{ color: colors.secondary, fontSize: 11, fontWeight: 600, textDecoration: "none" }}>{l}</a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+export default function App() {
+  return (
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+      <style>{`*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } body { background: #f8f9ff; }`}</style>
+      <div style={{ fontFamily: "'Montserrat', sans-serif", background: colors.background }}>
+        <Navbar />
+        <div style={{ paddingTop: 60 }}>
+          <Hero />
+          <Features />
+          <PerformanceInsights />
+          <MonthlyEquity />
+          <TradingCalendar />
+          <MobileMockup />
+          <Pricing />
+          <Reviews />
+          <FinalCTA />
+          <Footer />
+        </div>
+      </div>
+    </>
   );
 }
