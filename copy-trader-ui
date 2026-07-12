@@ -283,6 +283,14 @@ const AVAILABLE_PROVIDERS = [
   { id: "quiet-harbor", name: "Quiet Harbor Capital", handle: "@quietharbor", verified: true, winRate: 71, monthlyReturn: "+6.6%", followers: "1.3K", risk: "Low" },
 ];
 
+const OWN_ACCOUNTS = [
+  { id: "ic-markets-live", name: "IC Markets Live", platform: "MT4", broker: "IC Markets", balance: "$14,820" },
+  { id: "ftmo-challenge-2", name: "FTMO Challenge #2", platform: "MT4", broker: "FTMO", balance: "$100,000" },
+  { id: "prop-eval-100k", name: "Prop Firm Eval — 100K", platform: "MT5", broker: "The5ers", balance: "$100,000" },
+  { id: "personal-ctrader", name: "Personal cTrader", platform: "cTrader", broker: "Pepperstone", balance: "$6,410" },
+  { id: "swing-low-risk", name: "Swing Account — Low Risk", platform: "MT5", broker: "IC Markets", balance: "$22,050" },
+];
+
 const MOBILE_TABS = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard" },
   { id: "copy", label: "Accounts", icon: "account_tree" },
@@ -368,6 +376,7 @@ export default function CopyTradingDashboard() {
   // follow status per marketplace provider: undefined | "pending" | "following"
   const [followStatus, setFollowStatus] = useState({});
   const followTimers = useRef({});
+  const [selectedOwnAccounts, setSelectedOwnAccounts] = useState(["ic-markets-live"]);
 
   // provider studio — the current user's own signal-service side of the business
   const [serviceName, setServiceName] = useState("Alex Warren Momentum Desk");
@@ -495,6 +504,16 @@ export default function CopyTradingDashboard() {
   }, []);
 
   // provider studio — accepting/declining people who want to follow *your* service
+  // adding your own account to the mirror group is instant — it's your own
+  // account, so there's no one else who needs to approve it
+  const toggleOwnAccount = (account) => {
+    setSelectedOwnAccounts((prev) => {
+      const isSelected = prev.includes(account.id);
+      setToast(isSelected ? `${account.name} removed from the mirror group.` : `${account.name} added to the mirror group.`);
+      return isSelected ? prev.filter((id) => id !== account.id) : [...prev, account.id];
+    });
+  };
+
   const acceptFollowRequest = (req) => {
     setProviderRequests((prev) => prev.filter((r) => r.id !== req.id));
     setProviderFollowers((prev) => [
@@ -1083,6 +1102,47 @@ export default function CopyTradingDashboard() {
                           ? "Self-copy mirrors trades across accounts you own — it connects instantly, no follow request needed."
                           : "Telegram signals parse a channel or bot you control — it connects instantly, no follow request needed."}
                       </p>
+                    </div>
+                  )}
+
+                  {source === "self-copy" && (
+                    <div className="mb-8 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-label-xs text-on-surface opacity-70 uppercase">Your accounts</span>
+                        <span className="font-label-xs text-on-surface opacity-50">
+                          {selectedOwnAccounts.length} in mirror group
+                        </span>
+                      </div>
+                      <div className="border border-surface-container-highest rounded-lg divide-y divide-surface-container-highest overflow-hidden">
+                        {OWN_ACCOUNTS.map((a) => {
+                          const isSelected = selectedOwnAccounts.includes(a.id);
+                          return (
+                            <div key={a.id} className="ct-account-row p-4 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 flex items-center justify-center bg-surface-container-highest text-on-surface font-bold rounded shrink-0 text-[11px]">
+                                  {initials(a.name)}
+                                </div>
+                                <div>
+                                  <p className="font-body-md font-bold leading-tight">{a.name}</p>
+                                  <p className="text-[9px] text-on-surface opacity-70 font-dm-mono">
+                                    {a.platform} • {a.broker} • {a.balance} balance
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                className={`shrink-0 px-4 py-1.5 rounded border font-body-md font-bold text-[12px] ${
+                                  isSelected
+                                    ? "bg-tertiary text-on-tertiary border-tertiary"
+                                    : "bg-transparent text-on-surface border-surface-container-highest"
+                                }`}
+                                onClick={() => toggleOwnAccount(a)}
+                              >
+                                {isSelected ? "Selected" : "Add to mirror"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
