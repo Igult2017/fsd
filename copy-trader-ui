@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /* ------------------------------------------------------------------ */
 /*  Design tokens ported from the Stitch export (Material 3 palette)  */
@@ -219,6 +219,7 @@ const NAV_ITEMS = [
   { id: "copy", label: "Copy trading", icon: "sync_alt" },
   { id: "self", label: "Self copying", icon: "content_copy" },
   { id: "telegram", label: "Telegram signals", telegram: true },
+  { id: "provider", label: "Provider studio", icon: "business_center" },
   { id: "history", label: "History and risk", icon: "history" },
 ];
 
@@ -284,9 +285,49 @@ const AVAILABLE_PROVIDERS = [
 
 const MOBILE_TABS = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard" },
-  { id: "accounts", label: "Accounts", icon: "account_tree" },
+  { id: "copy", label: "Accounts", icon: "account_tree" },
   { id: "history", label: "History", icon: "receipt_long" },
-  { id: "settings", label: "Settings", icon: "settings_input_component" },
+  { id: "self", label: "Settings", icon: "settings_input_component" },
+];
+
+const TRADE_HISTORY = [
+  { id: 1, date: "Jul 13", symbol: "XAU/USD", side: "BUY", lot: "0.50", source: "Titan Scalper Pro", pnl: 142.0 },
+  { id: 2, date: "Jul 13", symbol: "EUR/USD", side: "SELL", lot: "1.20", source: "Titan Scalper Pro", pnl: 78.4 },
+  { id: 3, date: "Jul 12", symbol: "GBP/USD", side: "BUY", lot: "0.80", source: "Main MT4 → FTMO", pnl: -54.2 },
+  { id: 4, date: "Jul 12", symbol: "US30", side: "SELL", lot: "0.30", source: "Kingsman Signals", pnl: -96.3 },
+  { id: 5, date: "Jul 11", symbol: "XAU/USD", side: "BUY", lot: "0.40", source: "Titan Scalper Pro", pnl: 211.6 },
+  { id: 6, date: "Jul 11", symbol: "USD/JPY", side: "SELL", lot: "1.00", source: "Main MT4 → FTMO", pnl: 63.9 },
+  { id: 7, date: "Jul 10", symbol: "BTC/USD", side: "BUY", lot: "0.10", source: "Titan Scalper Pro", pnl: -38.5 },
+];
+
+const RISK_STATS = [
+  { label: "WIN RATE", value: "71%", sub: "last 30 days" },
+  { label: "PROFIT FACTOR", value: "1.84", sub: "last 30 days" },
+  { label: "MAX DRAWDOWN", value: "-6.2%", sub: "peak to trough" },
+  { label: "TOTAL TRADES", value: "312", sub: "last 30 days" },
+];
+
+const PROVIDER_STATS = [
+  { label: "AUM COPIED", value: "$186,420", sub: "across all followers" },
+  { label: "ACTIVE FOLLOWERS", value: "27", sub: "+3 this week" },
+  { label: "30D RETURN", value: "+9.1%", sub: "your service" },
+  { label: "AVG RATING", value: "4.7", sub: "38 reviews" },
+];
+
+const INITIAL_PROVIDER_REQUESTS = [
+  { id: "req-1", name: "Daniel Osei", handle: "@d.osei", allocation: "$4,000", time: "6m ago" },
+  { id: "req-2", name: "Priya Nathan", handle: "@priyan_fx", allocation: "$12,500", time: "41m ago" },
+  { id: "req-3", name: "Marcus Webb", handle: "@webbtrades", allocation: "$1,800", time: "2h ago" },
+];
+
+const INITIAL_PROVIDER_FOLLOWERS = [
+  { id: "flw-1", name: "Sara Lindqvist", handle: "@sara_l", allocation: "$8,200", joined: "Jun 28" },
+  { id: "flw-2", name: "Tomasz Nowak", handle: "@t.nowak", allocation: "$3,050", joined: "Jun 14" },
+];
+
+const PROVIDER_FEEDBACK = [
+  { id: 1, name: "Sara Lindqvist", rating: 5, comment: "Consistent execution and the risk controls actually hold up in fast markets.", date: "Jul 9" },
+  { id: 2, name: "Tomasz Nowak", rating: 4, comment: "Good returns overall, would like a bit more communication around news events.", date: "Jul 2" },
 ];
 
 function money(n) {
@@ -320,9 +361,30 @@ export default function CopyTradingDashboard() {
   const [toast, setToast] = useState(null);
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
   const [feed, setFeed] = useState(INITIAL_FEED);
-  const [mobileTab, setMobileTab] = useState("dashboard");
+  const [activePage, setActivePage] = useState("dashboard");
   const [providerQuery, setProviderQuery] = useState("");
-  const [following, setFollowing] = useState([]);
+  // follow status per marketplace provider: undefined | "pending" | "following"
+  const [followStatus, setFollowStatus] = useState({});
+  const followTimers = useRef({});
+
+  // provider studio — the current user's own signal-service side of the business
+  const [serviceName, setServiceName] = useState("Alex Warren Momentum Desk");
+  const [feeModel, setFeeModel] = useState("Performance fee");
+  const [strategyDesc, setStrategyDesc] = useState(
+    "Momentum-based intraday setups on major FX pairs and metals, with a hard 1% per-trade risk cap."
+  );
+  const [listed, setListed] = useState(true);
+  const [supportMessage, setSupportMessage] = useState("");
+  const [providerRequests, setProviderRequests] = useState(INITIAL_PROVIDER_REQUESTS);
+  const [providerFollowers, setProviderFollowers] = useState(INITIAL_PROVIDER_FOLLOWERS);
+
+  // navigating to Copy trading / Self copying / Telegram signals jumps the
+  // engine-setup panel straight into that source instead of leaving it inert
+  useEffect(() => {
+    if (activePage === "copy") setSource("provider");
+    else if (activePage === "self") setSource("self-copy");
+    else if (activePage === "telegram") setSource("telegram");
+  }, [activePage]);
 
   // load fonts + material icons once
   useEffect(() => {
@@ -386,12 +448,69 @@ export default function CopyTradingDashboard() {
     );
   }, [providerQuery]);
 
+  // Following a marketplace provider is a request, not an instant switch —
+  // it sits as "pending" until the provider accepts (simulated here), same
+  // as a real follow-request. Self-copy and Telegram never go through this
+  // since there's no other person to grant access.
   const toggleFollow = (provider) => {
-    setFollowing((prev) => {
-      const isFollowing = prev.includes(provider.id);
-      setToast(isFollowing ? `Unfollowed ${provider.name}.` : `Now following ${provider.name}.`);
-      return isFollowing ? prev.filter((id) => id !== provider.id) : [...prev, provider.id];
+    const current = followStatus[provider.id];
+
+    if (!current) {
+      setFollowStatus((prev) => ({ ...prev, [provider.id]: "pending" }));
+      setToast(`Follow request sent to ${provider.name} — waiting for their approval.`);
+      followTimers.current[provider.id] = setTimeout(() => {
+        setFollowStatus((prev) => {
+          if (prev[provider.id] !== "pending") return prev; // withdrawn before it was accepted
+          return { ...prev, [provider.id]: "following" };
+        });
+        setToast(`${provider.name} accepted your follow request.`);
+      }, 4000);
+      return;
+    }
+
+    if (current === "pending") {
+      clearTimeout(followTimers.current[provider.id]);
+      setFollowStatus((prev) => {
+        const next = { ...prev };
+        delete next[provider.id];
+        return next;
+      });
+      setToast(`Follow request to ${provider.name} withdrawn.`);
+      return;
+    }
+
+    setFollowStatus((prev) => {
+      const next = { ...prev };
+      delete next[provider.id];
+      return next;
     });
+    setToast(`Unfollowed ${provider.name}.`);
+  };
+
+  useEffect(() => {
+    const timers = followTimers.current;
+    return () => Object.values(timers).forEach(clearTimeout);
+  }, []);
+
+  // provider studio — accepting/declining people who want to follow *your* service
+  const acceptFollowRequest = (req) => {
+    setProviderRequests((prev) => prev.filter((r) => r.id !== req.id));
+    setProviderFollowers((prev) => [
+      { id: req.id, name: req.name, handle: req.handle, allocation: req.allocation, joined: "Just now" },
+      ...prev,
+    ]);
+    setToast(`You accepted ${req.name}'s follow request.`);
+  };
+
+  const declineFollowRequest = (req) => {
+    setProviderRequests((prev) => prev.filter((r) => r.id !== req.id));
+    setToast(`Declined ${req.name}'s follow request.`);
+  };
+
+  const sendSupportMessage = () => {
+    if (!supportMessage.trim()) return;
+    setToast("Message sent to support — we'll reply within one business day.");
+    setSupportMessage("");
   };
 
   const handleStart = () => {
@@ -428,7 +547,19 @@ export default function CopyTradingDashboard() {
               {theme === "light" ? "Dark blue" : "Default"}
             </span>
           </button>
-          <Icon name="notifications" className="text-on-surface-variant text-[16px]" />
+          <button
+            className="relative"
+            onClick={() => setActivePage("provider")}
+            aria-label="Notifications"
+            title="Follow request notifications"
+          >
+            <Icon name="notifications" className="text-on-surface-variant text-[16px]" />
+            {providerRequests.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 flex items-center justify-center bg-error text-on-error rounded-full text-[8px] font-bold leading-none">
+                {providerRequests.length}
+              </span>
+            )}
+          </button>
           <Icon name="help_outline" className="text-on-surface-variant text-[16px]" />
           <div className="w-7 h-7 bg-surface-container-highest flex items-center justify-center rounded font-dm-mono text-[10px] font-bold text-on-surface">
             AW
@@ -462,17 +593,17 @@ export default function CopyTradingDashboard() {
                   <li
                     key={item.id}
                     className={`ct-nav-item ${collapsed ? "justify-center px-0" : "px-6"} py-3 flex items-center gap-3 ${
-                      mobileTab === item.id ? "active" : ""
+                      activePage === item.id ? "active" : ""
                     }`}
                     title={item.label}
-                    onClick={() => setMobileTab(item.id)}
+                    onClick={() => setActivePage(item.id)}
                   >
                     {item.telegram ? (
                       <TelegramIcon className="w-5 h-5 shrink-0" />
                     ) : (
-                      <Icon name={item.icon} className={`shrink-0 ${mobileTab === item.id ? "text-primary" : "text-on-surface"}`} />
+                      <Icon name={item.icon} className={`shrink-0 ${activePage === item.id ? "text-primary" : "text-on-surface"}`} />
                     )}
-                    <span className={`font-body-md ct-sidebar-text truncate ${mobileTab === item.id ? "text-primary" : "text-on-surface"}`}>
+                    <span className={`font-body-md ct-sidebar-text truncate ${activePage === item.id ? "text-primary" : "text-on-surface"}`}>
                       {item.label}
                     </span>
                   </li>
@@ -499,31 +630,309 @@ export default function CopyTradingDashboard() {
         {/* Main content */}
         <main className="flex-1 overflow-x-hidden p-6 pb-24 md:pb-6">
           {/* KPI row */}
-          <section className="grid grid-cols-2 md:grid-cols-4 border-b border-surface-container-highest">
-            {KPIS.map((k, i) => (
-              <div key={i} className={`p-6 ${i < 3 ? "md:border-r" : ""} border-surface-container-highest`}>
-                <p className="font-label-xs text-on-surface opacity-70 mb-1 uppercase">{k.label}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-dm-mono text-[16px] font-medium text-on-surface leading-tight">{k.value}</span>
-                  {k.delta && (
-                    <span className={`font-dm-mono text-[10px] ${k.positive ? "text-tertiary" : "text-error"}`}>{k.delta}</span>
-                  )}
-                  {k.sub && (
-                    <span className="font-label-sm text-on-surface opacity-70">
-                      <span className="font-dm-mono text-[10px]">{k.sub}</span>
-                    </span>
-                  )}
+          {activePage !== "history" && activePage !== "provider" && (
+            <section className="grid grid-cols-2 md:grid-cols-4 border-b border-surface-container-highest">
+              {KPIS.map((k, i) => (
+                <div key={i} className={`p-6 ${i < 3 ? "md:border-r" : ""} border-surface-container-highest`}>
+                  <p className="font-label-xs text-on-surface opacity-70 mb-1 uppercase">{k.label}</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-dm-mono text-[16px] font-medium text-on-surface leading-tight">{k.value}</span>
+                    {k.delta && (
+                      <span className={`font-dm-mono text-[10px] ${k.positive ? "text-tertiary" : "text-error"}`}>{k.delta}</span>
+                    )}
+                    {k.sub && (
+                      <span className="font-label-sm text-on-surface opacity-70">
+                        <span className="font-dm-mono text-[10px]">{k.sub}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {activePage === "history" ? (
+            <section>
+              <div className="p-6 border-b border-surface-container-highest bg-surface-container-low flex items-center gap-2">
+                <Icon name="history" className="text-on-surface-variant text-[16px]" />
+                <h2 className="font-headline-md text-on-surface">History and risk</h2>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 border-b border-surface-container-highest">
+                {RISK_STATS.map((r, i) => (
+                  <div key={i} className={`p-6 ${i < 3 ? "md:border-r" : ""} border-surface-container-highest`}>
+                    <p className="font-label-xs text-on-surface opacity-70 mb-1 uppercase">{r.label}</p>
+                    <span className="font-dm-mono text-[16px] font-medium text-on-surface leading-tight">{r.value}</span>
+                    <p className="font-label-sm text-on-surface opacity-50 mt-1">{r.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-6">
+                <p className="font-label-xs text-on-surface opacity-70 mb-4 uppercase">Recent trades</p>
+                <div className="border border-surface-container-highest rounded-lg overflow-hidden">
+                  <div className="hidden md:grid grid-cols-6 gap-2 px-4 py-2 bg-surface-container-low border-b border-surface-container-highest font-label-xs text-on-surface opacity-70 uppercase">
+                    <span>Date</span>
+                    <span>Symbol</span>
+                    <span>Side</span>
+                    <span>Lot</span>
+                    <span>Source</span>
+                    <span className="text-right">Result</span>
+                  </div>
+                  <div className="divide-y divide-surface-container-highest">
+                    {TRADE_HISTORY.map((t) => (
+                      <div key={t.id} className="grid grid-cols-2 md:grid-cols-6 gap-2 px-4 py-3 items-center">
+                        <span className="font-dm-mono text-[10px] text-on-surface opacity-70">{t.date}</span>
+                        <span className="font-body-md font-bold text-on-surface">{t.symbol}</span>
+                        <span
+                          className={`w-fit px-1.5 py-0.5 text-[9px] font-bold rounded border border-surface-bright ${
+                            t.side === "BUY" ? "text-tertiary" : "text-error"
+                          }`}
+                        >
+                          {t.side}
+                        </span>
+                        <span className="font-dm-mono text-[11px] text-on-surface opacity-70">{t.lot}</span>
+                        <span className="font-body-md text-on-surface opacity-70 truncate">{t.source}</span>
+                        <span
+                          className={`font-dm-mono text-[12px] font-medium text-right ${
+                            t.pnl >= 0 ? "text-tertiary" : "text-error"
+                          }`}
+                        >
+                          {money(t.pnl)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            ))}
-          </section>
+            </section>
+          ) : activePage === "provider" ? (
+            <section>
+              <div className="p-6 border-b border-surface-container-highest bg-surface-container-low flex items-center gap-2">
+                <Icon name="business_center" className="text-on-surface-variant text-[16px]" />
+                <h2 className="font-headline-md text-on-surface">Provider studio</h2>
+                <button
+                  className="ml-auto flex items-center gap-1 font-label-xs uppercase text-primary"
+                  onClick={() => setActivePage("dashboard")}
+                >
+                  <Icon name="arrow_back" className="text-[13px]" />
+                  Back to dashboard
+                </button>
+              </div>
 
+              <div className="grid grid-cols-2 md:grid-cols-4 border-b border-surface-container-highest">
+                {PROVIDER_STATS.map((s, i) => (
+                  <div key={i} className={`p-6 ${i < 3 ? "md:border-r" : ""} border-surface-container-highest`}>
+                    <p className="font-label-xs text-on-surface opacity-70 mb-1 uppercase">{s.label}</p>
+                    <span className="font-dm-mono text-[16px] font-medium text-on-surface leading-tight">{s.value}</span>
+                    <p className="font-label-sm text-on-surface opacity-50 mt-1">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-6 space-y-8">
+                {/* Business setup */}
+                <div className="space-y-4">
+                  <p className="font-label-xs text-on-surface opacity-70 uppercase">Business setup</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-label-xs text-on-surface opacity-70 uppercase block mb-1">Service name</label>
+                      <input
+                        className="w-full bg-surface border border-surface-container-highest rounded py-2 px-3 font-body-md"
+                        value={serviceName}
+                        onChange={(e) => setServiceName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="font-label-xs text-on-surface opacity-70 uppercase block mb-1">Fee model</label>
+                      <select
+                        className="w-full bg-surface border border-surface-container-highest rounded py-2 px-3 font-body-md"
+                        value={feeModel}
+                        onChange={(e) => setFeeModel(e.target.value)}
+                      >
+                        <option>Performance fee</option>
+                        <option>Flat subscription</option>
+                        <option>Free</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="font-label-xs text-on-surface opacity-70 uppercase block mb-1">
+                      Strategy description (shown to prospective followers)
+                    </label>
+                    <textarea
+                      className="w-full bg-surface border border-surface-container-highest rounded py-2 px-3 font-body-md"
+                      rows={3}
+                      value={strategyDesc}
+                      onChange={(e) => setStrategyDesc(e.target.value)}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-surface-container-highest text-primary cursor-pointer"
+                      checked={listed}
+                      onChange={(e) => setListed(e.target.checked)}
+                    />
+                    <span className="font-body-md text-on-surface">List my service in the marketplace</span>
+                  </label>
+                  <button
+                    className="px-5 py-2 rounded bg-primary text-on-primary font-body-md font-bold text-[12px]"
+                    onClick={() => setToast("Business setup saved.")}
+                  >
+                    Save changes
+                  </button>
+                </div>
+
+                {/* Follow requests */}
+                <div className="space-y-3 border-t border-surface-container-highest pt-8">
+                  <div className="flex items-center justify-between">
+                    <span className="font-label-xs text-on-surface opacity-70 uppercase">Follow requests</span>
+                    {providerRequests.length > 0 && (
+                      <span className="font-dm-mono text-[10px] text-primary">{providerRequests.length} pending</span>
+                    )}
+                  </div>
+                  <div className="border border-surface-container-highest rounded-lg divide-y divide-surface-container-highest overflow-hidden">
+                    {providerRequests.map((r) => (
+                      <div key={r.id} className="p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 flex items-center justify-center bg-surface-container-highest text-on-surface font-bold rounded shrink-0 text-[11px]">
+                            {initials(r.name)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-body-md font-bold leading-tight truncate">{r.name}</p>
+                            <p className="text-[9px] text-on-surface opacity-70 font-dm-mono truncate">
+                              {r.handle} • wants to allocate {r.allocation} • {r.time}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            className="px-3 py-1.5 rounded bg-tertiary text-on-tertiary font-body-md font-bold text-[11px]"
+                            onClick={() => acceptFollowRequest(r)}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            className="px-3 py-1.5 rounded border border-surface-container-highest text-on-surface font-body-md font-bold text-[11px]"
+                            onClick={() => declineFollowRequest(r)}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {providerRequests.length === 0 && (
+                      <p className="p-4 text-[12px] text-on-surface opacity-50 font-body-md">No pending requests.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Active followers */}
+                <div className="space-y-3 border-t border-surface-container-highest pt-8">
+                  <span className="font-label-xs text-on-surface opacity-70 uppercase">
+                    Active followers ({providerFollowers.length})
+                  </span>
+                  <div className="border border-surface-container-highest rounded-lg divide-y divide-surface-container-highest overflow-hidden">
+                    {providerFollowers.map((f) => (
+                      <div key={f.id} className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 flex items-center justify-center bg-surface-container-highest text-on-surface font-bold rounded shrink-0 text-[11px]">
+                            {initials(f.name)}
+                          </div>
+                          <div>
+                            <p className="font-body-md font-bold leading-tight">{f.name}</p>
+                            <p className="text-[9px] text-on-surface opacity-70 font-dm-mono">
+                              {f.handle} • {f.allocation} allocated • joined {f.joined}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-tertiary">
+                          <span className="w-1.5 h-1.5 rounded-full bg-tertiary ct-pulse" />
+                          Active
+                        </span>
+                      </div>
+                    ))}
+                    {providerFollowers.length === 0 && (
+                      <p className="p-4 text-[12px] text-on-surface opacity-50 font-body-md">No active followers yet.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Feedback */}
+                <div className="space-y-3 border-t border-surface-container-highest pt-8">
+                  <span className="font-label-xs text-on-surface opacity-70 uppercase">Feedback</span>
+                  <div className="space-y-3">
+                    {PROVIDER_FEEDBACK.map((fb) => (
+                      <div key={fb.id} className="p-4 border border-surface-container-highest rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-body-md font-bold text-on-surface">{fb.name}</p>
+                          <span className="text-primary text-[13px] leading-none">
+                            {"★".repeat(fb.rating)}
+                            <span className="opacity-30">{"★".repeat(5 - fb.rating)}</span>
+                          </span>
+                        </div>
+                        <p className="text-on-surface opacity-70 font-body-md text-[12px]">{fb.comment}</p>
+                        <p className="text-on-surface opacity-40 text-[9px] mt-1 font-dm-mono">{fb.date}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Support */}
+                <div className="space-y-3 border-t border-surface-container-highest pt-8">
+                  <span className="font-label-xs text-on-surface opacity-70 uppercase">Talk to support</span>
+                  <div className="border border-surface-container-highest rounded-lg p-4 space-y-3">
+                    <p className="text-on-surface opacity-70 font-body-md text-[12px]">
+                      Questions about payouts, verification, or your marketplace listing? Send a message and the support
+                      team will reply within one business day.
+                    </p>
+                    <textarea
+                      className="w-full bg-surface border border-surface-container-highest rounded py-2 px-3 font-body-md text-[12px]"
+                      rows={3}
+                      placeholder="Describe your question..."
+                      value={supportMessage}
+                      onChange={(e) => setSupportMessage(e.target.value)}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        className="px-4 py-2 rounded bg-primary text-on-primary font-body-md font-bold text-[12px]"
+                        onClick={sendSupportMessage}
+                      >
+                        Send message
+                      </button>
+                      <button
+                        className="px-4 py-2 rounded border border-surface-container-highest text-on-surface font-body-md font-bold text-[12px]"
+                        onClick={() => setToast("support@tradesync.app")}
+                      >
+                        Email support
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : (
           <div className="flex flex-col lg:flex-row">
             {/* Left column — engine setup */}
             <div className="flex-1 border-r border-surface-container-highest">
               <div className="p-6 border-b border-surface-container-highest bg-surface-container-low flex items-center gap-2">
                 <Icon name="settings" className="text-on-surface-variant text-[16px]" />
-                <h2 className="font-headline-md text-on-surface">Engine setup and risk rules</h2>
+                <h2 className="font-headline-md text-on-surface">
+                  {activePage === "copy" && "Copy trading setup"}
+                  {activePage === "self" && "Self-copy setup"}
+                  {activePage === "telegram" && "Telegram signal setup"}
+                  {activePage === "dashboard" && "Engine setup and risk rules"}
+                </h2>
+                {activePage !== "dashboard" && (
+                  <button
+                    className="ml-auto flex items-center gap-1 font-label-xs uppercase text-primary"
+                    onClick={() => setActivePage("dashboard")}
+                  >
+                    <Icon name="arrow_back" className="text-[13px]" />
+                    Back to dashboard
+                  </button>
+                )}
               </div>
 
               <div className="p-6 space-y-8">
@@ -577,6 +986,18 @@ export default function CopyTradingDashboard() {
                     />
                   </div>
 
+                  {(source === "self-copy" || source === "telegram") && (
+                    <div className="mb-8 flex items-start gap-2 p-3 rounded border border-surface-container-highest bg-surface-container-low">
+                      <Icon name="bolt" className="text-tertiary text-[14px] mt-0.5" />
+                      <p className="font-body-md text-on-surface opacity-80 text-[12px] leading-snug">
+                        {source === "self-copy"
+                          ? "Self-copy mirrors trades across accounts you own — it connects instantly, no follow request needed."
+                          : "Telegram signals parse a channel or bot you control — it connects instantly, no follow request needed."}
+                      </p>
+                    </div>
+                  )}
+
+                  {source === "provider" && (
                   <div className="mb-8 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="font-label-xs text-on-surface opacity-70 uppercase">Available to follow</span>
@@ -586,7 +1007,7 @@ export default function CopyTradingDashboard() {
                     </div>
                     <div className="border border-surface-container-highest rounded-lg divide-y divide-surface-container-highest overflow-hidden">
                       {filteredProviders.map((p) => {
-                        const isFollowing = following.includes(p.id);
+                        const status = followStatus[p.id]; // undefined | "pending" | "following"
                         return (
                           <div key={p.id} className="ct-account-row p-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -604,14 +1025,17 @@ export default function CopyTradingDashboard() {
                               </div>
                             </div>
                             <button
-                              className={`shrink-0 px-4 py-1.5 rounded border font-body-md font-bold text-[12px] ${
-                                isFollowing
+                              className={`shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded border font-body-md font-bold text-[12px] ${
+                                status === "following"
                                   ? "bg-surface-container-highest text-on-surface border-surface-container-highest"
+                                  : status === "pending"
+                                  ? "bg-transparent text-primary border-primary"
                                   : "bg-primary text-on-primary border-primary"
                               }`}
                               onClick={() => toggleFollow(p)}
                             >
-                              {isFollowing ? "Following" : "Follow"}
+                              {status === "pending" && <Icon name="hourglass_top" className="text-[12px]" />}
+                              {status === "following" ? "Following" : status === "pending" ? "Requested" : "Follow"}
                             </button>
                           </div>
                         );
@@ -623,6 +1047,7 @@ export default function CopyTradingDashboard() {
                       )}
                     </div>
                   </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
@@ -851,6 +1276,7 @@ export default function CopyTradingDashboard() {
               </div>
             </div>
           </div>
+          )}
         </main>
       </div>
 
@@ -860,9 +1286,9 @@ export default function CopyTradingDashboard() {
           <button
             key={t.id}
             className={`ct-mobile-tab flex flex-col items-center justify-center flex-1 ${
-              mobileTab === t.id ? "active text-on-surface" : "text-on-surface opacity-70"
+              activePage === t.id ? "active text-on-surface" : "text-on-surface opacity-70"
             }`}
-            onClick={() => setMobileTab(t.id)}
+            onClick={() => setActivePage(t.id)}
           >
             <Icon name={t.icon} />
             <span className="font-label-xs uppercase">{t.label}</span>
