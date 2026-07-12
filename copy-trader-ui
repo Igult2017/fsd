@@ -362,6 +362,8 @@ export default function CopyTradingDashboard() {
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
   const [feed, setFeed] = useState(INITIAL_FEED);
   const [activePage, setActivePage] = useState("dashboard");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [providerQuery, setProviderQuery] = useState("");
   // follow status per marketplace provider: undefined | "pending" | "following"
   const [followStatus, setFollowStatus] = useState({});
@@ -560,12 +562,99 @@ export default function CopyTradingDashboard() {
               </span>
             )}
           </button>
-          <Icon name="help_outline" className="text-on-surface-variant text-[16px]" />
-          <div className="w-7 h-7 bg-surface-container-highest flex items-center justify-center rounded font-dm-mono text-[10px] font-bold text-on-surface">
-            AW
+          <div className="relative">
+            <button
+              className="text-on-surface-variant hover:text-on-surface"
+              onClick={() => {
+                setHelpOpen((o) => !o);
+                setAccountOpen(false);
+              }}
+              aria-label="Help"
+              title="Help"
+            >
+              <Icon name="help_outline" className="text-[16px]" />
+            </button>
+            {helpOpen && (
+              <div className="absolute right-0 top-8 w-56 bg-surface border border-surface-container-highest rounded-lg shadow-lg z-50 overflow-hidden">
+                <button
+                  className="w-full text-left px-4 py-2.5 font-body-md text-[12px] text-on-surface hover:bg-surface-container-high flex items-center gap-2"
+                  onClick={() => {
+                    setToast("Opening the getting started guide.");
+                    setHelpOpen(false);
+                  }}
+                >
+                  <Icon name="menu_book" className="text-[14px]" /> Getting started guide
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2.5 font-body-md text-[12px] text-on-surface hover:bg-surface-container-high flex items-center gap-2 border-t border-surface-container-highest"
+                  onClick={() => {
+                    setActivePage("provider");
+                    setHelpOpen(false);
+                  }}
+                >
+                  <Icon name="support_agent" className="text-[14px]" /> Contact support
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="relative">
+            <button
+              className="w-7 h-7 bg-surface-container-highest flex items-center justify-center rounded font-dm-mono text-[10px] font-bold text-on-surface"
+              onClick={() => {
+                setAccountOpen((o) => !o);
+                setHelpOpen(false);
+              }}
+              aria-label="Account menu"
+            >
+              AW
+            </button>
+            {accountOpen && (
+              <div className="absolute right-0 top-9 w-52 bg-surface border border-surface-container-highest rounded-lg shadow-lg z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-surface-container-highest">
+                  <p className="font-body-md font-bold text-on-surface text-[12px]">Alex Warren</p>
+                  <p className="font-label-xs text-on-surface opacity-60 uppercase mt-0.5">Prestige plan</p>
+                </div>
+                <button
+                  className="w-full text-left px-4 py-2.5 font-body-md text-[12px] text-on-surface hover:bg-surface-container-high flex items-center gap-2"
+                  onClick={() => {
+                    setActivePage("provider");
+                    setAccountOpen(false);
+                  }}
+                >
+                  <Icon name="business_center" className="text-[14px]" /> Provider studio
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2.5 font-body-md text-[12px] text-on-surface hover:bg-surface-container-high flex items-center gap-2"
+                  onClick={() => {
+                    setActivePage("history");
+                    setAccountOpen(false);
+                  }}
+                >
+                  <Icon name="history" className="text-[14px]" /> History and risk
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2.5 font-body-md text-[12px] text-error hover:bg-surface-container-high flex items-center gap-2 border-t border-surface-container-highest"
+                  onClick={() => {
+                    setToast("Signed out.");
+                    setAccountOpen(false);
+                  }}
+                >
+                  <Icon name="logout" className="text-[14px]" /> Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
+      {(helpOpen || accountOpen) && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => {
+            setHelpOpen(false);
+            setAccountOpen(false);
+          }}
+        />
+      )}
 
       <div className="flex">
         {/* Sidebar */}
