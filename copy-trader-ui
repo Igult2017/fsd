@@ -1,0 +1,881 @@
+import React, { useEffect, useMemo, useState } from "react";
+
+/* ------------------------------------------------------------------ */
+/*  Design tokens ported from the Stitch export (Material 3 palette)  */
+/* ------------------------------------------------------------------ */
+const STYLES = `
+.ct-app{
+  --md-background:#fdfdf6;
+  --md-surface:#f9f9f9;
+  --md-surface-dim:#dadada;
+  --md-surface-bright:#f9f9f9;
+  --md-surface-container-lowest:#ffffff;
+  --md-surface-container-low:#f3f3f3;
+  --md-surface-container:#eeeeee;
+  --md-surface-container-high:#e8e8e8;
+  --md-surface-container-highest:#e2e2e2;
+  --md-surface-variant:#e1e4da;
+  --md-on-surface:#1a1c18;
+  --md-on-surface-variant:#44483d;
+  --md-on-background:#1a1c18;
+  --md-outline:#74776f;
+  --md-outline-variant:#c4c7c0;
+
+  --md-primary:#b5942d;
+  --md-on-primary:#ffffff;
+  --md-primary-container:#f6df95;
+  --md-on-primary-container:#3a2f00;
+  --md-inverse-primary:#f2ca50;
+
+  --md-secondary:#56624a;
+  --md-on-secondary:#ffffff;
+  --md-secondary-container:#dbe8c8;
+  --md-on-secondary-container:#111e0e;
+
+  --md-tertiary:#006b54;
+  --md-on-tertiary:#ffffff;
+  --md-tertiary-container:#a7f0d0;
+  --md-on-tertiary-container:#002018;
+
+  --md-error:#ba1a1a;
+  --md-on-error:#ffffff;
+  --md-error-container:#ffdad6;
+  --md-on-error-container:#410002;
+
+  --md-inverse-surface:#2f312c;
+  --md-inverse-on-surface:#f1f1ea;
+
+  --radius-sm:2px;
+  --radius-md:4px;
+  --radius-lg:8px;
+  --radius-full:12px;
+
+  background:var(--md-background);
+  color:var(--md-on-surface);
+  font-family:'Playfair Display',serif;
+  min-height:100vh;
+  transition:background-color .3s ease,color .3s ease;
+}
+
+/* dark blue theme ---------------------------------------------------*/
+.ct-app.theme-dark{
+  --md-background:#0a1220;
+  --md-surface:#0f1930;
+  --md-surface-container-lowest:#070d1a;
+  --md-surface-container-low:#111d38;
+  --md-surface-container:#152242;
+  --md-surface-container-high:#1a294d;
+  --md-surface-container-highest:#213262;
+  --md-surface-variant:#1c2a4d;
+  --md-on-surface:#e8edf9;
+  --md-on-surface-variant:#a6b3d1;
+  --md-on-background:#e8edf9;
+  --md-outline:#4d5d8a;
+  --md-outline-variant:#2a3760;
+  --md-inverse-surface:#e8edf9;
+  --md-inverse-on-surface:#101a33;
+}
+.ct-app.theme-dark,
+.ct-app.theme-dark *{transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+
+/* colour utilities ------------------------------------------------- */
+.ct-app .bg-background{background:var(--md-background)}
+.ct-app .bg-surface{background:var(--md-surface)}
+.ct-app .bg-surface-container-lowest{background:var(--md-surface-container-lowest)}
+.ct-app .bg-surface-container-low{background:var(--md-surface-container-low)}
+.ct-app .bg-surface-container{background:var(--md-surface-container)}
+.ct-app .bg-surface-container-high{background:var(--md-surface-container-high)}
+.ct-app .bg-surface-container-highest{background:var(--md-surface-container-highest)}
+.ct-app .bg-surface-variant{background:var(--md-surface-variant)}
+.ct-app .bg-primary{background:var(--md-primary)}
+.ct-app .bg-primary-container{background:var(--md-primary-container)}
+.ct-app .bg-secondary-container{background:var(--md-secondary-container)}
+.ct-app .bg-tertiary{background:var(--md-tertiary)}
+.ct-app .bg-tertiary-container{background:var(--md-tertiary-container)}
+.ct-app .bg-error{background:var(--md-error)}
+.ct-app .bg-error-container{background:var(--md-error-container)}
+.ct-app .bg-inverse-surface{background:var(--md-inverse-surface)}
+
+.ct-app .text-on-background{color:var(--md-on-background)}
+.ct-app .text-on-surface{color:var(--md-on-surface)}
+.ct-app .text-on-surface-variant{color:var(--md-on-surface-variant)}
+.ct-app .text-primary{color:var(--md-primary)}
+.ct-app .text-on-primary{color:var(--md-on-primary)}
+.ct-app .text-on-primary-container{color:var(--md-on-primary-container)}
+.ct-app .text-secondary{color:var(--md-secondary)}
+.ct-app .text-tertiary{color:var(--md-tertiary)}
+.ct-app .text-on-tertiary-container{color:var(--md-on-tertiary-container)}
+.ct-app .text-error{color:var(--md-error)}
+.ct-app .text-on-error{color:var(--md-on-error)}
+.ct-app .text-outline{color:var(--md-outline)}
+.ct-app .text-inverse-on-surface{color:var(--md-inverse-on-surface)}
+
+.ct-app .border-outline-variant{border-color:var(--md-outline-variant)}
+.ct-app .border-surface-container-highest{border-color:var(--md-surface-container-highest)}
+.ct-app .border-primary{border-color:var(--md-primary)}
+.ct-app .border-tertiary{border-color:var(--md-tertiary)}
+.ct-app .border-error{border-color:var(--md-error)}
+
+.ct-app ::selection{background:var(--md-primary);color:var(--md-on-primary)}
+
+/* radius scale (overrides the default Tailwind scale) -------------- */
+.ct-app .rounded{border-radius:var(--radius-sm)}
+.ct-app .rounded-lg{border-radius:var(--radius-md)}
+.ct-app .rounded-xl{border-radius:var(--radius-lg)}
+.ct-app .rounded-full{border-radius:var(--radius-full)}
+
+/* type scale --------------------------------------------------------*/
+.ct-app .font-label-xs{font-family:'Playfair Display',serif;font-size:9px;line-height:12px;letter-spacing:.08em;font-weight:500}
+.ct-app .font-label-sm{font-family:'Playfair Display',serif;font-size:11px;line-height:14px;letter-spacing:.05em;font-weight:500}
+.ct-app .font-body-md{font-family:'Playfair Display',serif;font-size:12px;line-height:17px;font-weight:400}
+.ct-app .font-body-lg{font-family:'Playfair Display',serif;font-size:14px;line-height:20px;font-weight:400}
+.ct-app .font-headline-md{font-family:'Playfair Display',serif;font-size:16px;line-height:22px;font-weight:600}
+.ct-app .font-headline-lg{font-family:'Playfair Display',serif;font-size:26px;line-height:32px;letter-spacing:-.02em;font-weight:700}
+.ct-app .font-dm-mono{font-family:'DM Mono',monospace}
+
+/* hidden scrollbars (content stays scrollable) ----------------------*/
+.ct-hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none;overflow-x:hidden}
+.ct-hide-scrollbar::-webkit-scrollbar{display:none;width:0;height:0}
+
+/* sidebar collapse ----------------------------------------------------*/
+.ct-sidebar{width:264px;transition:width .25s ease}
+.ct-sidebar.collapsed{width:76px}
+.ct-sidebar-text{transition:opacity .15s ease;white-space:nowrap}
+.ct-sidebar.collapsed .ct-sidebar-text,
+.ct-sidebar.collapsed .ct-sidebar-label{display:none}
+
+/* interactive surfaces ------------------------------------------------*/
+.ct-nav-item{cursor:pointer;transition:background .15s ease}
+.ct-nav-item:hover{background:var(--md-surface-container-high)}
+.ct-nav-item.active{background:var(--md-surface-container-highest);border-right:2px solid var(--md-primary)}
+.ct-source-card{cursor:pointer;transition:background .15s ease}
+.ct-source-card:hover{background:var(--md-surface-variant)}
+.ct-source-card.active{background:var(--md-surface-container-high);position:relative}
+.ct-source-card.active::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--md-primary)}
+.ct-tag-btn{cursor:pointer;transition:background .15s ease,color .15s ease}
+.ct-tag-btn:hover{background:var(--md-surface-container)}
+.ct-tag-btn.active{background:var(--md-surface-container-high);border-color:var(--md-outline)}
+.ct-account-row{transition:background .15s ease}
+.ct-account-row:hover{background:var(--md-surface-container)}
+.ct-account-row{cursor:pointer}
+.ct-start-btn{transition:background .15s ease,box-shadow .15s ease,opacity .15s ease}
+.ct-start-btn:not(:disabled):hover{box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ct-mobile-tab{cursor:pointer}
+.ct-mobile-tab.active{background:var(--md-surface-container-highest)}
+
+/* mirror feed pulse ------------------------------------------------ */
+.ct-pulse{animation:ct-pulse 1.6s ease-in-out infinite}
+.ct-ping{animation:ct-ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ct-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes ct-ping{75%,100%{transform:scale(2);opacity:0}}
+.ct-feed-row{animation:ct-slide-in .35s ease}
+@keyframes ct-slide-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* toast --------------------------------------------------------------*/
+.ct-toast{animation:ct-toast-in .2s ease}
+@keyframes ct-toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* accessibility ------------------------------------------------------*/
+.ct-app button:focus-visible,
+.ct-app input:focus-visible,
+.ct-app select:focus-visible,
+.ct-app [tabindex]:focus-visible{
+  outline:2px solid var(--md-primary);
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce){
+  .ct-app *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+`;
+
+/* ------------------------------------------------------------------ */
+/*  Small building blocks                                             */
+/* ------------------------------------------------------------------ */
+function Icon({ name, className = "", filled = false, style }) {
+  return (
+    <span
+      className={`material-icons ${className}`}
+      style={{ fontVariationSettings: filled ? "'FILL' 1" : undefined, ...style }}
+      aria-hidden="true"
+    >
+      {name}
+    </span>
+  );
+}
+
+function TelegramIcon({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="#29A9EB" aria-hidden="true">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.88.03-.24.36-.48.99-.74 3.89-1.69 6.48-2.8 7.78-3.33 3.71-1.51 4.48-1.77 4.98-1.78.11 0 .35.03.51.16.13.11.17.26.19.37.02.11.02.24.01.37z" />
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Static / demo data                                                */
+/* ------------------------------------------------------------------ */
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+  { id: "copy", label: "Copy trading", icon: "sync_alt" },
+  { id: "self", label: "Self copying", icon: "content_copy" },
+  { id: "telegram", label: "Telegram signals", telegram: true },
+  { id: "history", label: "History and risk", icon: "history" },
+];
+
+const RECENT_ACTIVITY = [
+  { text: "Copied BUY XAU/USD from Titan Scalper Pro", time: "2m ago" },
+  { text: "Paused Kingsman Signals", time: "18m ago" },
+];
+
+const KPIS = [
+  { label: "TOTAL EQUITY", value: "$248,392.14", delta: "+4.82%", positive: true },
+  { label: "TODAY'S PROFIT AND LOSS", value: "+$3,146.20", delta: "+1.27%", positive: true },
+  { label: "ACTIVE COPIES", value: "12", sub: "3 masters" },
+  { label: "TRADES TODAY", value: "48", delta: "+12", positive: true },
+];
+
+const SOURCES = [
+  {
+    id: "provider",
+    icon: "person_search",
+    title: "Provider",
+    desc: "Follow a verified signal provider from the marketplace",
+    options: ["cTrader", "MT5"],
+  },
+  {
+    id: "self-copy",
+    icon: "content_copy",
+    title: "Self-copy",
+    desc: "Mirror trades across your own linked accounts",
+    options: ["cTrader", "MT5"],
+  },
+  {
+    id: "telegram",
+    telegram: true,
+    title: "Telegram",
+    desc: "Parse and execute specific channel signals",
+    options: ["Channel", "Bot", "Group"],
+  },
+];
+
+const SESSIONS = ["London", "New York", "Tokyo", "Sydney"];
+const INSTRUMENTS = ["Forex", "Metals", "Indices", "Crypto"];
+
+const INITIAL_ACCOUNTS = [
+  { id: 1, name: "Kingsman Signals", handle: "@kingsman_fx", tag: "1.0x lot", pnl: -96.3, status: "paused" },
+  { id: 2, name: "Titan Scalper Pro", handle: "cTrader", tag: "$8K Allocated", pnl: 1204.6, status: "live" },
+  { id: 3, name: "Main MT4 → FTMO", handle: "Self-copy", tag: "0.5x lot", pnl: 459.1, status: "live" },
+];
+
+const INITIAL_FEED = [
+  { id: 1, side: "BUY", symbol: "XAU/USD", lot: "0.50", price: "2418.20", ms: 38, pnl: 142.0, time: "12s ago" },
+  { id: 2, side: "SELL", symbol: "EUR/USD", lot: "1.20", price: "1.0842", ms: 44, pnl: 78.4, time: "1m ago" },
+];
+
+const FEED_SYMBOLS = ["XAU/USD", "EUR/USD", "GBP/USD", "USD/JPY", "US30", "BTC/USD"];
+
+const AVAILABLE_PROVIDERS = [
+  { id: "meridian-swing", name: "Meridian Swing Desk", handle: "@meridian_fx", verified: true, winRate: 74, monthlyReturn: "+8.2%", followers: "2.1K", risk: "Low" },
+  { id: "atlas-fx", name: "Atlas FX Group", handle: "@atlas_group", verified: true, winRate: 68, monthlyReturn: "+11.4%", followers: "5.6K", risk: "Medium" },
+  { id: "nordic-precision", name: "Nordic Precision Trading", handle: "@nordic_prec", verified: true, winRate: 81, monthlyReturn: "+5.9%", followers: "980", risk: "Low" },
+  { id: "vega-options", name: "Vega Options Desk", handle: "@vega_desk", verified: false, winRate: 62, monthlyReturn: "+14.7%", followers: "3.4K", risk: "High" },
+  { id: "quiet-harbor", name: "Quiet Harbor Capital", handle: "@quietharbor", verified: true, winRate: 71, monthlyReturn: "+6.6%", followers: "1.3K", risk: "Low" },
+];
+
+const MOBILE_TABS = [
+  { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+  { id: "accounts", label: "Accounts", icon: "account_tree" },
+  { id: "history", label: "History", icon: "receipt_long" },
+  { id: "settings", label: "Settings", icon: "settings_input_component" },
+];
+
+function money(n) {
+  const sign = n < 0 ? "-" : "+";
+  return `${sign}$${Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+}
+
+function initials(name) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main component                                                    */
+/* ------------------------------------------------------------------ */
+export default function CopyTradingDashboard() {
+  const [theme, setTheme] = useState("light");
+  const [collapsed, setCollapsed] = useState(false);
+  const [source, setSource] = useState("provider");
+  const [sessions, setSessions] = useState(["London"]);
+  const [instruments, setInstruments] = useState(["Forex", "Metals"]);
+  const [sizingMode, setSizingMode] = useState("Risk %");
+  const [sizingValue, setSizingValue] = useState("1.00");
+  const [drawdown, setDrawdown] = useState("10");
+  const [agreed, setAgreed] = useState(false);
+  const [mirroring, setMirroring] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
+  const [feed, setFeed] = useState(INITIAL_FEED);
+  const [mobileTab, setMobileTab] = useState("dashboard");
+  const [providerQuery, setProviderQuery] = useState("");
+  const [following, setFollowing] = useState([]);
+
+  // load fonts + material icons once
+  useEffect(() => {
+    const hrefs = [
+      "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap",
+      "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap",
+      "https://fonts.googleapis.com/icon?family=Material+Icons",
+    ];
+    const created = hrefs.map((href) => {
+      const el = document.createElement("link");
+      el.rel = "stylesheet";
+      el.href = href;
+      document.head.appendChild(el);
+      return el;
+    });
+    return () => created.forEach((el) => el.remove());
+  }, []);
+
+  // fake "live" mirror feed
+  useEffect(() => {
+    if (!mirroring) return undefined;
+    const t = setInterval(() => {
+      const symbol = FEED_SYMBOLS[Math.floor(Math.random() * FEED_SYMBOLS.length)];
+      const side = Math.random() > 0.5 ? "BUY" : "SELL";
+      const lot = (Math.random() * 1.5 + 0.1).toFixed(2);
+      const price = (symbol === "XAU/USD" ? 2400 + Math.random() * 40 : Math.random() * 2 + 1).toFixed(
+        symbol === "XAU/USD" || symbol === "US30" ? 2 : 4
+      );
+      const pnl = (Math.random() - 0.35) * 300;
+      setFeed((prev) => [
+        { id: Date.now(), side, symbol, lot, price, ms: 20 + Math.floor(Math.random() * 60), pnl, time: "just now" },
+        ...prev,
+      ].slice(0, 6));
+    }, 4500);
+    return () => clearInterval(t);
+  }, [mirroring]);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const t = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const toggleFrom = (list, setList, value) => {
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  };
+
+  const toggleAccountStatus = (id) => {
+    setAccounts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: a.status === "live" ? "paused" : "live" } : a))
+    );
+  };
+
+  const activeSource = useMemo(() => SOURCES.find((s) => s.id === source), [source]);
+
+  const filteredProviders = useMemo(() => {
+    const q = providerQuery.trim().toLowerCase();
+    if (!q) return AVAILABLE_PROVIDERS;
+    return AVAILABLE_PROVIDERS.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.handle.toLowerCase().includes(q)
+    );
+  }, [providerQuery]);
+
+  const toggleFollow = (provider) => {
+    setFollowing((prev) => {
+      const isFollowing = prev.includes(provider.id);
+      setToast(isFollowing ? `Unfollowed ${provider.name}.` : `Now following ${provider.name}.`);
+      return isFollowing ? prev.filter((id) => id !== provider.id) : [...prev, provider.id];
+    });
+  };
+
+  const handleStart = () => {
+    if (!agreed) return;
+    setMirroring((m) => !m);
+    setToast(
+      mirroring
+        ? "Mirroring stopped."
+        : `Mirroring started — copying trades from ${activeSource?.title ?? "your source"}.`
+    );
+  };
+
+  return (
+    <div className={`ct-app ${theme === "dark" ? "theme-dark" : ""}`}>
+      <style>{STYLES}</style>
+
+      {/* Header */}
+      <header className="flex justify-between items-center px-6 h-14 w-full bg-surface border-b border-surface-container-highest sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
+            <span className="font-dm-mono text-[10px] font-bold text-on-primary">C</span>
+          </div>
+          <span className="font-dm-mono text-[10px] tracking-[0.15em] uppercase text-on-surface">Trade Sync</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-surface-container-highest text-on-surface-variant hover:text-on-surface"
+            onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+            aria-label="Toggle dark blue theme"
+            title="Toggle dark blue theme"
+          >
+            <Icon name={theme === "light" ? "dark_mode" : "light_mode"} className="text-[15px]" />
+            <span className="font-label-xs uppercase hidden sm:inline">
+              {theme === "light" ? "Dark blue" : "Default"}
+            </span>
+          </button>
+          <Icon name="notifications" className="text-on-surface-variant text-[16px]" />
+          <Icon name="help_outline" className="text-on-surface-variant text-[16px]" />
+          <div className="w-7 h-7 bg-surface-container-highest flex items-center justify-center rounded font-dm-mono text-[10px] font-bold text-on-surface">
+            AW
+          </div>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <aside
+          className={`ct-sidebar ${collapsed ? "collapsed" : ""} hidden md:flex flex-col border-r border-surface-container-highest bg-surface shrink-0`}
+          style={{ height: "calc(100vh - 3.5rem)", position: "sticky", top: "3.5rem" }}
+        >
+          <div className={`flex ${collapsed ? "justify-center" : "justify-end"} p-2 border-b border-surface-container-highest`}>
+            <button
+              className="text-on-surface hover:text-primary p-1 rounded"
+              onClick={() => setCollapsed((c) => !c)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <Icon name={collapsed ? "chevron_right" : "chevron_left"} />
+            </button>
+          </div>
+
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <nav className="shrink-0 py-4 border-b border-surface-container-highest">
+              <div className="px-6 mb-4 ct-sidebar-label">
+                <span className="font-label-xs text-on-surface opacity-50 uppercase">Main menu</span>
+              </div>
+              <ul className="space-y-1">
+                {NAV_ITEMS.map((item) => (
+                  <li
+                    key={item.id}
+                    className={`ct-nav-item ${collapsed ? "justify-center px-0" : "px-6"} py-3 flex items-center gap-3 ${
+                      mobileTab === item.id ? "active" : ""
+                    }`}
+                    title={item.label}
+                    onClick={() => setMobileTab(item.id)}
+                  >
+                    {item.telegram ? (
+                      <TelegramIcon className="w-5 h-5 shrink-0" />
+                    ) : (
+                      <Icon name={item.icon} className={`shrink-0 ${mobileTab === item.id ? "text-primary" : "text-on-surface"}`} />
+                    )}
+                    <span className={`font-body-md ct-sidebar-text truncate ${mobileTab === item.id ? "text-primary" : "text-on-surface"}`}>
+                      {item.label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <div className="flex-1 overflow-y-auto ct-hide-scrollbar py-4">
+              <div className="px-6 mb-4 ct-sidebar-label">
+                <span className="font-label-xs text-on-surface opacity-50 uppercase">Recent activity</span>
+              </div>
+              <div className="px-6 space-y-4 ct-sidebar-text">
+                {RECENT_ACTIVITY.map((a, i) => (
+                  <div key={i} className="text-[10px] leading-tight border-l border-surface-container-highest pl-3">
+                    <p className="text-on-surface font-body-md">{a.text}</p>
+                    <p className="opacity-50 mt-1 font-dm-mono text-[9px]">{a.time}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-x-hidden p-6 pb-24 md:pb-6">
+          {/* KPI row */}
+          <section className="grid grid-cols-2 md:grid-cols-4 border-b border-surface-container-highest">
+            {KPIS.map((k, i) => (
+              <div key={i} className={`p-6 ${i < 3 ? "md:border-r" : ""} border-surface-container-highest`}>
+                <p className="font-label-xs text-on-surface opacity-70 mb-1 uppercase">{k.label}</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-dm-mono text-[16px] font-medium text-on-surface leading-tight">{k.value}</span>
+                  {k.delta && (
+                    <span className={`font-dm-mono text-[10px] ${k.positive ? "text-tertiary" : "text-error"}`}>{k.delta}</span>
+                  )}
+                  {k.sub && (
+                    <span className="font-label-sm text-on-surface opacity-70">
+                      <span className="font-dm-mono text-[10px]">{k.sub}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <div className="flex flex-col lg:flex-row">
+            {/* Left column — engine setup */}
+            <div className="flex-1 border-r border-surface-container-highest">
+              <div className="p-6 border-b border-surface-container-highest bg-surface-container-low flex items-center gap-2">
+                <Icon name="settings" className="text-on-surface-variant text-[16px]" />
+                <h2 className="font-headline-md text-on-surface">Engine setup and risk rules</h2>
+              </div>
+
+              <div className="p-6 space-y-8">
+                {/* Step 1: source */}
+                <section>
+                  <p className="font-label-xs text-on-surface opacity-70 mb-4 uppercase">Step 1 — Choose a source</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-surface-container-highest overflow-hidden rounded-lg">
+                    {SOURCES.map((s, i) => (
+                      <div
+                        key={s.id}
+                        className={`ct-source-card p-6 bg-surface ${i < 2 ? "border-r" : ""} border-surface-container-highest flex flex-col justify-between ${
+                          source === s.id ? "active" : ""
+                        }`}
+                        onClick={() => setSource(s.id)}
+                      >
+                        <div>
+                          {s.telegram ? (
+                            <TelegramIcon className={`w-8 h-8 mb-4 ${source === s.id ? "" : "opacity-50"}`} />
+                          ) : (
+                            <Icon
+                              name={s.icon}
+                              className={`mb-4 text-[24px] ${source === s.id ? "text-primary" : "text-on-surface opacity-50"}`}
+                            />
+                          )}
+                          <h3 className="font-body-lg font-bold text-on-surface mb-1">{s.title}</h3>
+                          <p className="text-on-surface opacity-70 font-body-md leading-snug mb-4">{s.desc}</p>
+                        </div>
+                        <select
+                          className="mt-auto bg-surface border border-surface-container-highest text-on-surface font-body-md py-1 px-2 rounded w-full text-sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {s.options.map((o) => (
+                            <option key={o}>{o}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Search */}
+                <section>
+                  <div className="relative mb-6">
+                    <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-50" />
+                    <input
+                      className="w-full bg-surface border border-surface-container-highest rounded py-3 pl-10 pr-4 font-body-md focus:ring-1 focus:ring-primary focus:border-primary placeholder:opacity-40"
+                      placeholder="Search verified providers by name or ID"
+                      type="text"
+                      value={providerQuery}
+                      onChange={(e) => setProviderQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="mb-8 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-label-xs text-on-surface opacity-70 uppercase">Available to follow</span>
+                      <span className="font-label-xs text-on-surface opacity-50">
+                        {filteredProviders.length} provider{filteredProviders.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <div className="border border-surface-container-highest rounded-lg divide-y divide-surface-container-highest overflow-hidden">
+                      {filteredProviders.map((p) => {
+                        const isFollowing = following.includes(p.id);
+                        return (
+                          <div key={p.id} className="ct-account-row p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 flex items-center justify-center bg-surface-container-highest text-on-surface font-bold rounded shrink-0 text-[11px]">
+                                {initials(p.name)}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-body-md font-bold leading-tight">{p.name}</p>
+                                  {p.verified && <Icon name="verified" className="text-tertiary text-[13px]" />}
+                                </div>
+                                <p className="text-[9px] text-on-surface opacity-70 font-dm-mono">
+                                  {p.winRate}% win • {p.monthlyReturn} 30D • {p.followers} followers • {p.risk} risk
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              className={`shrink-0 px-4 py-1.5 rounded border font-body-md font-bold text-[12px] ${
+                                isFollowing
+                                  ? "bg-surface-container-highest text-on-surface border-surface-container-highest"
+                                  : "bg-primary text-on-primary border-primary"
+                              }`}
+                              onClick={() => toggleFollow(p)}
+                            >
+                              {isFollowing ? "Following" : "Follow"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {filteredProviders.length === 0 && (
+                        <p className="p-4 text-[12px] text-on-surface opacity-50 font-body-md">
+                          No providers match "{providerQuery}".
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Icon name="schedule" className="text-on-surface-variant text-[15px]" />
+                        <span className="font-label-xs text-on-surface opacity-70 uppercase">Allowed sessions</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {SESSIONS.map((s) => (
+                          <button
+                            key={s}
+                            className={`ct-tag-btn px-4 py-1.5 rounded border border-surface-container-highest font-body-md ${
+                              sessions.includes(s) ? "active" : ""
+                            }`}
+                            onClick={() => toggleFrom(sessions, setSessions, s)}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Icon name="public" className="text-on-surface-variant text-[15px]" />
+                        <span className="font-label-xs text-on-surface opacity-70 uppercase">Allowed instruments</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {INSTRUMENTS.map((s) => (
+                          <button
+                            key={s}
+                            className={`ct-tag-btn px-4 py-1.5 rounded border border-surface-container-highest font-body-md ${
+                              instruments.includes(s) ? "active" : ""
+                            }`}
+                            onClick={() => toggleFrom(instruments, setInstruments, s)}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Risk parameters */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-surface-container-highest pt-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Icon name="ads_click" className="text-on-surface-variant text-[15px]" />
+                      <span className="font-label-xs text-on-surface opacity-70 uppercase">Allocation sizing</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <select
+                        className="bg-surface border border-surface-container-highest rounded font-body-md py-2 px-3 flex-1"
+                        value={sizingMode}
+                        onChange={(e) => setSizingMode(e.target.value)}
+                      >
+                        <option>Risk %</option>
+                        <option>Lot Size</option>
+                        <option>Fixed Amount</option>
+                      </select>
+                      <input
+                        className="bg-surface border border-surface-container-highest rounded text-right font-dm-mono py-2 px-3 w-24"
+                        type="text"
+                        value={sizingValue}
+                        onChange={(e) => setSizingValue(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Icon name="security" className="text-on-surface-variant text-[15px]" />
+                      <span className="font-label-xs text-on-surface opacity-70 uppercase">Equity stop limit</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <p className="font-body-md text-on-surface opacity-70">Disconnect at drawdown:</p>
+                      <div className="flex items-center bg-surface border border-surface-container-highest rounded overflow-hidden">
+                        <input
+                          className="bg-transparent border-none text-right font-dm-mono py-2 px-3 w-16 focus:ring-0"
+                          type="text"
+                          value={drawdown}
+                          onChange={(e) => setDrawdown(e.target.value)}
+                        />
+                        <span className="px-3 text-on-surface opacity-70 border-l border-surface-container-highest bg-surface-container font-dm-mono">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Agreement + start */}
+                <div className="pt-4">
+                  <div className="mb-6 p-6 bg-surface-container rounded space-y-4">
+                    <div className="flex items-start gap-3">
+                      <input
+                        className="w-4 h-4 rounded border-surface-container-highest text-primary mt-1 cursor-pointer"
+                        id="terms-agreement"
+                        type="checkbox"
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                      />
+                      <label className="font-body-md text-on-surface cursor-pointer" htmlFor="terms-agreement">
+                        I have read and agree to the <span className="text-primary font-bold">Terms and Conditions</span>.
+                      </label>
+                    </div>
+                    <div className="pl-7 space-y-2 border-l-2 border-surface-container-highest">
+                      <p className="text-[10px] leading-tight text-on-surface opacity-70 font-body-md italic">
+                        Disclaimer: This service is provided for educational purposes only and does not constitute financial advice.
+                      </p>
+                      <p className="text-[10px] leading-tight text-on-surface opacity-70 font-body-md">
+                        The trader is solely responsible for their actions, risk management, and all trading decisions made using
+                        this platform.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    className={`ct-start-btn w-full md:w-auto px-8 py-3 font-body-md font-bold rounded flex items-center justify-center gap-3 border ${
+                      agreed
+                        ? "bg-primary text-on-primary border-primary cursor-pointer"
+                        : "bg-surface-container-highest text-on-surface border-surface-container-highest opacity-50 cursor-not-allowed"
+                    }`}
+                    disabled={!agreed}
+                    onClick={handleStart}
+                  >
+                    <Icon name={mirroring ? "stop" : "play_arrow"} filled />
+                    {mirroring ? "Stop mirroring" : "Start mirroring"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right column */}
+            <div className="w-full lg:w-96 flex flex-col bg-surface">
+              {/* Connected accounts */}
+              <div className="flex-1 flex flex-col max-h-[500px] overflow-y-auto ct-hide-scrollbar border-b border-surface-container-highest">
+                <div className="p-6 border-b border-surface-container-highest bg-surface-container-low">
+                  <h3 className="font-headline-md text-on-surface">Connected accounts</h3>
+                </div>
+                <div className="divide-y divide-surface-container-highest">
+                  {accounts.map((a) => (
+                    <div
+                      key={a.id}
+                      className="ct-account-row p-4 flex items-center justify-between"
+                      onClick={() => toggleAccountStatus(a.id)}
+                      title="Toggle live / paused"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest text-on-surface font-bold rounded">
+                          {a.name[0]}
+                        </div>
+                        <div>
+                          <p className="font-body-md font-bold leading-tight">{a.name}</p>
+                          <p className="text-[9px] text-on-surface opacity-70 font-body-md">
+                            {a.handle} • <span className="font-dm-mono text-[8px]">{a.tag}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-dm-mono text-[11px] font-medium ${a.pnl >= 0 ? "text-tertiary" : "text-error"}`}>
+                          {money(a.pnl)}
+                        </p>
+                        <div className="flex items-center justify-end gap-1">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${a.status === "live" ? "bg-tertiary ct-pulse" : "bg-error"}`}
+                          />
+                          <span className={`text-[9px] font-bold font-body-md ${a.status === "live" ? "text-tertiary" : "text-error"}`}>
+                            {a.status === "live" ? "Live" : "Paused"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mirror feed */}
+              <div className="flex-1 flex flex-col bg-surface">
+                <div className="p-6 border-b border-surface-container-highest flex justify-between items-center bg-surface-container-low">
+                  <div className="flex items-center gap-2">
+                    <Icon name="podcasts" className="text-on-surface-variant text-[15px]" />
+                    <h3 className="font-headline-md text-on-surface">Mirror feed</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full bg-tertiary ${mirroring ? "ct-ping" : ""}`} />
+                    <span className="text-[9px] font-label-xs text-tertiary">{mirroring ? "Streaming" : "Idle"}</span>
+                  </div>
+                </div>
+                <div className="overflow-y-auto ct-hide-scrollbar max-h-[400px] lg:max-h-none">
+                  {feed.map((f) => (
+                    <div key={f.id} className="ct-feed-row p-4 border-b border-surface-container-highest">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="px-1.5 py-0.5 bg-surface-container-highest border border-surface-bright text-on-surface text-[9px] font-bold rounded">
+                              {f.side}
+                            </span>
+                            <span className="font-body-md font-bold">{f.symbol}</span>
+                          </div>
+                          <p className="text-on-surface opacity-70 font-body-md">
+                            <span className="font-dm-mono text-[10px]">{f.lot}</span> lot @{" "}
+                            <span className="font-dm-mono text-[10px]">{f.price}</span>
+                          </p>
+                          <div className="flex items-center gap-1 text-[9px] text-on-surface opacity-50 font-body-md">
+                            <Icon name="south" className="text-[10px]" />
+                            <span>
+                              <span className="font-dm-mono text-[8px]">{f.ms}</span>ms to copy
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-dm-mono text-[11px] font-medium ${f.pnl >= 0 ? "text-tertiary" : "text-error"}`}>
+                            {money(f.pnl)}
+                          </p>
+                          <p className="text-[9px] text-on-surface opacity-50 font-body-md">{f.time}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {feed.length === 0 && (
+                    <p className="p-4 text-[10px] text-on-surface opacity-50 font-body-md">No trades copied yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 w-full z-40 flex justify-around items-stretch h-16 md:hidden bg-surface border-t border-surface-container-highest">
+        {MOBILE_TABS.map((t) => (
+          <button
+            key={t.id}
+            className={`ct-mobile-tab flex flex-col items-center justify-center flex-1 ${
+              mobileTab === t.id ? "active text-on-surface" : "text-on-surface opacity-70"
+            }`}
+            onClick={() => setMobileTab(t.id)}
+          >
+            <Icon name={t.icon} />
+            <span className="font-label-xs uppercase">{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* Toast */}
+      {toast && (
+        <div className="ct-toast fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-5 py-3 rounded-lg font-body-md text-[11px] shadow-lg z-50">
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
