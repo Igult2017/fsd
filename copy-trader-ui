@@ -160,8 +160,8 @@ const STYLES = `
 .ct-account-row{cursor:pointer}
 .ct-start-btn{transition:background .15s ease,box-shadow .15s ease,opacity .15s ease}
 .ct-start-btn:not(:disabled):hover{box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.ct-mobile-tab{cursor:pointer}
-.ct-mobile-tab.active{background:var(--md-surface-container-highest)}
+.ct-mobile-tab{cursor:pointer;position:relative;transition:color .15s ease}
+.ct-mobile-tab.active::before{content:"";position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--md-primary)}
 
 /* mirror feed pulse ------------------------------------------------ */
 .ct-pulse{animation:ct-pulse 1.6s ease-in-out infinite}
@@ -208,6 +208,68 @@ function TelegramIcon({ className = "" }) {
     <svg className={className} viewBox="0 0 24 24" fill="#29A9EB" aria-hidden="true">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.88.03-.24.36-.48.99-.74 3.89-1.69 6.48-2.8 7.78-3.33 3.71-1.51 4.48-1.77 4.98-1.78.11 0 .35.03.51.16.13.11.17.26.19.37.02.11.02.24.01.37z" />
     </svg>
+  );
+}
+
+function Stars({ rating, size = "13px" }) {
+  const full = Math.round(rating);
+  return (
+    <span className="text-primary leading-none" style={{ fontSize: size }}>
+      {"★".repeat(full)}
+      <span className="opacity-30">{"★".repeat(5 - full)}</span>
+    </span>
+  );
+}
+
+function AddAccountCard({ platform, onPlatformChange, status, accountId, onConnect, onDisconnect }) {
+  return (
+    <div className="border border-surface-container-highest rounded-lg p-5 space-y-3">
+      <div className="flex items-center gap-3">
+        <label className="font-label-xs text-on-surface opacity-70 uppercase shrink-0">Platform</label>
+        <select
+          className="bg-surface border border-surface-container-highest rounded py-1.5 px-3 font-body-md text-[12px]"
+          value={platform}
+          onChange={(e) => onPlatformChange(e.target.value)}
+          disabled={status !== "disconnected"}
+        >
+          <option>cTrader</option>
+          <option>MT4</option>
+          <option>MT5</option>
+        </select>
+      </div>
+
+      {status === "connected" ? (
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-tertiary ct-pulse" />
+            <p className="font-body-md text-on-surface text-[12px]">
+              Connected to <span className="font-dm-mono">{platform}</span> — account{" "}
+              <span className="font-dm-mono">{accountId}</span>
+            </p>
+          </div>
+          <button
+            className="px-4 py-1.5 rounded border border-surface-container-highest text-on-surface font-body-md font-bold text-[11px]"
+            onClick={onDisconnect}
+          >
+            Disconnect
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <p className="font-body-md text-on-surface opacity-70 text-[12px] max-w-sm">
+            {platform} requires linking your account before trades can be mirrored or broadcast.
+          </p>
+          <button
+            className="px-5 py-2 rounded bg-primary text-on-primary font-body-md font-bold text-[12px] flex items-center gap-2 disabled:opacity-60"
+            onClick={onConnect}
+            disabled={status === "connecting"}
+          >
+            <Icon name="add" className="text-[13px]" />
+            {status === "connecting" ? "Connecting…" : "Add account"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -276,11 +338,11 @@ const INITIAL_FEED = [
 const FEED_SYMBOLS = ["XAU/USD", "EUR/USD", "GBP/USD", "USD/JPY", "US30", "BTC/USD"];
 
 const AVAILABLE_PROVIDERS = [
-  { id: "meridian-swing", name: "Meridian Swing Desk", handle: "@meridian_fx", verified: true, winRate: 74, monthlyReturn: "+8.2%", followers: "2.1K", risk: "Low" },
-  { id: "atlas-fx", name: "Atlas FX Group", handle: "@atlas_group", verified: true, winRate: 68, monthlyReturn: "+11.4%", followers: "5.6K", risk: "Medium" },
-  { id: "nordic-precision", name: "Nordic Precision Trading", handle: "@nordic_prec", verified: true, winRate: 81, monthlyReturn: "+5.9%", followers: "980", risk: "Low" },
-  { id: "vega-options", name: "Vega Options Desk", handle: "@vega_desk", verified: false, winRate: 62, monthlyReturn: "+14.7%", followers: "3.4K", risk: "High" },
-  { id: "quiet-harbor", name: "Quiet Harbor Capital", handle: "@quietharbor", verified: true, winRate: 71, monthlyReturn: "+6.6%", followers: "1.3K", risk: "Low" },
+  { id: "meridian-swing", name: "Meridian Swing Desk", handle: "@meridian_fx", verified: true, rating: 4.8, winRate: 74, monthlyReturn: "+8.2%", followers: "2.1K", risk: "Low" },
+  { id: "atlas-fx", name: "Atlas FX Group", handle: "@atlas_group", verified: true, rating: 4.3, winRate: 68, monthlyReturn: "+11.4%", followers: "5.6K", risk: "Medium" },
+  { id: "nordic-precision", name: "Nordic Precision Trading", handle: "@nordic_prec", verified: true, rating: 4.9, winRate: 81, monthlyReturn: "+5.9%", followers: "980", risk: "Low" },
+  { id: "vega-options", name: "Vega Options Desk", handle: "@vega_desk", verified: false, rating: 3.6, winRate: 62, monthlyReturn: "+14.7%", followers: "3.4K", risk: "High" },
+  { id: "quiet-harbor", name: "Quiet Harbor Capital", handle: "@quietharbor", verified: true, rating: 4.5, winRate: 71, monthlyReturn: "+6.6%", followers: "1.3K", risk: "Low" },
 ];
 
 const OWN_ACCOUNTS = [
@@ -295,7 +357,7 @@ const MOBILE_TABS = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard" },
   { id: "copy", label: "Accounts", icon: "account_tree" },
   { id: "history", label: "History", icon: "receipt_long" },
-  { id: "self", label: "Settings", icon: "settings_input_component" },
+  { id: "self", label: "Settings", icon: "settings" },
 ];
 
 const TRADE_HISTORY = [
@@ -356,7 +418,7 @@ function initials(name) {
 /*  Main component                                                    */
 /* ------------------------------------------------------------------ */
 export default function CopyTradingDashboard() {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
   const [collapsed, setCollapsed] = useState(false);
   const [source, setSource] = useState("provider");
   const [sessions, setSessions] = useState(["London"]);
@@ -377,6 +439,23 @@ export default function CopyTradingDashboard() {
   const [followStatus, setFollowStatus] = useState({});
   const followTimers = useRef({});
   const [selectedOwnAccounts, setSelectedOwnAccounts] = useState(["ic-markets-live"]);
+  const [masterAccountId, setMasterAccountId] = useState("ftmo-challenge-2");
+  // which platform each source card has selected — was previously a dead <select>
+  const [platformBySource, setPlatformBySource] = useState({
+    provider: "cTrader",
+    "self-copy": "cTrader",
+    telegram: "Channel",
+  });
+  // the account you copy trades FROM (follower side: Copy trading / Self copying)
+  const [accountStatus, setAccountStatus] = useState("disconnected"); // disconnected | connecting | connected
+  const [accountId, setAccountId] = useState("");
+  const [accountPlatform, setAccountPlatform] = useState("cTrader");
+  // the account you broadcast trades FROM (provider side: Provider studio) —
+  // deliberately separate from the state above, since these are two different
+  // real-world accounts and connecting one must not silently "connect" the other
+  const [providerAccountStatus, setProviderAccountStatus] = useState("disconnected");
+  const [providerAccountId, setProviderAccountId] = useState("");
+  const [providerAccountPlatform, setProviderAccountPlatform] = useState("cTrader");
 
   // provider studio — the current user's own signal-service side of the business
   const [serviceName, setServiceName] = useState("Alex Warren Momentum Desk");
@@ -450,6 +529,16 @@ export default function CopyTradingDashboard() {
   };
 
   const activeSource = useMemo(() => SOURCES.find((s) => s.id === source), [source]);
+  const needsAccountConnect = (source === "provider" || source === "self-copy") && accountStatus !== "connected";
+  const needsMasterAccount = source === "self-copy" && !masterAccountId;
+  const masterAccount = useMemo(
+    () => OWN_ACCOUNTS.find((a) => a.id === masterAccountId),
+    [masterAccountId]
+  );
+  const startBlockers = [
+    needsAccountConnect && "Add and connect a trading account above before you can start mirroring.",
+    needsMasterAccount && "Declare a master account below before you can start mirroring.",
+  ].filter(Boolean);
 
   const filteredProviders = useMemo(() => {
     const q = providerQuery.trim().toLowerCase();
@@ -506,12 +595,65 @@ export default function CopyTradingDashboard() {
   // provider studio — accepting/declining people who want to follow *your* service
   // adding your own account to the mirror group is instant — it's your own
   // account, so there's no one else who needs to approve it
+  // simulates the cTrader OAuth handshake — a real integration would redirect
+  // to cTrader ID and come back with an access token instead of a timeout
+  const connectAccount = () => {
+    setAccountStatus("connecting");
+    setToast(
+      accountPlatform === "cTrader"
+        ? "Redirecting to cTrader ID to authorize access..."
+        : `Connecting to your ${accountPlatform} account...`
+    );
+    setTimeout(() => {
+      const id = String(Math.floor(1000000 + Math.random() * 8999999));
+      setAccountId(id);
+      setAccountStatus("connected");
+      setToast(`${accountPlatform} account ${id} connected.`);
+    }, 1800);
+  };
+
+  const disconnectAccount = () => {
+    setAccountStatus("disconnected");
+    setAccountId("");
+    setToast(`${accountPlatform} account disconnected.`);
+  };
+
+  // same simulated handshake, but for the account you broadcast trades FROM
+  const connectProviderAccount = () => {
+    setProviderAccountStatus("connecting");
+    setToast(
+      providerAccountPlatform === "cTrader"
+        ? "Redirecting to cTrader ID to authorize access..."
+        : `Connecting to your ${providerAccountPlatform} account...`
+    );
+    setTimeout(() => {
+      const id = String(Math.floor(1000000 + Math.random() * 8999999));
+      setProviderAccountId(id);
+      setProviderAccountStatus("connected");
+      setToast(`${providerAccountPlatform} account ${id} connected.`);
+    }, 1800);
+  };
+
+  const disconnectProviderAccount = () => {
+    setProviderAccountStatus("disconnected");
+    setProviderAccountId("");
+    setToast(`${providerAccountPlatform} account disconnected.`);
+  };
+
   const toggleOwnAccount = (account) => {
     setSelectedOwnAccounts((prev) => {
       const isSelected = prev.includes(account.id);
       setToast(isSelected ? `${account.name} removed from the mirror group.` : `${account.name} added to the mirror group.`);
       return isSelected ? prev.filter((id) => id !== account.id) : [...prev, account.id];
     });
+  };
+
+  // the master account is the single source whose trades get mirrored —
+  // it can't also be a mirror destination, so drop it from that list if present
+  const setMasterAccount = (account) => {
+    setMasterAccountId(account.id);
+    setSelectedOwnAccounts((prev) => prev.filter((id) => id !== account.id));
+    setToast(`${account.name} set as your master account.`);
   };
 
   const acceptFollowRequest = (req) => {
@@ -535,11 +677,15 @@ export default function CopyTradingDashboard() {
   };
 
   const handleStart = () => {
-    if (!agreed) return;
+    if (!agreed || startBlockers.length > 0) return;
     setMirroring((m) => !m);
     setToast(
       mirroring
         ? "Mirroring stopped."
+        : source === "self-copy" && masterAccount
+        ? `Mirroring started — copying trades from ${masterAccount.name} to ${selectedOwnAccounts.length} account${
+            selectedOwnAccounts.length === 1 ? "" : "s"
+          }.`
         : `Mirroring started — copying trades from ${activeSource?.title ?? "your source"}.`
     );
   };
@@ -864,6 +1010,23 @@ export default function CopyTradingDashboard() {
                       </select>
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <label className="font-label-xs text-on-surface opacity-70 uppercase block">Add account</label>
+                    <AddAccountCard
+                      platform={providerAccountPlatform}
+                      onPlatformChange={setProviderAccountPlatform}
+                      status={providerAccountStatus}
+                      accountId={providerAccountId}
+                      onConnect={connectProviderAccount}
+                      onDisconnect={disconnectProviderAccount}
+                    />
+                    {providerAccountStatus !== "connected" && (
+                      <p className="flex items-center gap-1.5 text-[11px] text-error font-body-md">
+                        <Icon name="info" className="text-[13px]" />
+                        Followers can't be mirrored from this service until your account is connected.
+                      </p>
+                    )}
+                  </div>
                   <div>
                     <label className="font-label-xs text-on-surface opacity-70 uppercase block mb-1">
                       Strategy description (shown to prospective followers)
@@ -975,10 +1138,7 @@ export default function CopyTradingDashboard() {
                       <div key={fb.id} className="p-4 border border-surface-container-highest rounded-lg">
                         <div className="flex items-center justify-between mb-1">
                           <p className="font-body-md font-bold text-on-surface">{fb.name}</p>
-                          <span className="text-primary text-[13px] leading-none">
-                            {"★".repeat(fb.rating)}
-                            <span className="opacity-30">{"★".repeat(5 - fb.rating)}</span>
-                          </span>
+                          <Stars rating={fb.rating} />
                         </div>
                         <p className="text-on-surface opacity-70 font-body-md text-[12px]">{fb.comment}</p>
                         <p className="text-on-surface opacity-40 text-[9px] mt-1 font-dm-mono">{fb.date}</p>
@@ -1070,6 +1230,8 @@ export default function CopyTradingDashboard() {
                         </div>
                         <select
                           className="mt-auto bg-surface border border-surface-container-highest text-on-surface font-body-md py-1 px-2 rounded w-full text-sm"
+                          value={platformBySource[s.id]}
+                          onChange={(e) => setPlatformBySource((prev) => ({ ...prev, [s.id]: e.target.value }))}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {s.options.map((o) => (
@@ -1080,6 +1242,20 @@ export default function CopyTradingDashboard() {
                     ))}
                   </div>
                 </section>
+
+                {(source === "provider" || source === "self-copy") && (
+                  <section>
+                    <p className="font-label-xs text-on-surface opacity-70 mb-4 uppercase">Step 2 — Add account</p>
+                    <AddAccountCard
+                      platform={accountPlatform}
+                      onPlatformChange={setAccountPlatform}
+                      status={accountStatus}
+                      accountId={accountId}
+                      onConnect={connectAccount}
+                      onDisconnect={disconnectAccount}
+                    />
+                  </section>
+                )}
 
                 {/* Search */}
                 <section>
@@ -1110,35 +1286,61 @@ export default function CopyTradingDashboard() {
                       <div className="flex items-center justify-between">
                         <span className="font-label-xs text-on-surface opacity-70 uppercase">Your accounts</span>
                         <span className="font-label-xs text-on-surface opacity-50">
-                          {selectedOwnAccounts.length} in mirror group
+                          {masterAccount ? `mirroring to ${selectedOwnAccounts.length}` : "no master set"}
                         </span>
                       </div>
+                      <p className="font-body-md text-on-surface opacity-70 text-[12px] leading-snug">
+                        Declare one account as the master — its trades get copied into whichever other accounts you
+                        mark as mirrors.
+                      </p>
                       <div className="border border-surface-container-highest rounded-lg divide-y divide-surface-container-highest overflow-hidden">
                         {OWN_ACCOUNTS.map((a) => {
-                          const isSelected = selectedOwnAccounts.includes(a.id);
+                          const isMaster = masterAccountId === a.id;
+                          const isMirrorTarget = selectedOwnAccounts.includes(a.id);
                           return (
-                            <div key={a.id} className="ct-account-row p-4 flex items-center justify-between">
-                              <div className="flex items-center gap-3">
+                            <div key={a.id} className="ct-account-row p-4 flex items-center justify-between gap-3 flex-wrap">
+                              <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-9 h-9 flex items-center justify-center bg-surface-container-highest text-on-surface font-bold rounded shrink-0 text-[11px]">
                                   {initials(a.name)}
                                 </div>
-                                <div>
-                                  <p className="font-body-md font-bold leading-tight">{a.name}</p>
-                                  <p className="text-[9px] text-on-surface opacity-70 font-dm-mono">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-body-md font-bold leading-tight truncate">{a.name}</p>
+                                    {isMaster && (
+                                      <span className="px-1.5 py-0.5 rounded bg-primary-container text-on-primary-container text-[8px] font-bold uppercase shrink-0">
+                                        Master
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[9px] text-on-surface opacity-70 font-dm-mono truncate">
                                     {a.platform} • {a.broker} • {a.balance} balance
                                   </p>
                                 </div>
                               </div>
-                              <button
-                                className={`shrink-0 px-4 py-1.5 rounded border font-body-md font-bold text-[12px] ${
-                                  isSelected
-                                    ? "bg-tertiary text-on-tertiary border-tertiary"
-                                    : "bg-transparent text-on-surface border-surface-container-highest"
-                                }`}
-                                onClick={() => toggleOwnAccount(a)}
-                              >
-                                {isSelected ? "Selected" : "Add to mirror"}
-                              </button>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  className={`px-3 py-1.5 rounded border font-body-md font-bold text-[11px] ${
+                                    isMaster
+                                      ? "bg-primary text-on-primary border-primary"
+                                      : "bg-transparent text-on-surface border-surface-container-highest"
+                                  }`}
+                                  onClick={() => setMasterAccount(a)}
+                                >
+                                  {isMaster ? "Master account" : "Set as master"}
+                                </button>
+                                {!isMaster && (
+                                  <button
+                                    className={`px-3 py-1.5 rounded border font-body-md font-bold text-[11px] ${
+                                      isMirrorTarget
+                                        ? "bg-tertiary text-on-tertiary border-tertiary"
+                                        : "bg-transparent text-on-surface border-surface-container-highest"
+                                    }`}
+                                    onClick={() => toggleOwnAccount(a)}
+                                  >
+                                    {isMirrorTarget ? "Mirroring" : "Add as mirror"}
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
@@ -1167,6 +1369,10 @@ export default function CopyTradingDashboard() {
                                 <div className="flex items-center gap-1.5">
                                   <p className="font-body-md font-bold leading-tight">{p.name}</p>
                                   {p.verified && <Icon name="verified" className="text-tertiary text-[13px]" />}
+                                </div>
+                                <div className="flex items-center gap-1.5 my-0.5">
+                                  <Stars rating={p.rating} size="11px" />
+                                  <span className="font-dm-mono text-[9px] text-on-surface opacity-60">{p.rating.toFixed(1)}</span>
                                 </div>
                                 <p className="text-[9px] text-on-surface opacity-70 font-dm-mono">
                                   {p.winRate}% win • {p.monthlyReturn} 30D • {p.followers} followers • {p.risk} risk
@@ -1315,13 +1521,19 @@ export default function CopyTradingDashboard() {
                     </div>
                   </div>
 
+                  {startBlockers.map((msg) => (
+                    <p key={msg} className="mb-3 flex items-center gap-1.5 text-[11px] text-error font-body-md">
+                      <Icon name="info" className="text-[13px]" />
+                      {msg}
+                    </p>
+                  ))}
                   <button
                     className={`ct-start-btn w-full md:w-auto px-8 py-3 font-body-md font-bold rounded flex items-center justify-center gap-3 border ${
-                      agreed
+                      agreed && startBlockers.length === 0
                         ? "bg-primary text-on-primary border-primary cursor-pointer"
                         : "bg-surface-container-highest text-on-surface border-surface-container-highest opacity-50 cursor-not-allowed"
                     }`}
-                    disabled={!agreed}
+                    disabled={!agreed || startBlockers.length > 0}
                     onClick={handleStart}
                   >
                     <Icon name={mirroring ? "stop" : "play_arrow"} filled />
@@ -1430,17 +1642,20 @@ export default function CopyTradingDashboard() {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 w-full z-40 flex justify-around items-stretch h-16 md:hidden bg-surface border-t border-surface-container-highest">
+      <nav
+        className="fixed bottom-0 left-0 w-full z-40 flex justify-around items-stretch h-16 md:hidden bg-surface border-t border-surface-container-highest"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         {MOBILE_TABS.map((t) => (
           <button
             key={t.id}
-            className={`ct-mobile-tab flex flex-col items-center justify-center flex-1 ${
-              activePage === t.id ? "active text-on-surface" : "text-on-surface opacity-70"
+            className={`ct-mobile-tab flex flex-col items-center justify-center gap-1 flex-1 ${
+              activePage === t.id ? "active text-primary" : "text-on-surface-variant"
             }`}
             onClick={() => setActivePage(t.id)}
           >
-            <Icon name={t.icon} />
-            <span className="font-label-xs uppercase">{t.label}</span>
+            <Icon name={t.icon} className="text-[19px]" />
+            <span className="font-label-xs uppercase leading-none">{t.label}</span>
           </button>
         ))}
       </nav>
