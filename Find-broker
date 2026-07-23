@@ -1,0 +1,329 @@
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const RECOMMENDED_BROKERS = [
+  {
+    id: "ibkr",
+    name: "Interactive Brokers",
+    tagline: "Global market access with institutional-grade pricing",
+    category: "Stocks, Options & Futures",
+    signupUrl: "https://www.interactivebrokers.com",
+    perk: "Low commissions & robust API access",
+    rating: "4.9",
+    beginnerFriendly: "Intermediate to Advanced",
+    beginnerScore: "Moderate",
+    apiUsability: "High (REST API, Client Portal API)",
+    minDeposit: "$0",
+    journalSyncMethod: "Direct Read-Only API",
+    brief: "Interactive Brokers is the premier choice for serious traders seeking global market access, tight spreads, and automated trade syncing. While the platform has a learning curve for complete beginners, its robust API connectivity makes trade journaling seamless.",
+    highlights: [
+      "Auto-sync trades via official IBKR API",
+      "Global stocks, options, futures & forex",
+      "Tiered low-commission pricing structure",
+      "Institutional-grade order execution"
+    ]
+  },
+  {
+    id: "tradovate",
+    name: "Tradovate",
+    tagline: "Cloud-based futures trading built for active day traders",
+    category: "Futures",
+    signupUrl: "https://www.tradovate.com",
+    perk: "Flat-rate membership plans",
+    rating: "4.8",
+    beginnerFriendly: "Beginner Friendly",
+    beginnerScore: "High",
+    apiUsability: "Very Easy (Cloud API & Webhook)",
+    minDeposit: "$250",
+    journalSyncMethod: "Automated Cloud API",
+    brief: "Tradovate is built specifically for modern futures day traders. Its intuitive cloud interface makes it extremely accessible for beginners, while its fast API allows real-time execution syncing into your trade journal.",
+    highlights: [
+      "Customizable cloud trading interface",
+      "Flat membership plans to cut trading fees",
+      "Real-time market data & tick charts",
+      "Instant trade history export & sync"
+    ]
+  },
+  {
+    id: "schwab",
+    name: "Charles Schwab (thinkorswim)",
+    tagline: "Industry-standard platform for complex options traders",
+    category: "Stocks & Options",
+    signupUrl: "https://www.schwab.com",
+    perk: "$0 commission stock trades",
+    rating: "4.8",
+    beginnerFriendly: "Beginner Friendly",
+    beginnerScore: "High",
+    apiUsability: "Easy (Schwab API & CSV Imports)",
+    minDeposit: "$0",
+    journalSyncMethod: "API OAuth & CSV Import",
+    brief: "Schwab's thinkorswim platform is an industry benchmark for options analysis and stock trading. It offers rich educational resources for beginners alongside smooth account integration for trade tracking.",
+    highlights: [
+      "Zero commission stock & ETF trades",
+      "PaperMoney practice trading account",
+      "Advanced options analytics & risk charts",
+      "Comprehensive research and education"
+    ]
+  },
+  {
+    id: "icmarkets",
+    name: "IC Markets",
+    tagline: "True raw spread broker for forex and index CFDs",
+    category: "Forex & CFDs",
+    signupUrl: "https://www.icmarkets.com",
+    perk: "Spreads from 0.0 pips",
+    rating: "4.7",
+    beginnerFriendly: "Beginner Friendly",
+    beginnerScore: "High",
+    apiUsability: "Easy (MT4/MT5 Investor Key & cTrader API)",
+    minDeposit: "$200",
+    journalSyncMethod: "Read-Only MT4/5 Investor Pass",
+    brief: "IC Markets delivers raw spreads and low-latency execution for currency and CFD traders. Linking MetaTrader 4/5 or cTrader to your journal is quick using read-only investor keys.",
+    highlights: [
+      "Spreads starting as low as 0.0 pips",
+      "Deep liquidity with ultra-fast execution",
+      "Supports MT4, MT5, and cTrader",
+      "Ideal for forex micro-lot & automated strategies"
+    ]
+  },
+  {
+    id: "bybit",
+    name: "Bybit",
+    tagline: "High-speed crypto spot and derivatives trading platform",
+    category: "Crypto",
+    signupUrl: "https://www.bybit.com",
+    perk: "Deep liquidity & low taker fees",
+    rating: "4.7",
+    beginnerFriendly: "Beginner Friendly",
+    beginnerScore: "High",
+    apiUsability: "Very Easy (V5 Unified Read-Only API)",
+    minDeposit: "$0",
+    journalSyncMethod: "Read-Only API Key",
+    brief: "Bybit is a leading global crypto exchange offering spot trading and perpetual contracts. Generating a read-only API key takes less than a minute, enabling effortless real-time sync with your journal.",
+    highlights: [
+      "Instant read-only API key generation",
+      "Low maker and taker fee structures",
+      "High liquidity on 300+ crypto pairs",
+      "24/7 market access with robust security"
+    ]
+  }
+];
+
+export default function App() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedBroker, setSelectedBroker] = useState(RECOMMENDED_BROKERS[0]);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#0A1120] text-slate-100 flex flex-col items-center justify-center p-4 md:p-8 selection:bg-[#C5A880] selection:text-black">
+      {/* Google Fonts - Modern Variable Playfair with Optical Sizing & Playfair Display SC */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;600;700&family=Playfair:ital,opsz,wght@0,5..120,400..900;1,5..120,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        .font-playfair {
+          font-family: 'Playfair', serif;
+          font-optical-sizing: auto;
+        }
+        .font-playfair-sc {
+          font-family: 'Playfair Display SC', serif;
+        }
+        .font-sans-ui {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+      `}</style>
+
+      {/* Main Container */}
+      <main className="w-full max-w-xl space-y-5 font-sans-ui">
+        
+        {/* Subtitle Instructions */}
+        <p className="text-center text-slate-400 text-xs md:text-sm font-light max-w-md mx-auto leading-relaxed">
+          Select a broker below to view details or open an account to begin syncing your trades.
+        </p>
+
+        {/* Dropdown Container */}
+        <div className="relative" ref={dropdownRef}>
+          
+          {/* Dropdown Trigger Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full bg-[#111A2E] hover:bg-[#16223B] border border-[#1E2D4A] hover:border-[#C5A880]/50 transition-all duration-300 rounded-xl p-4 flex items-center justify-between text-left group shadow-2xl"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#C5A880] shrink-0" />
+              <div className="min-w-0">
+                <span className="font-playfair font-semibold text-xl text-white block truncate tracking-tight">
+                  {selectedBroker.name}
+                </span>
+                <span className="text-xs text-slate-400 block truncate font-light mt-0.5">
+                  {selectedBroker.category} • {selectedBroker.perk}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs text-[#C5A880] group-hover:underline hidden sm:inline font-medium">
+                {isOpen ? "Close List ↑" : "Browse All ↓"}
+              </span>
+              <div className={`text-slate-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
+                ↓
+              </div>
+            </div>
+          </button>
+
+          {/* Options Menu */}
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="absolute left-0 right-0 top-full mt-2 bg-[#111A2E] border border-[#1E2D4A] rounded-xl shadow-2xl overflow-hidden z-50 divide-y divide-[#1B2943]"
+              >
+                <div className="p-2 space-y-1">
+                  {RECOMMENDED_BROKERS.map((broker) => {
+                    const isSelected = selectedBroker.id === broker.id;
+                    return (
+                      <div
+                        key={broker.id}
+                        onClick={() => {
+                          setSelectedBroker(broker);
+                          setIsOpen(false);
+                        }}
+                        className={`p-3.5 rounded-lg transition-all cursor-pointer flex items-center justify-between gap-4 group ${
+                          isSelected
+                            ? "bg-[#18253D] border border-[#C5A880]/40"
+                            : "hover:bg-[#152037]"
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-playfair font-medium text-lg text-white group-hover:text-[#C5A880] transition-colors">
+                              {broker.name}
+                            </h3>
+                            <span className="text-[10px] font-playfair-sc bg-[#1E2D4A] text-slate-300 px-2 py-0.5 rounded tracking-wider">
+                              {broker.category}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 font-light truncate mt-0.5">
+                            {broker.tagline}
+                          </p>
+                        </div>
+
+                        <div className="shrink-0 flex items-center gap-1.5 text-xs text-[#C5A880] font-medium group-hover:translate-x-0.5 transition-transform">
+                          <span>Select & Brief</span>
+                          <span>→</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Selected Broker Details Card */}
+        <motion.div 
+          key={selectedBroker.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="bg-[#111A2E] border border-[#1E2D4A] rounded-xl p-6 space-y-5 shadow-xl relative overflow-hidden"
+        >
+          {/* Top Title & Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E2D4A] pb-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-playfair-sc bg-[#C5A880]/15 text-[#C5A880] px-2.5 py-0.5 rounded tracking-widest font-semibold">
+                  {selectedBroker.category}
+                </span>
+                <span className="text-xs text-slate-400">
+                  Rating: <strong className="text-white font-medium">★ {selectedBroker.rating}</strong>
+                </span>
+              </div>
+              <h2 className="font-playfair font-bold text-2xl md:text-3xl text-white tracking-tight">
+                {selectedBroker.name}
+              </h2>
+            </div>
+            
+            {/* Primary Signup Button */}
+            <a
+              href={selectedBroker.signupUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#C5A880] hover:bg-[#d8b88d] text-black text-xs font-semibold px-5 py-2.5 rounded-md transition-all shadow-lg flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-center"
+            >
+              Sign Up Now <span>→</span>
+            </a>
+          </div>
+
+          {/* About / Brief Section */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-playfair-sc tracking-widest text-[#C5A880] font-semibold">
+              About & Overview
+            </h4>
+            <p className="text-slate-300 text-xs md:text-sm font-light leading-relaxed">
+              {selectedBroker.brief}
+            </p>
+          </div>
+
+          {/* Quick Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#0A1120] p-3.5 rounded-lg border border-[#1E2D4A]/60 text-xs">
+            <div>
+              <span className="text-slate-400 block text-[11px] mb-0.5">Beginner Friendly</span>
+              <span className="text-slate-100 font-medium">{selectedBroker.beginnerFriendly}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px] mb-0.5">API Usability</span>
+              <span className="text-[#C5A880] font-medium">{selectedBroker.apiUsability}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px] mb-0.5">Min Deposit</span>
+              <span className="text-slate-100 font-medium">{selectedBroker.minDeposit}</span>
+            </div>
+          </div>
+
+          {/* Key Highlights */}
+          <div className="space-y-2 pt-1">
+            <h4 className="text-xs font-playfair-sc tracking-widest text-slate-400 font-semibold">
+              Key Highlights for Journaling
+            </h4>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 font-light">
+              {selectedBroker.highlights.map((highlight, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="text-[#C5A880] text-sm leading-none">•</span>
+                  <span>{highlight}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Bottom Call-to-Action Bar */}
+          <div className="pt-3 border-t border-[#1E2D4A]/50 flex items-center justify-between text-xs text-slate-400">
+            <span>Ready to start trading?</span>
+            <a
+              href={selectedBroker.signupUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#C5A880] hover:underline font-medium flex items-center gap-1"
+            >
+              Open account on {selectedBroker.name} →
+            </a>
+          </div>
+        </motion.div>
+
+      </main>
+    </div>
+  );
+}
